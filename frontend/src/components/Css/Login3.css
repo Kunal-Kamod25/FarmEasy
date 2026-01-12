@@ -48,7 +48,7 @@ form {
 .form input {
   border-radius: 10px;
   border: 0;
-  background: #1f1b2b;
+  background: #f9f9f9;
   padding: 14px 12px;
 }
 
@@ -58,7 +58,7 @@ form {
   border-radius: 32px;
   color: #f9f9f9;
   width: 160px;
-  background: #8d00ff;
+  background: #0FBA0F;
 }
 
 @media (max-width: 768px) {

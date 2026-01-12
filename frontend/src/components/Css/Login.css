@@ -4,7 +4,7 @@
     width: 660px;
     height: 440px;
     border-radius: 16px;
-    background: #141317;
+    background: #ffff;
 }
 
 .card-bg {
@@ -12,7 +12,7 @@
     z-index: 2;
     inset: 0;
     width: 50%;
-    background: #8d00ff;
+    background: #0FBA0F;
     translate: 0 0;
     transition: 0.65s;
 }
