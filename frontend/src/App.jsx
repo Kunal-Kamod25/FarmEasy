@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./components/Layout/UserLayout";
 import Register from "./components/Common/RegisterPage.jsx";
-import Login from "./components/Common/LoginPage.jsx";
+import { Login } from "./components/Common/Login.jsx";
+
 
 const App = () => {
   return (
