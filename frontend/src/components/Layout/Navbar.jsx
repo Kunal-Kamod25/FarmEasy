@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { HiOutlineUser , HiBars3BottomRight, HiOutlineShoppingCart } from "react-icons/hi2";
-import Searchbar from "./Searchbar";
-import LanguageSwitcher from "./LanguageSwitcher";
-import AiSpeechOrder from "./AiSpeechOrder";
-import CartDrawer from "../Layout/CartDrawer";
+import Searchbar from "../Common/Searchbar";
+import LanguageSwitcher from "../Common/LanguageSwitcher";
+import AiSpeechOrder from "../Common/AiSpeechOrder";
+import CartDrawer from "./CartDrawer";
 
 const Navbar = () => { 
 const [drawerOpen, setDrawerOpen] = useState(true);
@@ -16,41 +16,36 @@ const [drawerOpen, setDrawerOpen] = useState(true);
 
     const [ isMobileMenuOpen, setIsMobileMenuOpen ] = useState(false);
     return (
-        <div className="bg-[#181818] text-white">
+        <div className="bg-[#181818] text-white gap-4">
         <nav className="container mx-auto flex items-center justify-between py-1 px-6">
     
         {/* Left - Logo */}
         <div className="pl-1 flex items-center px-8 h-15 ">
             <Link to={"/"}><img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" /></Link>
         </div>
-        {/* Center - Navigation Links */}
-        <div className="hidden md:flex space-x-4 flex-grow">
-            <Link to="#" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase ">Brands</Link>
-            <Link to="#" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase ">Fertilizers</Link>
-            <Link to="#" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase ">Equipment</Link>
-            <Link to="#" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase ">seeds</Link>
-            <Link to="#" className="font-inter text-2xltext-white hover:text-green-500 text-sm font-medium uppercase ">irrigation</Link>
-        </div>
-
+  
         {/* Right - section */}
-        
+        <div className="flex items-center gap-3">
         {/* Ai-Speech Order */}
-        <AiSpeechOrder className="hidden md:block mr-6" />
+        <AiSpeechOrder className="hidden md:block mr-6 items-right" />
         
         {/* 🌐 Language Switcher (ADDED) */}
-          <LanguageSwitcher className="hidden md:block mr-6" />
+          <LanguageSwitcher className="hidden md:block mr-6 items-right" />
 
           {/* signup / Login */}
           
           <div className="md:flex space-x-4 font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase text-right-2 px-2 py-0.5">
-            <Link to="/Register" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Signup</Link></div>
+            <Link to="/Register" 
+            className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Signup</Link></div>
 
           <div className="md:flex space-x-4 font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase text-right-2 px-2 py-0.5">
-            <Link to="/login" className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Login</Link></div>
+            <Link to="/login" 
+            className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Login</Link></div>
         
-        <div className="flex items-center space-x-4 py-0.5">
+          <div className="flex items-center space-x-4 py-0.5">
              <Link to="/profile" className="text-black hover:text-gray-300 ">
-             <HiOutlineUser className="h-6 w-6 text-white inline-block mr-1 hover:text-green-500 " />
+             <HiOutlineUser 
+             className="h-6 w-6 text-white inline-block mr-1 hover:text-green-500 " />
              </Link>
              
              <button onClick={toggleCartDrawer} className="relative hover:text-black">
@@ -72,6 +67,7 @@ const [drawerOpen, setDrawerOpen] = useState(true);
             >
                 <HiBars3BottomRight className="h-6 w-6 hover:text-green-500" />
             </button>
+        </div>
         </div>
         </nav>
         
