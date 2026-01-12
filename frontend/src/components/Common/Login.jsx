@@ -193,7 +193,7 @@ export const Login = () => {
         <input type="text" placeholder="Username" />
         <input type="email" placeholder="Email" />
         <input type="password" placeholder="Password" />
-        <button>SIGN UP</button>
+        <button className="hover:underline cursor-pointer">SIGN UP</button>
       </AuthForm>
 
       <Hero
@@ -212,7 +212,7 @@ export const Login = () => {
       >
         <input type="text" placeholder="Email / Username" />
         <input type="password" placeholder="Password" />
-        <button>SIGN IN</button>
+        <button className="hover:underline cursor-pointer">SIGN IN</button>
       </AuthForm>
     </div>
   </div>
