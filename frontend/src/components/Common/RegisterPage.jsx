@@ -58,44 +58,72 @@ const Register = () => {
 
           <form className="space-y-5">
             
-            {/* Name */}
-            <div>
-              <label className="block mb-1 font-medium">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Ramesh Kumar"
-                  className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
-                />
+            {/* Name & Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Full Name */}
+              <div>
+                <label className="block mb-1 font-medium">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Ramesh Kumar"
+                    className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
               </div>
+
+              {/* Email */}
+              <div>
+                <label className="block mb-1 font-medium">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder="farmer@email.com"
+                    className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+              </div>
+
             </div>
 
-            {/* Email */}
-            <div>
-              <label className="block mb-1 font-medium">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="farmer@email.com"
-                  className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
-                />
+            {/* Password & Confirm Password */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Password */}
+              <div>
+                <label className="block mb-1 font-medium">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
+                    placeholder="Minimum 6 characters"
+                    className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
               </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block mb-1 font-medium">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
+                    placeholder="Confirm password"
+                    className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+              </div>
+
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block mb-1 font-medium">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="password"
-                  placeholder="Minimum 6 characters"
-                  className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            </div>
 
             {/* Role */}
             <div>
