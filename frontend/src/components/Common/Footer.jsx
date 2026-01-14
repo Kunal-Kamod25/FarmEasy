@@ -18,7 +18,7 @@ const Footer = () => {
         
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 lg:px-0">
             <div>
-                <h3 className="px-4 stext-lg text-gray-800 mb-4">NewsLetter</h3>
+                <h3 className="px-4 stext-lg text-bold text-gray-800 mb-4">NewsLetter</h3>
                     <p className=" px-4 text-gray-500 mb-4 text-inter text-sm">
                         Browse thousands of products from trusted vendors. 
                         Quality equipment, seeds, fertilizers, and 
@@ -72,7 +72,7 @@ const Footer = () => {
                         <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">About Us</Link>
                     </li>
                     <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Irrigation</Link>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Features</Link>
                     </li>
 
                 </ul>
