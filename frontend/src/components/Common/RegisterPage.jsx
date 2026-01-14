@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sprout, Mail, Lock, User, Store } from "lucide-react";
 // import logo from "../../assets/Logo.png";
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const [role, setRole] = useState("customer");
@@ -10,7 +11,7 @@ const Register = () => {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       
       {/* LEFT – Branding / Info */}
-      <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-green-700 to-emerald-900 text-white p-10">
+      <div className="text-inter hidden lg:flex items-center justify-center bg-gradient-to-br from-green-700 to-emerald-900 text-white p-10">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -18,22 +19,22 @@ const Register = () => {
         >
           <Sprout className="w-24 h-24 mx-auto mb-6 text-white/90" />
 
-          <h2 className="text-4xl font-tinos font-bold mb-4">
+          <h2 className="font-inter text-4xl font-bold mb-4">
             Join FarmEasy
           </h2>
 
-          <p className="text-lg text-green-100 mb-8">
+          <p className="text-inter text-lg text-green-100 mb-8">
             India’s trusted agricultural marketplace for farmers and vendors.
           </p>
 
           <ul className="space-y-4 text-left">
             <li className="flex items-start gap-3">
               <Sprout className="w-5 h-5 mt-1" />
-              <span>Verified seeds, tools & fertilizers</span>
+              <span   className="text-inter">Verified seeds, tools & fertilizers</span>
             </li>
             <li className="flex items-start gap-3">
               <Store className="w-5 h-5 mt-1" />
-              <span>Sell directly to genuine buyers</span>
+              <span className="text-inter">Sell directly to genuine buyers</span>
             </li>
           </ul>
         </motion.div>
@@ -49,10 +50,10 @@ const Register = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
-          <h1 className="text-3xl font-tinos font-bold mb-2 text-center">
+          <h1 className="text-3xl text-inter font-bold mb-2 text-center">
             Create Your Account
           </h1>
-          <p className="text-center text-gray-600 mb-8">
+          <p className="text-center text-inter text-gray-600 mb-8">
             Start your journey with FarmEasy
           </p>
 
@@ -63,12 +64,12 @@ const Register = () => {
               
               {/* Full Name */}
               <div>
-                <label className="block mb-1 font-medium">Full Name</label>
+                <label className=" text-lora block mb-1 font-medium">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <User className="text-sm text-lora absolute left-3 top-1/2 -translate-y-1/2 text-gray-400  " />
                   <input
                     type="text"
-                    placeholder="Ramesh Kumar"
+                    placeholder="Shravani Pilane"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
                   />
@@ -179,9 +180,12 @@ const Register = () => {
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
-            <span className="text-green-600 cursor-pointer font-medium">
+            <Link 
+              to="/Login" 
+              className="text-green-600 cursor-pointer font-medium hover:text-green-700 transition"
+            >
               Sign In
-            </span>
+            </Link>
           </p>
         </motion.div>
       </div>

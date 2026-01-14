@@ -16,7 +16,7 @@ const [drawerOpen, setDrawerOpen] = useState(true);
 
     const [ isMobileMenuOpen, setIsMobileMenuOpen ] = useState(false);
     return (
-        <div className="bg-[#181818] text-white gap-4">
+        <div className="sticky top-0 z-50 bg-[#181818] text-white gap-4">
         <nav className="container mx-auto flex items-center justify-between py-1 px-6">
     
         {/* Left - Logo */}

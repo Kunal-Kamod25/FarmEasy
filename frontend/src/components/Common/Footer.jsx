@@ -12,7 +12,7 @@ const Footer = () => {
                         Sign up and get free delivery of your first order.
                     </p>
                     {/* NewsLetter From */}
-                    <form className="flex ">
+                    <form className="px-4 flex ">
                     <input 
                     type="email" 
                     placeholder="Enter Your Email"
