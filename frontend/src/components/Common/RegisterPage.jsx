@@ -2,10 +2,58 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sprout, Mail, Lock, User, Store } from "lucide-react";
 // import logo from "../../assets/Logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [role, setRole] = useState("customer");
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gst_number: ""
+  });
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (formData.password !== formData.confirmPassword) {
+      return alert("Passwords do not match!");
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullname: formData.fullname,
+          email: formData.email,
+          password: formData.password,
+          role: role,
+          gst_number: role === "vendor" ? formData.gst_number : null
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Registration Successful!");
+        navigate("/Login"); // Redirect to login page after success
+      } else {
+        alert(data.message || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Could not connect to the server.");
+    }
+  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -57,7 +105,7 @@ const Register = () => {
             Start your journey with FarmEasy
           </p>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             
             {/* Name & Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,6 +117,9 @@ const Register = () => {
                   <User className="text-sm text-lora absolute left-3 top-1/2 -translate-y-1/2 text-gray-400  " />
                   <input
                     type="text"
+                    name="fullname"
+                    value={formData.fullname}
+                    onChange={handleChange}
                     placeholder="Shravani Pilane"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
@@ -83,6 +134,9 @@ const Register = () => {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="email"
+                    name="email"
+                    value={formData.email} 
+                    onChange={handleChange} 
                     placeholder="farmer@email.com"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
@@ -102,6 +156,9 @@ const Register = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
                     placeholder="Minimum 6 characters"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
@@ -116,6 +173,9 @@ const Register = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     placeholder="Confirm password"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
@@ -163,6 +223,9 @@ const Register = () => {
                 <label className="block mb-1 font-medium">GST Number</label>
                 <input
                   type="text"
+                  name="gst_number"
+                  value={formData.gst_number}
+                  onChange={handleChange}
                   placeholder="Enter GST Number"
                   className="w-full h-12 border rounded-md px-3 focus:ring-2 focus:ring-green-500"
                 />
@@ -172,7 +235,7 @@ const Register = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full h-12 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
+              className="w-full h-12 bg-[#2e7d32] text-white font-semibold rounded-md hover:bg-green-700 transition"
             >
               Create Account
             </button>
@@ -182,7 +245,7 @@ const Register = () => {
             Already have an account?{" "}
             <Link 
               to="/Login" 
-              className="text-green-600 cursor-pointer font-medium hover:text-green-700 transition"
+              className="text-green-600 cursor-pointer font-medium hover:text-green-700 transition hover:underline "
             >
               Sign In
             </Link>
