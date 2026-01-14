@@ -1,5 +1,21 @@
+import { Link } from "react-router-dom";
+import logo from "../../assets/logo.png";
+
 const Footer = () => {
-    return <footer className="border-t py-12">
+    return <footer className="border-t py-5">
+        <div className="px-4">
+            <div className="bg-black w-30 h-18 border border-gray-300 rounded flex items-center justify-center">
+                <Link to="/">
+                <img
+                    src={logo}
+                    alt="logo"
+                    className="pl-1 h-25 w-50 object-contain"
+                />
+                </Link>
+            </div>
+        </div>
+        
+        
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 lg:px-0">
             <div>
                 <h3 className="px-4 stext-lg text-gray-800 mb-4">NewsLetter</h3>
@@ -22,7 +38,46 @@ const Footer = () => {
                     </form>
             </div>
 
+            {/* Shop links */}
+            <div>
+                <h3 className="text-lg text-black mb-4">Shop</h3>
+                <ul className="space-y-2 text-gray-800">
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Fertilizers</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Seeds</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Equipments</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Irrigation</Link>
+                    </li>
+
+                </ul>
+            </div>
+
+            {/* Shop links */}
+            <div>
+                <h3 className="text-lg text-black mb-4">Customer Services</h3>
+                <ul className="space-y-2 text-gray-800">
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Support</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Contact Us</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">About Us</Link>
+                    </li>
+                    <li>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Irrigation</Link>
+                    </li>
+
+                </ul>
+            </div>
         </div>
-        </footer>
+    </footer>
 };
 export default Footer;
