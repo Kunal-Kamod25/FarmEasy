@@ -10,7 +10,7 @@ export default {
         primary: "#0FBA0F",
       },
       fontFamily: {
-        tinos: ["Tinos", "serif"],
+        tinos: ["Lora", "serif"],
       },
     },
   },

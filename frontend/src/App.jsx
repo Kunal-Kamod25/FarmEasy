@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./components/Layout/UserLayout";
 import Register from "./components/Common/RegisterPage.jsx";
 import Login from "./components/Common/Login";
+import Hero from "./components/Common/Hero";
 
 
 
