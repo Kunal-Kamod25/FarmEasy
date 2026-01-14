@@ -23,7 +23,7 @@ const [drawerOpen, setDrawerOpen] = useState(true);
         <div className="pl-1 flex items-center px-8 h-15 ">
             <Link to={"/"}><img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" /></Link>
         </div>
-  
+      
         {/* Right - section */}
         <div className="flex items-center gap-3">
         {/* Ai-Speech Order */}
