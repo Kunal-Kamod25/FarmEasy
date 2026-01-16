@@ -2,7 +2,7 @@ import React from 'react';
 
 const Hero = ({ title, subtitle, bgImage }) => {
   return (
-    <div className="relative w-full h-[450px] flex items-center px-10 overflow-hidden">
+    <div className="relative w-full h-[450px] flex items-center px-10 overflow-hidden scrollbar-hide">
       {/* Dynamic Background */}
       <img 
         src={bgImage || "https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=1600"} 
