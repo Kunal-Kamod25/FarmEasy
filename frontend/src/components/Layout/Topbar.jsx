@@ -35,11 +35,6 @@ Thanks
                        Call To Order: +91 7767859953 
                     </a>
                 </div>
-                {/* <div className="text-sm hidden md:block space-x-4">
-                    <a href="mailto:farmeasy25@gmail.com" className="hover:text-gray-300">
-                        farmeasy25@gmail.com
-                    </a>
-                </div> */}
             </div>
         </div>
 
