@@ -8,21 +8,51 @@ import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";
 
 const Navbar = () => { 
-const [drawerOpen, setDrawerOpen] = useState(true);
+  // ADD THESE THREE LINES:
+  const [SearchTerm, setSearchTerm] = useState("");
+  const handleSearch = (e) => {
+      e.preventDefault();
+      console.log("Searching for:", SearchTerm);
+  };
 
-    const toggleCartDrawer = () => {
-        setDrawerOpen(!drawerOpen);
-    };
+  const [drawerOpen, setDrawerOpen] = useState(false); // Changed to false so cart starts closed
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const [ isMobileMenuOpen, setIsMobileMenuOpen ] = useState(false);
+  const toggleCartDrawer = () => {
+      setDrawerOpen(!drawerOpen);
+  };
+
+  
     return (
         <div className="sticky top-0 z-50 bg-[#181818] text-white gap-4">
-        <nav className="container mx-auto flex items-center justify-between py-1 px-6">
+        {/* <nav className="container mx-auto flex items-center justify-between py-1 px-6"> */}
     
         {/* Left - Logo */}
-        <div className="pl-1 flex items-center px-8 h-15 ">
+        {/* <div className="pl-1 flex items-center px-8 h-15 ">
             <Link to={"/"}><img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" /></Link>
         </div>
+       */}
+       <nav className="container mx-auto flex items-center justify-between py-1 px-6">
+    
+        {/* Left Side Group: Logo + Search Bar */}
+        <div className="flex items-center gap-15"> 
+            {/* Logo */}
+            <div className="pl-1 flex items-center px-8 h-15">
+                <Link to={"/"}>
+                    <img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" />
+                </Link>
+            </div>
+
+            {/* Search Bar - Always visible on Desktop next to logo */}
+            <div className=" lg:block">
+                <Searchbar 
+                    SearchTerm={SearchTerm} 
+                    setSearchTerm={setSearchTerm} 
+                    handleSearch={handleSearch} 
+                />
+            </div>
+        </div>
+
       
         {/* Right - section */}
         <div className="flex items-center gap-3">
@@ -54,11 +84,6 @@ const [drawerOpen, setDrawerOpen] = useState(true);
                     3
                 </span>
              </button>
-             
-             {/* Search Bar */}
-             <div className="overflow-hidden">
-                <Searchbar/>
-             </div>
              
              {/* Hamburger (Mobile only) */}
             <button
