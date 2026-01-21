@@ -230,6 +230,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -237,15 +238,15 @@ const Login = () => {
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role: loginAs }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("user", JSON.stringify(data.user)); // Save user data
+        localStorage.setItem("user", JSON.stringify(data.user));
         alert("Welcome back, " + data.user.fullname);
-        navigate("/"); // Go to homepage
+        navigate("/");
       } else {
         alert(data.message);
       }
@@ -255,20 +256,36 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container hover:gray-700">
+    <div className="login-container">
       <div className="login-box">
-        <h2>Welcome</h2>
-
-        {/* Login as Farmer or Vendor */}
-        <select
-          value={loginAs}
-          onChange={(e) => setLoginAs(e.target.value)}
-        >
-          <option value="farmer">Login as Farmer</option>
-          <option value="vendor">Login as Vendor</option>
-        </select>
+        <h2>Sign In</h2>
 
         <form onSubmit={handleSubmit}>
+          {/* Role Selection */}
+          <label>Login as:</label>
+          <div className="radio-group" style={{ display: "flex", gap: "20px", marginBottom: "15px" }}>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="loginRole"
+                value="farmer"
+                checked={loginAs === "farmer"}
+                onChange={(e) => setLoginAs(e.target.value)}
+              />
+              Farmer
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="loginRole"
+                value="vendor"
+                checked={loginAs === "vendor"}
+                onChange={(e) => setLoginAs(e.target.value)}
+              />
+              Vendor
+            </label>
+          </div>
+
           <label>Email</label>
           <input
             type="email"
@@ -288,7 +305,7 @@ const Login = () => {
           />
 
           <div className="options">
-            <label>
+            <label className="checkbox-label">
               <input
                 type="checkbox"
                 checked={remember}
@@ -296,22 +313,18 @@ const Login = () => {
               />
               Remember me
             </label>
-
             <span className="forgot">Forgot password?</span>
           </div>
 
           <button type="submit">Log In</button>
         </form>
 
-        {/* Register Link */}
-          <p className="text-center text-sm text-gray-600 mt-6">
-             Don’t have an account?{" "}
-             <Link
-              to="/register"               className="text-green-600 font-medium hover:underline"
-             >
-               Create one
-             </Link>
-           </p>
+        <p className="signup-text">
+          Don’t have an account?{" "}
+          <Link to="/register">
+            <span>Create one</span>
+          </Link>
+        </p>
       </div>
     </div>
   );
