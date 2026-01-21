@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
+import { FiPhoneCall} from "react-icons/fi";
 
 const Footer = () => {
     return <footer className="border-t py-5">
@@ -81,23 +82,30 @@ const Footer = () => {
              {/* Contact us */}
             <div>
                 <h3 className="text-lg text-black mb-4">Contact Us</h3>
-                <ul className="space-y-2 text-gray-800">
+                <ul className="space-y-6 text-gray-800">
                     <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Support</Link>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">128, Farm Road, pune,maharashtra, 411007</Link>
                     </li>
+                    
+                    <div>
+                        <p className="test-gray-500">Call Us</p>
+                        <p>
+                            <FiPhoneCall className="inline-block mr-2"/>
+                            +91 7767859953
+                        </p>
+                    </div>
                     <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Contact Us</Link>
+                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">farmeasy003@gmail.com</Link>
                     </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">About Us</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Features</Link>
-                    </li>
-
                 </ul>
             </div>
             
+        </div>
+        {/* footer bottom */}
+        <div className="container mx-auto mt-12 px-4 lg:px-0 border-t border-gray-200 pt-6">
+            <p className="text-gray-500 text-sm tracking-tighter text-center ">
+                Copyright © 2026 FarmEasy Agro Private Limited
+            </p>
         </div>
     </footer>
 };
