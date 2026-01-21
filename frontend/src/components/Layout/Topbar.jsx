@@ -15,7 +15,7 @@ Thanks
     subject
   )}&body=${encodeURIComponent(body)}`;
     return (
-        <div className="bg-[#0C970C] text-white">
+        <div className="bg-[#0b6e4f] text-white">
             <div className="container mx-auto flex justify-between items-center py-1 px-4 md:px-0 text-sm">
                 <div className="hidden md:flex items-center space-x-4">
                     <a href="https://www.instagram.com/__farmeasy003__/" className="hover:text-gray-300 py-0.5 px-18">

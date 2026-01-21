@@ -3,7 +3,7 @@ import { RiArrowDownSLine } from "react-icons/ri";
  
 const Thirdbar = () => {
   return (
-    <div className="bg-[#0C970C] text-white">
+    <div className="bg-[#0b6e4f] text-white">
       <nav className="container mx-auto flex items-center py-1 px-6 space-x-4"> 
         <div className="flex items-center gap-1 ">
               <span>All Products</span>
