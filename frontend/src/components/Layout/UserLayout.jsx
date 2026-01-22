@@ -132,7 +132,10 @@ const UserLayout = () => {
                     </div>
                 </div>
             </main>
-
+            
+            {/* Main content */}
+    
+            {/* footer */}
             <Footer />
         </div>
     );

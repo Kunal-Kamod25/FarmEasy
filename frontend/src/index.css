@@ -4,3 +4,17 @@
 #root {
   font-family: "Poppins", sans-serif;
 }
+
+/* Add this below your imports */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  
+    
+  }
+}
