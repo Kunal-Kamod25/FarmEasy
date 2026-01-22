@@ -38,7 +38,7 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
         </div>
         
         {/* Cart Content */}
-        <div className="flex-grow p-4 overflow-y-auto">
+        <div className="flex-grow p-4 overflow-y-auto scrollbar-hide h-full">
             <h2 className="text-xl text-black font-semibold mb-4 hover:underline cursor-pointer">Your Cart</h2>
             <CartContents />
         </div>
