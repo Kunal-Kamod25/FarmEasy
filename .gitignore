@@ -1,0 +1,17 @@
+# Root node modules
+node_modules/
+
+# Frontend
+frontend/node_modules/
+
+# Backend
+backend/node_modules/
+
+# Env files
+.env
+
+# Build output
+dist/
+
+# Root lock file (optional but recommended)
+package-lock.json

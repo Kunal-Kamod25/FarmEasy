@@ -21,7 +21,7 @@ exports.register = async (req, res) => {
             email,
             password: hashedPassword,
             role,
-            gst_number
+            // gst_number
         });
 
         res.status(201).json({ message: "Account created successfully!" });
