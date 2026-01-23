@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart,} from "react-icons/hi2";
+import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, } from "react-icons/hi2";
 import Searchbar from "../Common/Searchbar";
 import LanguageSwitcher from "../Common/LanguageSwitcher";
 import AiSpeechOrder from "../Common/AiSpeechOrder";
@@ -9,9 +9,9 @@ import CartDrawer from "./CartDrawer";
 
 const Navbar = () => {
   const truncateText = (text, maxLength = 10) => {
-        if(text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + "...";
-    };
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + "...";
+  };
   const [SearchTerm, setSearchTerm] = useState("");
   const handleSearch = (e) => {
     e.preventDefault();
@@ -30,18 +30,18 @@ const Navbar = () => {
   const profileRef = useRef(null);
 
   useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (profileRef.current && !profileRef.current.contains(e.target)) {
-      setProfileOpen(false);
-    }
-  };
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
 
   useEffect(() => {
@@ -62,7 +62,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-[#181818] text-white gap-4">
+    <div className="sticky top-0 z-50 bg-black text-white gap-4">
       <nav className="container mx-auto flex items-center justify-between py-1 px-6">
         {/* Left Side */}
         <div className="flex items-center gap-15">
@@ -90,21 +90,21 @@ const Navbar = () => {
           <AiSpeechOrder className="hidden md:block mr-6 items-right" />
           <LanguageSwitcher className="hidden md:block mr-6 items-right" />
 
-            {/* 🔐 AUTH SECTION */}
-            {user ? (
-              <div ref={profileRef} className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileOpen(!profileOpen);
-                  }}
-                  className="text-white font-normal hover:underline px-2"
-                >
-                  Hi, {truncateText(user.fullname, 10)}
-                </button>
+          {/* 🔐 AUTH SECTION */}
+          {user ? (
+            <div ref={profileRef} className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileOpen(!profileOpen);
+                }}
+                className="text-white font-normal hover:underline px-2"
+              >
+                Hi, {truncateText(user.fullname, 10)}
+              </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute right-0.6 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
@@ -129,7 +129,7 @@ const Navbar = () => {
             <>
               <Link
                 to="/register"
-                className="text-white hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
+                className="text-white font-lora hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
               >
                 Signup
               </Link>
