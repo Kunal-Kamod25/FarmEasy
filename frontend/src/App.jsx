@@ -3,6 +3,7 @@ import UserLayout from "./components/Layout/UserLayout";
 import Register from "./components/Common/RegisterPage.jsx";
 import Login from "./components/Common/Login";
 import Hero from "./components/Common/Hero";
+import Profile from "./Pages/Profile";
 
 
 
@@ -16,6 +17,7 @@ const App = () => {
         {/* User Login */}
         <Route path="/Login" element={<Login />} />
         <Route>{/* Admin Layout */}</Route>
+        <Route path="/profile" element={<Profile />} />
       </Routes> 
     </BrowserRouter>
   );

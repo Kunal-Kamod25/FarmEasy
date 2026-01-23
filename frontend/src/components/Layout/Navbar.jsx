@@ -8,6 +8,10 @@ import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";
 
 const Navbar = () => {
+  const truncateText = (text, maxLength = 10) => {
+        if(text.length <= maxLength) return text;
+        return text.slice(0, maxLength) + "...";
+    };
   const [SearchTerm, setSearchTerm] = useState("");
   const handleSearch = (e) => {
     e.preventDefault();
@@ -86,18 +90,18 @@ const Navbar = () => {
           <AiSpeechOrder className="hidden md:block mr-6 items-right" />
           <LanguageSwitcher className="hidden md:block mr-6 items-right" />
 
-          {/* 🔐 AUTH SECTION */}
-          {user ? (
-            <div ref={profileRef} className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileOpen(!profileOpen);
-                }}
-                className="text-white font-normal hover:underline px-2"
-              >
-                Hi, {user.fullname}
-              </button>
+            {/* 🔐 AUTH SECTION */}
+            {user ? (
+              <div ref={profileRef} className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProfileOpen(!profileOpen);
+                  }}
+                  className="text-white font-normal hover:underline px-2"
+                >
+                  Hi, {truncateText(user.fullname, 10)}
+                </button>
 
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
