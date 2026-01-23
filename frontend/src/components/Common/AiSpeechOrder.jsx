@@ -30,7 +30,7 @@ const AiSpeechOrder = ({ className = "" }) => {
 
       {/* Dropdown / Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white text-black rounded-lg shadow-lg z-50 p-4">
+        <div className="absolute right-0.6 mt-2 w-56 bg-white text-black rounded-lg shadow-lg z-50 p-4">
           <p className="text-sm font-medium mb-2">
             🎤 Speech to Order
           </p>
