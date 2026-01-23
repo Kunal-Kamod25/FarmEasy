@@ -91,7 +91,8 @@ const Register = () => {
       {/* RIGHT – Register Form */}
 
       {/* Left - Logo */}
-            
+     <div className="login-container">
+      <div className="Register-box"></div>       
       <div className="flex items-center justify-center p-8 bg-white">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -252,6 +253,7 @@ const Register = () => {
           </p>
         </motion.div>
       </div>
+    </div>
     </div>
   );
 };

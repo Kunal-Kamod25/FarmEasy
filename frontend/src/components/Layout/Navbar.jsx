@@ -1,135 +1,202 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { HiOutlineUser , HiBars3BottomRight, HiOutlineShoppingCart } from "react-icons/hi2";
+import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart,} from "react-icons/hi2";
 import Searchbar from "../Common/Searchbar";
 import LanguageSwitcher from "../Common/LanguageSwitcher";
 import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";
 
-const Navbar = () => { 
-  // ADD THESE THREE LINES:
+const Navbar = () => {
   const [SearchTerm, setSearchTerm] = useState("");
   const handleSearch = (e) => {
-      e.preventDefault();
-      console.log("Searching for:", SearchTerm);
+    e.preventDefault();
+    console.log("Searching for:", SearchTerm);
   };
 
-  const [drawerOpen, setDrawerOpen] = useState(false); // Changed to false so cart starts closed
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const toggleCartDrawer = () => {
-      setDrawerOpen(!drawerOpen);
+  /* 🔐 AUTH STATE */
+  const [user, setUser] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // close on outside click
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (profileRef.current && !profileRef.current.contains(e.target)) {
+      setProfileOpen(false);
+    }
   };
 
-  
-    return (
-        <div className="sticky top-0 z-50 bg-[#181818] text-white gap-4">
-        {/* <nav className="container mx-auto flex items-center justify-between py-1 px-6"> */}
-    
-        {/* Left - Logo */}
-        {/* <div className="pl-1 flex items-center px-8 h-15 ">
-            <Link to={"/"}><img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" /></Link>
-        </div>
-       */}
-       <nav className="container mx-auto flex items-center justify-between py-1 px-6">
-    
-        {/* Left Side Group: Logo + Search Bar */}
-        <div className="flex items-center gap-15"> 
-            {/* Logo */}
-            <div className="pl-1 flex items-center px-8 h-15">
-                <Link to={"/"}>
-                    <img src={logo} alt='logo' className="h-16  md:h-25 w-auto object-contain" />
-                </Link>
-            </div>
+  document.addEventListener("mousedown", handleClickOutside);
 
-            {/* Search Bar - Always visible on Desktop next to logo */}
-            <div className=" lg:block">
-                <Searchbar 
-                    SearchTerm={SearchTerm} 
-                    setSearchTerm={setSearchTerm} 
-                    handleSearch={handleSearch} 
-                />
-            </div>
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/login");
+  };
+
+  const toggleCartDrawer = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  return (
+    <div className="sticky top-0 z-50 bg-[#181818] text-white gap-4">
+      <nav className="container mx-auto flex items-center justify-between py-1 px-6">
+        {/* Left Side */}
+        <div className="flex items-center gap-15">
+          <div className="pl-1 flex items-center px-8 h-15">
+            <Link to="/">
+              <img
+                src={logo}
+                alt="logo"
+                className="h-16 md:h-25 w-auto object-contain"
+              />
+            </Link>
+          </div>
+
+          <div className="lg:block">
+            <Searchbar
+              SearchTerm={SearchTerm}
+              setSearchTerm={setSearchTerm}
+              handleSearch={handleSearch}
+            />
+          </div>
         </div>
 
-      
-        {/* Right - section */}
+        {/* Right Section */}
         <div className="flex items-center gap-3">
-        {/* Ai-Speech Order */}
-        <AiSpeechOrder className="hidden md:block mr-6 items-right" />
-        
-        {/* 🌐 Language Switcher (ADDED) */}
+          <AiSpeechOrder className="hidden md:block mr-6 items-right" />
           <LanguageSwitcher className="hidden md:block mr-6 items-right" />
 
-          {/* signup / Login */}
-          
-          <div className="md:flex space-x-4 font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase text-right-2 px-2 py-0.5">
-            <Link to="/Register" 
-            className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Signup</Link></div>
+          {/* 🔐 AUTH SECTION */}
+          {user ? (
+            <div ref={profileRef} className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileOpen(!profileOpen);
+                }}
+                className="text-white font-normal hover:underline px-2"
+              >
+                Hi, {user.fullname}
+              </button>
 
-          <div className="md:flex space-x-4 font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase text-right-2 px-2 py-0.5">
-            <Link to="/login" 
-            className="font-inter text-2xl text-white hover:text-green-500 text-sm font-medium uppercase hover:underline cursor-pointer">Login</Link></div>
-        
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
+                  <Link
+                    to="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Update Profile
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/register"
+                className="text-white hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
+              >
+                Signup
+              </Link>
+              <Link
+                to="/login"
+                className="text-white hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
+              >
+                Login
+              </Link>
+            </>
+          )}
+
           <div className="flex items-center space-x-4 py-0.5">
-             <Link to="/profile" className="text-black hover:text-gray-300 ">
-             <HiOutlineUser 
-             className="h-6 w-6 text-white inline-block mr-1 hover:text-green-500 " />
-             </Link>
-             
-             <button onClick={toggleCartDrawer} className="relative hover:text-black">
-                <HiOutlineShoppingCart className="h-6 w-6 text-white hover:text-green-500" />
-                <span className="absolute -top-4     text-white text-xs rounded-full bg-[#0C970C] hover:text-green-500 px-2 py-0.5">
-                    3
-                </span>
-             </button>
-             
-             {/* Hamburger (Mobile only) */}
+            {user && (
+              <Link to="/profile">
+                <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500" />
+              </Link>
+            )}
+
             <button
-                className="md:hidden"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={toggleCartDrawer}
+              className="relative hover:text-black"
             >
-                <HiBars3BottomRight className="h-6 w-6 hover:text-green-500" />
+              <HiOutlineShoppingCart className="h-6 w-6 text-white hover:text-green-500" />
+              <span className="absolute -top-4 text-white text-xs rounded-full bg-[#0C970C] px-2 py-0.5">
+                3
+              </span>
             </button>
-        </div>
-        </div>
-        </nav>
-        
-        {/* Cart Drawer */}
-        <CartDrawer drawerOpen={drawerOpen} toggleCartDrawer={toggleCartDrawer} />
 
-        {/* Android view */}
-        {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700 ">
+            <button
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <HiBars3BottomRight className="h-6 w-6 hover:text-green-500" />
+            </button>
+          </div>
+        </div>
+      </nav>
 
-          {/* Mobile Links */}
-          <Link className="block uppercase hover:text-green-500 hover:underline cursor-pointer">
+      <CartDrawer
+        drawerOpen={drawerOpen}
+        toggleCartDrawer={toggleCartDrawer}
+      />
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
             Brands
           </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline cursor-pointer">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
             Fertilizers
           </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline cursor-pointer">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
             Equipment
           </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline cursor-pointer">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
             Seeds
           </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline cursor-pointer">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
             Irrigation
           </Link>
 
-          {/* Divider */}
           <div className="border-t border-green-700"></div>
 
-          {/* Mobile AI & Language */}
           <AiSpeechOrder className="w-full" />
           <LanguageSwitcher className="w-full" />
-
         </div>
       )}
-        </div>
-    );
-}
+    </div>
+  );
+};
+
 export default Navbar;

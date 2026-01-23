@@ -82,7 +82,7 @@ const NavItem = ({ title, items }) => {
 
   return (
     <div 
-      className="relative"
+      className="relative"    
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
@@ -144,7 +144,7 @@ const Thirdbar = () => {
 
         {/* 3. Optional Search or Cart Icon for Desktop */}
         <div className="hidden md:block text-xs italic">
-          Free Delivery on orders over 5000 rs
+          Free Delivery on orders over 3000 rs
         </div>
       </nav>
     </div>
