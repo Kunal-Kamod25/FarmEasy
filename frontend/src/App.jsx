@@ -1,24 +1,22 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./components/Layout/UserLayout";
-import Register from "./components/Common/RegisterPage.jsx";
-import Login from "./components/Common/Login";
-import Hero from "./components/Common/Hero";
+import Home from "./Pages/Home";
 import Profile from "./Pages/Profile";
-
-
+import Login from "./components/Common/Login";
+import Register from "./components/Common/RegisterPage";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<UserLayout />} />
-        {/* User Register */}
-        <Route path="/Register" element={<Register />} />
-        {/* User Login */}
-        <Route path="/Login" element={<Login />} />
-        <Route>{/* Admin Layout */}</Route>
-        <Route path="/profile" element={<Profile />} />
-      </Routes> 
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
+
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
     </BrowserRouter>
   );
 };
