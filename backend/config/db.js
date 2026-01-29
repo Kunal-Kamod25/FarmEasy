@@ -22,7 +22,7 @@ require('dotenv').config();
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'Farm@2503',
+    password: process.env.DB_PASSWORD,
     database: 'farmeasy',
     port: process.env.DB_PORT || 3307,
     waitForConnections: true,
