@@ -4,7 +4,7 @@ const SearchBar = ({ SearchTerm, setSearchTerm, handleSearch }) => {
     return (
         <form
             onSubmit={handleSearch}
-            className="flex flex-1 items-center bg-[#ffffff] rounded-md overflow-hidden"
+            className="flex flex-1 items-center bg-[#ffffff] rounded-md overflow-hidden w-full"
         >
             <input
                 type="text"

@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, } from "react-icons/hi2";
 import Searchbar from "../Common/Searchbar";
-import LanguageSwitcher from "../Common/LanguageSwitcher";
-import AiSpeechOrder from "../Common/AiSpeechOrder";
+// import LanguageSwitcher from "../Common/LanguageSwitcher";
+// import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";
 
 const Navbar = () => {
@@ -87,8 +87,8 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
-          <AiSpeechOrder className="hidden md:block mr-6 items-right" />
-          <LanguageSwitcher className="hidden md:block mr-6 items-right" />
+          {/* <AiSpeechOrder className="hidden md:block mr-6 items-right" />
+          <LanguageSwitcher className="hidden md:block mr-6 items-right" /> */}
 
           {/* 🔐 AUTH SECTION */}
           {user ? (
