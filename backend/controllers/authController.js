@@ -1,9 +1,10 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 
+// Register Controller
 exports.register = async (req, res) => {
     try {
-        const { fullname, email, password, role, gst_number } = req.body;
+        const { fullname, email, password, role, phone_number } = req.body;
 
         // 1. Check if user already exists
         const existingUser = await User.findByEmail(email);
@@ -15,23 +16,24 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Save to MySQL
+        // 3. Save to MySQL 
+        // Note: We send fullname and role; phone_number is optional
         await User.create({
             fullname,
             email,
             password: hashedPassword,
-            role,
-            // gst_number
+            role: role || 'customer',
+            phone_number: phone_number || null
         });
 
         res.status(201).json({ message: "Account created successfully!" });
     } catch (error) {
-        console.error(error);
+        console.error("Registration Error:", error);
         res.status(500).json({ message: "Server error during registration." });
     }
 };
 
-//Login
+// Login Controller
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -43,22 +45,23 @@ exports.login = async (req, res) => {
         }
 
         // 2. Compare passwords
-        const isMatch = await bcrypt.compare(password, user.password);
+        // user.password_hash matches the column name in our MySQL table
+        const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        // 3. Success (You can add JWT tokens here later)
+        // 3. Success response
         res.status(200).json({
             message: "Login successful!",
             user: {
                 id: user.id,
-                fullname: user.fullname,
+                fullname: user.full_name, // matches DB column full_name
                 role: user.role
             }
         });
     } catch (error) {
         console.error("Login Error:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error during login." });
     }
 };
