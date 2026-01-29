@@ -1,5 +1,5 @@
 const AdminSidebar = () => {
-    return <div>Admin Sidebar</div>;
+    return <div>AdminSidebar</div>;
 };
 
 export default AdminSidebar;
