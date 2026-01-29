@@ -24,7 +24,7 @@ const pool = mysql.createPool({
     user: 'root',
     password: process.env.DB_PASSWORD,
     database: 'farmeasy',
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 3307,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
