@@ -4,14 +4,14 @@ const SearchBar = ({ SearchTerm, setSearchTerm, handleSearch }) => {
     return (
         <form
             onSubmit={handleSearch}
-            className="flex flex-1 items-center bg-[#1f2937] rounded-md overflow-hidden"
+            className="flex flex-1 items-center bg-[#ffffff] rounded-md overflow-hidden"
         >
             <input
                 type="text"
                 placeholder="Search for equipment, seeds, fertilizers..."
                 value={SearchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent px-4 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none"
+                className="flex-1 bg-transparent px-4 py-2 text-sm text-black placeholder:text-gray-400 focus:outline-none"
             />
 
             <button

@@ -4,6 +4,7 @@ import Home from "./Pages/Home";
 import Profile from "./Pages/Profile";
 import Login from "./components/Common/Login";
 import Register from "./components/Common/RegisterPage";
+import AdminLayout from "./components/Admin/AdminLayout";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={<AdminLayout />} />
       </Routes>
     </BrowserRouter>
   );

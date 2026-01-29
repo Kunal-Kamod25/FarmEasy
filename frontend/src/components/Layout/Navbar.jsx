@@ -144,9 +144,12 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-4 py-0.5">
             {user && (
-              <Link to="/profile">
-                <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500" />
-              </Link>
+              <>
+                <Link to="/admin" className="block px-2 rounded text-sm">Admin</Link>
+                <Link to="/profile">
+                  <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500" />
+                </Link>
+              </>
             )}
 
             <button
@@ -167,7 +170,7 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-      </nav>
+      </nav >
 
       <CartDrawer
         drawerOpen={drawerOpen}
@@ -175,31 +178,33 @@ const Navbar = () => {
       />
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Brands
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Fertilizers
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Equipment
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Seeds
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Irrigation
-          </Link>
+      {
+        isMobileMenuOpen && (
+          <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
+            <Link className="block uppercase hover:text-green-500 hover:underline">
+              Brands
+            </Link>
+            <Link className="block uppercase hover:text-green-500 hover:underline">
+              Fertilizers
+            </Link>
+            <Link className="block uppercase hover:text-green-500 hover:underline">
+              Equipment
+            </Link>
+            <Link className="block uppercase hover:text-green-500 hover:underline">
+              Seeds
+            </Link>
+            <Link className="block uppercase hover:text-green-500 hover:underline">
+              Irrigation
+            </Link>
 
-          <div className="border-t border-green-700"></div>
+            <div className="border-t border-green-700"></div>
 
-          <AiSpeechOrder className="w-full" />
-          <LanguageSwitcher className="w-full" />
-        </div>
-      )}
-    </div>
+            <AiSpeechOrder className="w-full" />
+            <LanguageSwitcher className="w-full" />
+          </div>
+        )
+      }
+    </div >
   );
 };
 
