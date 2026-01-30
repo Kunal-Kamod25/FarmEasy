@@ -4,21 +4,18 @@ import { FiMail, FiPhoneCall } from "react-icons/fi";
 
 const Footer = () => {
     const subject = "Order Inquiry";
-    const body = `
-Hello FarmEasy,
-
-I want to place an order.
-Please contact me.
-
-Thanks
-  `;
+    const body =
+        "Hello FarmEasy,\r\n\r\n" +
+        "I want to place an order.\r\n" +
+        "Please contact me.\r\n\r\n" +
+        "Thanks";
 
     const mailtoLink = `mailto:farmeasy003@gmail.com?subject=${encodeURIComponent(
         subject
     )}&body=${encodeURIComponent(body)}`;
 
     return <footer className="border-t py-5">
-        <div className="px-4">
+        <div className="px-15">
             <div className="bg-black w-30 h-18 border border-gray-300 rounded flex items-center justify-center">
                 <Link to="/">
                     <img
@@ -31,13 +28,13 @@ Thanks
         </div>
 
 
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 lg:px-0">
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-15 px-4 lg:px-10">
             <div>
                 <h3 className="px-5 stext-lg text-bold font-bold text-gray-800 mb-4">NewsLetter</h3>
                 <p className=" px-5 text-gray-500 mb-4 text-inter text-sm">
-                    Browse thousands of products from trusted vendors.
+                    {/* Browse thousands of products from trusted vendors.
                     Quality equipment, seeds, fertilizers, and
-                    irrigation systems for modern farming.
+                    irrigation systems for modern farming. */}
                 </p>
                 <p className="text-inter px-5 text-black mb-4 text-inter text-sm">
                     Sign up and get free delivery of your first order.
@@ -111,7 +108,7 @@ Thanks
                         </a>
                     </div>
                     <a
-                        href="mailto:farmeasy003@gmail.com"
+                        href={mailtoLink}
                         className="group inline-flex items-center hover:text-gray-600 hover:underline transition-colors cursor-pointer"
                     >
                         <FiMail className="mr-2 group-hover:text-gray-600" />

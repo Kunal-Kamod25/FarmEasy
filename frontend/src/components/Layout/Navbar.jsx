@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, } from "react-icons/hi2";
+import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, HiOutlineBuildingStorefront } from "react-icons/hi2";
 import Searchbar from "../Common/Searchbar";
 // import LanguageSwitcher from "../Common/LanguageSwitcher";
 // import AiSpeechOrder from "../Common/AiSpeechOrder";
@@ -89,6 +89,18 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {/* <AiSpeechOrder className="hidden md:block mr-6 items-right" />
           <LanguageSwitcher className="hidden md:block mr-6 items-right" /> */}
+
+          {!user && (
+            <Link
+              to="/login"
+              className="flex items-center gap-1 border border-green-600 px-3 py-1 rounded-md
+                          text-sm uppercase font-medium hover:bg-green-600 hover:text-black transition"
+            >
+              <HiOutlineBuildingStorefront className="h-5 w-5" />
+              Vendor
+            </Link>
+          )}
+
 
           {/* 🔐 AUTH SECTION */}
           {user ? (

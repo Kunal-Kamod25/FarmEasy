@@ -1,5 +1,5 @@
 import { IoLogoInstagram } from "react-icons/io5";
-import { FiMail } from "react-icons/fi";
+import { FiMail, FiPhoneCall } from "react-icons/fi";
 
 const Topbar = () => {
     const subject = "Order Inquiry";
@@ -28,16 +28,18 @@ Thanks
                 </div>
                 <div className="text-sm hidden md:block">
                     <a
-                        href="mailto:farmeasy003@gmail.com"
+                        href={mailtoLink}
                         className="group inline-flex items-center hover:text-gray-300 hover:underline transition-colors cursor-pointer"
                     >
                         <FiMail className="mr-2 group-hover:text-gray-300" />
                         farmeasy003@gmail.com
                     </a>
+
                 </div>
                 <div className="text-sm hidden md:block">
                     <a href="tel:+917767859953" className="hover:text-gray-300 py-4 px-5">
-                        Call To Order: +91 7767859953
+                        <FiPhoneCall className="inline-block mr-2" />
+                        +91 7767859953
                     </a>
                 </div>
             </div>
