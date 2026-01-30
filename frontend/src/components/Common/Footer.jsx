@@ -33,7 +33,7 @@ Thanks
 
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 lg:px-0">
             <div>
-                <h3 className="px-5 stext-lg text-bold text-gray-800 mb-4">NewsLetter</h3>
+                <h3 className="px-5 stext-lg text-bold font-bold text-gray-800 mb-4">NewsLetter</h3>
                 <p className=" px-5 text-gray-500 mb-4 text-inter text-sm">
                     Browse thousands of products from trusted vendors.
                     Quality equipment, seeds, fertilizers, and
@@ -55,7 +55,7 @@ Thanks
 
             {/* Shop links */}
             <div>
-                <h3 className="text-lg text-black mb-4">Shop</h3>
+                <h3 className="text-lg text-black font-bold mb-4">Shop</h3>
                 <ul className="space-y-2 text-gray-800">
                     <li>
                         <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Fertilizers</Link>
@@ -75,7 +75,7 @@ Thanks
 
             {/* Customer Services */}
             <div>
-                <h3 className="text-lg text-black mb-4">Customer Services</h3>
+                <h3 className="text-lg text-black font-bold mb-4">Customer Services</h3>
                 <ul className="space-y-2 text-gray-800">
                     <li>
                         <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Support</Link>
@@ -95,7 +95,7 @@ Thanks
 
             {/* Contact us */}
             <div>
-                <h3 className="text-lg text-black mb-4">Contact Us</h3>
+                <h3 className="text-lg text-black font-bold mb-4">Contact Us</h3>
                 <ul className="space-y-6 text-gray-800">
                     <li>
                         <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">128, Farm Road, pune,maharashtra, 411007</Link>
