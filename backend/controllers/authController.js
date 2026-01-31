@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 // Register Controller
 exports.register = async (req, res) => {
     try {
-        const { fullname, email, password, role, phone_number } = req.body;
+        const { fullname, email, password, role, phone_number, gst_number } = req.body;
 
         // 1. Check if user already exists
         const existingUser = await User.findByEmail(email);
@@ -16,9 +16,9 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Save to MySQL 
+        // 3. Save to MySQL (users table)
         // Note: We send fullname and role; phone_number is optional
-        await User.create({
+        const [userResult] = await User.create({
             fullname,
             email,
             password: hashedPassword,
@@ -26,10 +26,19 @@ exports.register = async (req, res) => {
             phone_number: phone_number || null
         });
 
+        const newUserId = userResult.insertId;
+
+        // 4. If Vendor, create entry in 'seller' table
+        if (role === 'vendor') {
+            const db = require('../config/db'); // Import db here if not globally available
+            const sellerSql = `INSERT INTO seller (user_id, gst_no) VALUES (?, ?)`;
+            await db.query(sellerSql, [newUserId, gst_number || null]);
+        }
+
         res.status(201).json({ message: "Account created successfully!" });
     } catch (error) {
         console.error("Registration Error:", error);
-        res.status(500).json({ message: "Server error during registration." });
+        res.status(500).json({ message: "Server error during registration.", error: error.message });
     }
 };
 

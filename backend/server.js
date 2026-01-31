@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-const sellerRoutes = require("./routes/seller");   // ✅ FIXED
+const sellerRoutes = require("./routes/seller"); 
 const authRoutes = require("./routes/authRoutes");
 
 app.use("/seller", sellerRoutes);
