@@ -88,7 +88,7 @@ import Thirdbar from "./Thirdbar";
 import Hero from "../Common/Hero";
 import Footer from "../Common/Footer";
 import ProductCard from '../Products/ProductCard';
-import { products } from '../Products/productData';
+import { products } from '../Products/ProductData';
 import { Outlet } from "react-router-dom";
 
 const UserLayout = () => {

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Hero from "../components/Common/Hero";
 import HomeSections from "../components/Common/HomeSections/HomeSections";
-import { categories, products } from "../components/Products/productData";
+import { categories, products } from "../components/Products/ProductData";
+import ProductCard from "../components/Products/ProductCard";
+import BrandSection from "../components/Common/BrandSection";
 
 const Home = () => {
   const [selectedCat, setSelectedCat] = useState(categories[0]);
@@ -45,18 +47,13 @@ const Home = () => {
           ))}
         </div>
 
+        {/* BRAND SECTION */}
+        <BrandSection />
+
         {/* PRODUCT GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-16">
           {filteredProducts.map((item) => (
-            <div key={item.id} className="bg-white p-4 rounded shadow">
-              <img
-                src={item.img}
-                alt={item.name}
-                className="h-40 w-full object-contain"
-              />
-              <h3 className="mt-2 font-bold">{item.name}</h3>
-              <p>₹ {item.price}</p>
-            </div>
+            <ProductCard key={item.id} product={item} />
           ))}
         </div>
       </div>

@@ -180,8 +180,8 @@ const Register = () => {
                   type="button"
                   onClick={() => setRole("customer")}
                   className={`flex-1 border rounded-md p-3 ${role === "customer"
-                      ? "border-green-600 bg-green-50"
-                      : "border-gray-300"
+                    ? "border-green-600 bg-green-50"
+                    : "border-gray-300"
                     }`}
                 >
                   Customer
@@ -190,8 +190,8 @@ const Register = () => {
                   type="button"
                   onClick={() => setRole("vendor")}
                   className={`flex-1 border rounded-md p-3 ${role === "vendor"
-                      ? "border-green-600 bg-green-50"
-                      : "border-gray-300"
+                    ? "border-green-600 bg-green-50"
+                    : "border-gray-300"
                     }`}
                 >
                   Vendor

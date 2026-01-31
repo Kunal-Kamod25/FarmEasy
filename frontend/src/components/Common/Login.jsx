@@ -33,7 +33,15 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
         alert(`Welcome ${data.user.fullname}`);
-        navigate("/");
+
+        // Redirect based on role
+        if (data.user.role === "vendor") {
+          navigate("/vendor");
+        } else if (data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         alert(data.message || "Login failed");
       }
