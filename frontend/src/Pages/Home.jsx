@@ -58,7 +58,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 🔥 NEW AMAZON-STYLE SECTIONS */}
       <HomeSections
         fertilizerProducts={fertilizerProducts}
         products={products}

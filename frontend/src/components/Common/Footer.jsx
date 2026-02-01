@@ -30,7 +30,7 @@ const Footer = () => {
 
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-15 px-4 lg:px-10">
             <div>
-                <h3 className="px-5 stext-lg text-bold font-bold text-gray-800 mb-4">NewsLetter</h3>
+                <h3 className="px-5 stext-lg text-bold font-bold text-black mb-4">NewsLetter</h3>
                 <p className=" px-5 text-gray-500 mb-4 text-inter text-sm">
                     {/* Browse thousands of products from trusted vendors.
                     Quality equipment, seeds, fertilizers, and
