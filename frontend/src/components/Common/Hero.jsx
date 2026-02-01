@@ -44,7 +44,7 @@ const slides = [
     description:
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
     bgImage:
-      "https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg",
+      "https://images.pexels.com/photos/31231190/pexels-photo-31231190.jpeg",
     button: "Explore Irrigation",
   },
   {

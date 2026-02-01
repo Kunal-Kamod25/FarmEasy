@@ -93,7 +93,7 @@ const Navbar = () => {
           {!user && (
             <Link
               to="/login"
-              className="flex items-center gap-1 border border-green-600 px-3 py-1 rounded-md
+              className="hidden flex items-center gap-1 border border-green-600 px-3 py-1 rounded-md
                           text-sm uppercase font-medium hover:bg-green-600 hover:text-black transition"
             >
               <HiOutlineBuildingStorefront className="h-5 w-5" />

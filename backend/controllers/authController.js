@@ -16,8 +16,7 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Save to MySQL (users table)
-        // Note: We send fullname and role; phone_number is optional
+
         const [userResult] = await User.create({
             fullname,
             email,
@@ -30,7 +29,7 @@ exports.register = async (req, res) => {
 
         // 4. If Vendor, create entry in 'seller' table
         if (role === 'vendor') {
-            const db = require('../config/db'); // Import db here if not globally available
+            const db = require('../config/db');
             const sellerSql = `INSERT INTO seller (user_id, gst_no) VALUES (?, ?)`;
             await db.query(sellerSql, [newUserId, gst_number || null]);
         }
@@ -65,7 +64,7 @@ exports.login = async (req, res) => {
             message: "Login successful!",
             user: {
                 id: user.id,
-                fullname: user.full_name, // matches DB column full_name
+                fullname: user.full_name, // matches DB column
                 role: user.role
             }
         });

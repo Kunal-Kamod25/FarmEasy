@@ -11,11 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-const sellerRoutes = require("./routes/seller"); 
+const sellerRoutes = require("./routes/seller");
 const authRoutes = require("./routes/authRoutes");
 
 app.use("/seller", sellerRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/authentication", authRoutes);
 
 // Test route
 app.get("/", (req, res) => {
