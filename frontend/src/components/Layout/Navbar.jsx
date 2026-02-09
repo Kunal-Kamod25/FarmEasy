@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/Logo.png";
 import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, HiOutlineBuildingStorefront } from "react-icons/hi2";
-import Searchbar from "../Common/Searchbar";
+import Searchbar from "../Common/SearchBar";
 // import LanguageSwitcher from "../Common/LanguageSwitcher";
 // import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";

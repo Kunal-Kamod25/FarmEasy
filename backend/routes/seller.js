@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-// ✅ POST /seller (create seller)
+// create new seller entry
 router.post("/", async (req, res) => {
     const { user_id, aadhaar_no, pan_no, gst_no } = req.body;
 
+    // basic validation
     if (!user_id || !aadhaar_no || !pan_no || !gst_no) {
         return res.status(400).json({
             success: false,
@@ -14,9 +15,9 @@ router.post("/", async (req, res) => {
     }
 
     const sql = `
-    INSERT INTO seller (user_id, aadhaar_no, pan_no, gst_no)
-    VALUES (?, ?, ?, ?)
-  `;
+        INSERT INTO seller (user_id, aadhaar_no, pan_no, gst_no)
+        VALUES (?, ?, ?, ?)
+    `;
 
     try {
         const [result] = await db.query(sql, [user_id, aadhaar_no, pan_no, gst_no]);
@@ -30,34 +31,33 @@ router.post("/", async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Seller creation failed",
-            error: err.message,
         });
     }
 });
 
-// ✅ GET /seller (fetch all sellers)
+// get all sellers with user info
 router.get("/", async (req, res) => {
     const sql = `
-    SELECT 
-      seller.seller_id,
-      users.full_name,
-      seller.aadhaar_no,
-      seller.pan_no,
-      seller.gst_no
-    FROM seller
-    JOIN users ON seller.user_id = users.id
-  `;
+        SELECT 
+            seller.seller_id,
+            users.full_name,
+            seller.aadhaar_no,
+            seller.pan_no,
+            seller.gst_no
+        FROM seller
+        JOIN users ON seller.user_id = users.id
+    `;
 
     try {
         const [results] = await db.query(sql);
         res.json(results);
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ message: "Something went wrong" });
     }
 });
 
-// ✅ GET /seller/user/:user_id (Check if user is a seller)
+// check seller details for a specific user
 router.get("/user/:user_id", async (req, res) => {
     const { user_id } = req.params;
     const sql = "SELECT * FROM seller WHERE user_id = ?";
@@ -72,7 +72,7 @@ router.get("/user/:user_id", async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ success: false, message: "Database error", error: err.message });
+        return res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
