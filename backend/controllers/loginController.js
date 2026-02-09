@@ -1,34 +1,42 @@
 // controllers/loginController.js
+
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 
 exports.login = async (req, res) => {
     try {
-        const { email, phone_number, password } = req.body;
+        // Extract identifier (email or phone) and password from request body
+        const { identifier, password } = req.body;
 
-        let user = null;
-
-        // login using email
-        if (email) { // 🔁 CHANGED
-            user = await User.findByEmail(email);
+        // Basic validation: both fields are required
+        if (!identifier || !password) {
+            return res.status(400).json({
+                message: "Identifier (email or phone) and password are required."
+            });
         }
 
-        // login using phone number
-        if (phone_number) { // 🆕 ADDED
-            user = await User.findByPhone(phone_number);
-        }
+        // Find user by email OR phone number
+        // This allows login using either credential
+        const user = await User.findByEmailOrPhone(identifier);
 
-        // if user not found
+        // If no user found, return unauthorized response
         if (!user) {
-            return res.status(401).json({ message: "Invalid email/phone number or password" });
+            return res.status(401).json({
+                message: "Invalid email/phone number or password."
+            });
         }
 
-        // match password with db hash
+        // Compare entered password with hashed password stored in DB
         const isMatch = await bcrypt.compare(password, user.password_hash);
+
+        // If password doesn't match, deny access
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid email/phone number or password" });
+            return res.status(401).json({
+                message: "Invalid email/phone number or password."
+            });
         }
 
+        // If everything is correct, send success response
         res.status(200).json({
             message: "Login successful!",
             user: {
@@ -39,7 +47,12 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
+        // Log error for debugging
         console.error("Login Error:", error);
-        res.status(500).json({ message: "Server error during login." });
+
+        // Generic server error response
+        res.status(500).json({
+            message: "Server error during login."
+        });
     }
 };
