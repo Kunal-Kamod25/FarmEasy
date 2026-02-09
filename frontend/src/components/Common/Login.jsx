@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_URL } from "../../config";
 
 const Login = () => {
   // selected role (farmer or vendor)
@@ -47,17 +48,16 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch("https://farmeasy-9ojh.onrender.com/api/authentication/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+      const response = await fetch(`${API_URL}/api/authentication/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
 
-          // backend expects identifier + password
-          body: JSON.stringify({
-            identifier,
-            password,
-          }),
-        }
+        // backend expects identifier + password
+        body: JSON.stringify({
+          identifier,
+          password,
+        }),
+      }
       );
 
       const data = await response.json();

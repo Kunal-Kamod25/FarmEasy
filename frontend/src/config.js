@@ -1,0 +1,1 @@
+export const API_URL = "https://farmeasy-9ojh.onrender.com";

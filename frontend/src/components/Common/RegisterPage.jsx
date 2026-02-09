@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sprout, Mail, Lock, User, Store } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_URL } from "../../config";
 
 const Register = () => {
   const [role, setRole] = useState("customer");
@@ -43,7 +44,7 @@ const Register = () => {
 
     // all validations passed, now call API
     try {
-      const response = await fetch("https://farmeasy-9ojh.onrender.com/api/authentication/register", {
+      const response = await fetch(`${API_URL}/api/authentication/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
