@@ -160,7 +160,7 @@ const Register = () => {
             {/* Mobile Number */}
             <div className="form-group">
               <label className="block mb-1 font-medium">Mobile Number</label>
-              <inputd
+              <input
                 type="tel"
                 name="phone_number"
                 placeholder="Enter your phone number"

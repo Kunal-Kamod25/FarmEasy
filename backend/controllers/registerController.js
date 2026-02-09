@@ -1,22 +1,36 @@
 // controllers/registerController.js
+
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
+const db = require('../config/db');
 
 exports.register = async (req, res) => {
     try {
         const { fullname, email, password, role, phone_number, gst_number } = req.body;
 
-        // check if email already exists
-        const existingUser = await User.findByEmail(email);
-        if (existingUser) {
+        // Basic validation
+        if (!fullname || !email || !password) {
+            return res.status(400).json({ message: "Full name, email and password are required." });
+        }
+
+        // Check if email already exists
+        const existingEmail = await User.findByEmail(email);
+        if (existingEmail) {
             return res.status(400).json({ message: "Email already registered." });
         }
 
-        // encrypt password before saving
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Optional: check phone duplication
+        if (phone_number) {
+            const existingPhone = await User.findByPhone(phone_number);
+            if (existingPhone) {
+                return res.status(400).json({ message: "Phone number already registered." });
+            }
+        }
 
-        // insert user in users table
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert into users table
         const [userResult] = await User.create({
             fullname,
             email,
@@ -27,9 +41,8 @@ exports.register = async (req, res) => {
 
         const newUserId = userResult.insertId;
 
-        // if vendor then save gst in seller table
+        // If vendor, insert into seller table
         if (role === 'vendor') {
-            const db = require('../config/db');
             const sellerSql = `INSERT INTO seller (user_id, gst_no) VALUES (?, ?)`;
             await db.query(sellerSql, [newUserId, gst_number || null]);
         }
