@@ -2,18 +2,37 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
+  // which role user selects: farmer or vendor
   const [loginAs, setLoginAs] = useState("farmer");
+
+  // form fields
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+
+  // login method: email or phone
+  const [loginType, setLoginType] = useState("email");
+
+  // remember me checkbox
   const [remember, setRemember] = useState(false);
 
   const navigate = useNavigate();
 
+  // change role and reset inputs
   const handleRoleChange = (role) => {
     setLoginAs(role);
     setEmail("");
+    setPhone("");
   };
 
+  // change login type and reset inputs
+  const handleLoginTypeChange = (type) => {
+    setLoginType(type);
+    setEmail("");
+    setPhone("");
+  };
+
+  // submit login form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -22,7 +41,8 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+          email: loginType === "email" ? email : null,
+          phone_number: loginType === "phone" ? phone : null,
           password,
           role: loginAs,
         }),
@@ -34,7 +54,6 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
         alert(`Welcome ${data.user.fullname}`);
 
-        // Redirect based on role
         if (data.user.role === "vendor") {
           navigate("/vendor");
         } else if (data.user.role === "admin") {
@@ -52,7 +71,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen grid grid-cols-2 font-Lora">
-      {/* LEFT SECTION */}
+      {/* LEFT SIDE */}
       <div className="bg-gradient-to-br from-green-700 to-green-900 text-white flex items-center justify-center">
         <div className="max-w-sm text-center">
           <div className="text-6xl mb-5">🌱</div>
@@ -72,10 +91,9 @@ const Login = () => {
           </p>
 
           <p className="font-semibold mb-2">Login as</p>
-          <div className="flex gap-4 mb-5">
+          <div className="flex gap-4 mb-6">
             <label
               className={`border px-4 py-3 rounded-md cursor-pointer flex items-center gap-2
-              transition-all duration-50 ease-in-out
               ${loginAs === "farmer"
                   ? "border-green-700 bg-green-50 text-green-700"
                   : "text-gray-300 hover:bg-green-700 hover:text-white"
@@ -89,10 +107,8 @@ const Login = () => {
               Farmer
             </label>
 
-
             <label
               className={`border px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 
-                transition-all duration-50 ease-in-out 
                 ${loginAs === "vendor"
                   ? "border-green-700 bg-green-50 text-green-700"
                   : "text-gray-300 hover:bg-green-700 hover:text-white"
@@ -107,32 +123,61 @@ const Login = () => {
             </label>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <label className="block mt-4 mb-1">Email</label>
-            <input
-              type="email"
-              placeholder={
-                loginAs === "farmer"
-                  ? "farmer@gmail.com"
-                  : "vendor@gmail.com"
-              }
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-            />
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* login method dropdown */}
+            <div>
+              <label className="block mb-1 font-medium">Login using</label>
+              <select
+                value={loginType}
+                onChange={(e) => handleLoginTypeChange(e.target.value)}
+                className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
+              >
+                <option value="email">Email</option>
+                <option value="phone">Phone Number</option>
+              </select>
+            </div>
 
-            <label className="block mt-4 mb-1">Password</label>
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-            />
+            {/* email OR phone input */}
+            {loginType === "email" ? (
+              <div>
+                <label className="block mb-1">Email</label>
+                <input
+                  type="email"
+                  placeholder={loginAs === "farmer" ? "farmer@gmail.com" : "vendor@gmail.com"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
+                />
+              </div>
+            )}
 
-            <div className="flex justify-between items-center my-4">
+            {/* password */}
+            <div>
+              <label className="block mb-1">Password</label>
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
+              />
+            </div>
+
+            <div className="flex justify-between items-center my-2">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
