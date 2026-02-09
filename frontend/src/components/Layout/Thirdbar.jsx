@@ -140,6 +140,8 @@ const Thirdbar = () => {
           <NavItem title="Fertilizers" items={[{name: "Urea", path: "/urea"}]} />
           <NavItem title="Equipment" items={[{name: "Tractors", path: "/tractors"}]} />
           <NavItem title="Seeds" items={[{name: "Corn", path: "/corn"}]} />
+           <NavItem title="Irrigation" items={[{name: "Sprinklers", path: "/sprinklers"}]} />
+            <NavItem title="Animal Feed" items={[{name: "Cattle Feed", path: "/cattle-feed"}]} />
         </div>
 
         {/* 3. Optional Search or Cart Icon for Desktop */}

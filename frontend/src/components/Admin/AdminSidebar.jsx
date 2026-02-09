@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import Logo from "../../assets/Logo.png";
 import { NavLink } from "react-router-dom";
 import { FaUser, FaBoxOpen, FaClipboardList, FaStore, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ const AdminSidebar = () => {
                 <div className="pl-1 flex items-left px-8 h-15">
                     <Link to="/">
                         <img
-                            src={logo}
+                            src={Logo}
                             alt="logo"
                             className="h-16 md:h-24 w-auto object-contain"
                         />

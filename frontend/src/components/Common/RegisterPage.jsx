@@ -8,6 +8,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
+    phone_number: "",
     password: "",
     confirmPassword: "",
     gst_number: ""
@@ -22,10 +23,25 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // check if passwords match
     if (formData.password !== formData.confirmPassword) {
-      return alert("Passwords do not match!");
+      alert("Passwords do not match!");
+      return;
     }
 
+    // check phone number length and digits
+    if (!/^[0-9]{10}$/.test(formData.phone_number)) {
+      alert("Phone number must be 10 digits");
+      return;
+    }
+
+    // make sure full name has only letters and spaces
+    if (!/^[A-Za-z\s]+$/.test(formData.fullname)) {
+      alert("Full name should contain only letters and spaces");
+      return;
+    }
+
+    // all validations passed, now call API
     try {
       const response = await fetch("http://localhost:5000/api/authentication/register", {
         method: "POST",
@@ -33,6 +49,7 @@ const Register = () => {
         body: JSON.stringify({
           fullname: formData.fullname,
           email: formData.email,
+          phone_number: formData.phone_number,
           password: formData.password,
           role: role,
           gst_number: role === "vendor" ? formData.gst_number : null
@@ -49,9 +66,10 @@ const Register = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Could not connect to the server.");
+      alert("Server not reachable");
     }
   };
+
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -79,7 +97,7 @@ const Register = () => {
               <span>Verified seeds, tools & fertilizers</span>
             </li>
             <li className="flex items-start gap-3">
-              <Store className="w-5 h-5 mt-1" />
+              <Store cladssName="w-5 h-5 mt-1" />
               <span>Sell directly to genuine buyers</span>
             </li>
           </ul>
@@ -113,9 +131,11 @@ const Register = () => {
                     name="fullname"
                     value={formData.fullname}
                     onChange={handleChange}
-                    placeholder="Shravani Pilane"
+                    placeholder="Enter full name"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
+                    pattern="^[A-Za-z\s]+$"
+                    title="Full name must contain only letters and spaces"
                   />
                 </div>
               </div>
@@ -137,7 +157,23 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Mobile Number */}
+            <div className="form-group">
+              <label className="block mb-1 font-medium">Mobile Number</label>
+              <inputd
+                type="tel"
+                name="phone_number"
+                placeholder="Enter your phone number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                required
+                pattern="[0-9]{10}"
+                title="Enter a 10-digit phone number"
+                className="w-full h-12 border rounded-md px-3 focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            {/* Passwordd */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block mb-1 font-medium">Password</label>
