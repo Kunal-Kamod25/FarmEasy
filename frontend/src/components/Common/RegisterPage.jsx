@@ -43,7 +43,7 @@ const Register = () => {
 
     // all validations passed, now call API
     try {
-      const response = await fetch("http://localhost:5000/api/authentication/register", {
+      const response = await fetch("https://farmeasy-9ojh.onrender.com/api/authentication/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
