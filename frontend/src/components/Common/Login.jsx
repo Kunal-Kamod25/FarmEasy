@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  // which role user selects: farmer or vendor
+  // selected role (farmer or vendor)
   const [loginAs, setLoginAs] = useState("farmer");
 
   // form fields
@@ -36,24 +36,40 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // decide which value to send to backend
+    const identifier =
+      loginType === "email" ? email.trim() : phone.trim();
+
+    // simple frontend validation
+    if (!identifier || !password) {
+      alert("Identifier (email or phone) and password are required.");
+      return;
+    }
+
     try {
-      const response = await fetch("http://localhost:5000/api/authentication/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: loginType === "email" ? email : null,
-          phone_number: loginType === "phone" ? phone : null,
-          password,
-          role: loginAs,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/authentication/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+
+          // backend expects identifier + password
+          body: JSON.stringify({
+            identifier,
+            password,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
+        // store logged in user
         localStorage.setItem("user", JSON.stringify(data.user));
+
         alert(`Welcome ${data.user.fullname}`);
 
+        // redirect based on role
         if (data.user.role === "vendor") {
           navigate("/vendor");
         } else if (data.user.role === "admin") {
@@ -143,7 +159,11 @@ const Login = () => {
                 <label className="block mb-1">Email</label>
                 <input
                   type="email"
-                  placeholder={loginAs === "farmer" ? "farmer@gmail.com" : "vendor@gmail.com"}
+                  placeholder={
+                    loginAs === "farmer"
+                      ? "farmer@gmail.com"
+                      : "vendor@gmail.com"
+                  }
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
