@@ -212,31 +212,37 @@ const Register = () => {
             {/* Role */}
             <div>
               <label className="block mb-2 font-medium">Register as</label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setRole("customer")}
-                  className={`flex-1 border rounded-md p-3 ${role === "customer"
-                    ? "border-green-600 bg-green-50"
-                    : "border-gray-300"
-                    }`}
-                >
+
+              <div className="flex gap-6">
+                
+                {/* Customer Radio */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"                 // same name = only one can be selected
+                    value="customer"
+                    checked={role === "customer"} // if role is customer, this stays checked
+                    onChange={() => setRole("customer")} // update role state
+                  />
                   Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("vendor")}
-                  className={`flex-1 border rounded-md p-3 ${role === "vendor"
-                    ? "border-green-600 bg-green-50"
-                    : "border-gray-300"
-                    }`}
-                >
+                </label>
+
+                {/* Vendor Radio */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="vendor"
+                    checked={role === "vendor"}   // if role is vendor, this stays checked
+                    onChange={() => setRole("vendor")} // update role state
+                  />
                   Vendor
-                </button>
+                </label>
+
               </div>
             </div>
 
-            {/* GST */}
+            {/* GST Field - Show only when Vendor is selected */}
             {role === "vendor" && (
               <input
                 type="text"
