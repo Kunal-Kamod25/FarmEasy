@@ -44,7 +44,7 @@ const Register = () => {
 
     // all validations passed, now call API
     try {
-      const response = await fetch(`${API_URL}/api/authentication/register`, {
+      const response = await fetch(`${Host_URL}/api/authentication/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
