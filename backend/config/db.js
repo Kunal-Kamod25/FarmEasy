@@ -15,9 +15,9 @@ const pool = mysql.createPool({
 // Test the connection
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error('❌ Database connection failed:', err.message);
+        console.error('Database connection failed:', err.message);
     } else {
-        console.log('✅ Connected to Railway MySQL successfully!');
+        console.log('Connected to Railway MySQL successfully!');
         connection.release();
     }
 });

@@ -44,7 +44,7 @@ const Register = () => {
 
     // all validations passed, now call API
     try {
-      const response = await fetch(`${Host_URL}/api/authentication/register`, {
+      const response = await fetch(`${API_URL}/api/authentication/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,6 +57,7 @@ const Register = () => {
         }),
       });
 
+      console.log("Response : ", response);
       const data = await response.json();
 
       if (response.ok) {
@@ -98,7 +99,7 @@ const Register = () => {
               <span>Verified seeds, tools & fertilizers</span>
             </li>
             <li className="flex items-start gap-3">
-              <Store cladssName="w-5 h-5 mt-1" />
+              <Store className="w-5 h-5 mt-1" />
               <span>Sell directly to genuine buyers</span>
             </li>
           </ul>
@@ -214,7 +215,7 @@ const Register = () => {
               <label className="block mb-2 font-medium">Register as</label>
 
               <div className="flex gap-6">
-                
+
                 {/* Customer Radio */}
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
