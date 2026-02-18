@@ -76,7 +76,7 @@ export default function VendorDashboard() {
       </div>
 
       {/* Graph Section */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow">
+      <div className="bg-[#FDFBD4] rounded-xl p-6 shadow">
         <h2 className="text-lg font-semibold mb-4">Revenue & Orders (Weekly)</h2>
         <div className="h-72">
           <div className="h-72 flex items-center justify-center text-gray-400">
@@ -87,7 +87,7 @@ export default function VendorDashboard() {
       </div>
 
       {/* Product Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow">
+      <div className="bg-[#CFFFDC] rounded-xl p-6 shadow">
         <h2 className="text-lg font-semibold mb-4">Manage Products</h2>
 
         <div className="overflow-x-auto">
