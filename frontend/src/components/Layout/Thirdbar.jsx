@@ -1,7 +1,7 @@
 // import { useState } from "react";
 // import { Link } from "react-router-dom";
 // import { RiArrowDownSLine } from "react-icons/ri";
- 
+
 // const Thirdbar = () => {
 //   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 //   const categories = [
@@ -14,14 +14,14 @@
 //   return (
 //     <div className="bg-[#0b6e4f] text-white">
 //       <nav className="container mx-auto flex items-center py-1 px-6 space-x-4"> 
-        
+
 //         {/* Dropdown Start */}
 //         <div 
 //         className="relative group"
 //         onMouseEnter={() => setIsDropdownOpen(true)}
 //         onMouseLeave={() => setIsDropdownOpen(false)}
 //         >
-        
+
 //         <div className="flex items-center gap-1 ">
 //               <span>All Products</span>
 //               <RiArrowDownSLine size={22} 
@@ -81,19 +81,19 @@ const NavItem = ({ title, items }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div 
-      className="relative"    
+    <div
+      className="relative"
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
-      <div 
+      <div
         className="flex items-center justify-between md:justify-start gap-1 cursor-pointer py-3 md:py-0.5 text-white border-b border-[#128a64] md:border-none"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="text-sm font-medium uppercase">{title}</span>
-        <RiArrowDownSLine 
-          size={20} 
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`} 
+        <RiArrowDownSLine
+          size={20}
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
 
@@ -121,7 +121,7 @@ const Thirdbar = () => {
   return (
     <div className="bg-[#0b6e4f] text-white">
       <nav className="container mx-auto flex items-center justify-between py-2 px-6">
-        
+
         {/* 1. Hamburger Icon (Visible only on Mobile) */}
         <div className="md:hidden flex items-center" onClick={() => setNavOpen(!navOpen)}>
           {navOpen ? <RiCloseLine size={30} /> : <RiMenuLine size={30} />}
@@ -135,13 +135,82 @@ const Thirdbar = () => {
           ${navOpen ? "opacity-100 visible" : "opacity-0 invisible md:opacity-100 md:visible md:flex"}
           z-40 border-t border-[#128a64] md:border-none
         `}>
-          <NavItem title="All Products" items={[{name: "Catalog", path: "/all"}]} />
-          <NavItem title="Brands" items={[{name: "Bayer", path: "/bayer"}]} />
-          <NavItem title="Fertilizers" items={[{name: "Urea", path: "/urea"}]} />
-          <NavItem title="Equipment" items={[{name: "Tractors", path: "/tractors"}]} />
-          <NavItem title="Seeds" items={[{name: "Corn", path: "/corn"}]} />
-           <NavItem title="Irrigation" items={[{name: "Sprinklers", path: "/sprinklers"}]} />
-            <NavItem title="Animal Feed" items={[{name: "Cattle Feed", path: "/cattle-feed"}]} />
+          <NavItem title="All Products" items={[{ name: "Catalog", path: "/all" }]} />
+          <NavItem title="Brands"
+            items={[{ name: "Bayer", path: "/bayer" },
+            { name: "Syngenta", path: "/Syngenta" },
+            { name: "Dhanuka", path: "/dhanuka" },
+            { name: "UPL", path: "/upl" },
+              // { name: "IFFCO", path: "/iffco" }
+            ]}
+          />
+          <NavItem title="Fertilizers"
+            items={[{ name: "Urea", path: "/urea" },
+            { name: "IFFCO", path: "/iffco" },
+            { name: "DAP", path: "/dap" },
+            { name: "SSP", path: "/ssp" },
+            { name: "NPK", path: "/npk" },
+            { name: "MOP", path: "/mop" },
+            { name: "SOP", path: "/sop" },
+            { name: "Micronutrients", path: "/micronutrients" },
+            { name: "Organic Fertilizers", path: "/organic-fertilizers" },
+            ]}
+          />
+          <NavItem title="Equipment"
+            items={[{ name: "Handpump", path: "/handpump" },
+
+            ]}
+          />
+          <NavItem title="Seeds"
+            items={[
+              { name: "Corn", path: "/corn" },
+              { name: "Paddy", path: "/paddy" },
+              { name: "Wheat", path: "/wheat" },
+              { name: "Soybean", path: "/soybean" },
+              { name: "Mustard", path: "/mustard" },
+              { name: "Sunflower", path: "/sunflower" },
+              { name: "Groundnut", path: "/groundnut" },
+              { name: "Cotton", path: "/cotton" },
+              { name: "Jowar", path: "/jowar" },
+              { name: "Bajra", path: "/bajra" },
+              { name: "Maize", path: "/maize" },
+              { name: "Barley", path: "/barley" },
+              { name: "Pulses", path: "/pulses" },
+              { name: "Spices", path: "/spices" },
+              { name: "Fruits", path: "/fruits" },
+              { name: "Flowers", path: "/flowers" },
+              { name: "Herbs", path: "/herbs" },
+            ]}
+          />
+          <NavItem title="Irrigation"
+            items={[
+              { name: "Sprinklers", path: "/sprinklers" },
+              { name: "Drip Irrigation", path: "/drip-irrigation" },
+              { name: "Pumps", path: "/pumps" },
+              { name: "Pipes", path: "/pipes" },
+              { name: "Fittings", path: "/fittings" },
+              { name: "Valves", path: "/valves" },
+              { name: "Nozzles", path: "/nozzles" },
+              { name: "Filters", path: "/filters" },
+              { name: "Timers", path: "/timers" },
+              { name: "Sensors", path: "/sensors" },
+              { name: "Controllers", path: "/controllers" },
+              { name: "Accessories", path: "/accessories" },
+            ]}
+          />
+          <NavItem title="Animal Feed"
+            items={[
+              { name: "Cattle Feed", path: "/cattle-feed" },
+              { name: "Dairy Feed", path: "/dairy-feed" },
+              { name: "Buffalo Feed", path: "/buffalo-feed" },
+              { name: "Poultry Feed", path: "/poultry-feed" },
+              { name: "Broiler Feed", path: "/broiler-feed" },
+              { name: "Layer Feed", path: "/layer-feed" },
+              { name: "Goat Feed", path: "/goat-feed" },
+              { name: "Sheep Feed", path: "/sheep-feed" },
+              { name: "Calf Starter Feed", path: "/calf-starter-feed" }
+            ]}
+          />
         </div>
 
         {/* 3. Optional Search or Cart Icon for Desktop */}
