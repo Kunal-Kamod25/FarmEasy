@@ -4,23 +4,24 @@ import {
   ShoppingCart,
   IndianRupee,
   Percent,
-  Star,
   Trash2,
   Edit,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-// import {
-//   LineChart,
-//   Line,
-//   XAxis,
-//   YAxis,
-//   Tooltip,
-//   ResponsiveContainer,
-//   CartesianGrid,
-// } from "recharts";
 
-// Dummy Stats
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from "recharts";
+
+// dashboard numbers (normally from API)
 const vendorStats = {
   totalProducts: 3,
   totalOrders: 132,
@@ -28,7 +29,7 @@ const vendorStats = {
   activeOffers: 2,
 };
 
-// Graph Data
+// weekly revenue + orders
 const revenueData = [
   { name: "Mon", revenue: 1200, orders: 12 },
   { name: "Tue", revenue: 2100, orders: 18 },
@@ -39,7 +40,7 @@ const revenueData = [
   { name: "Sun", revenue: 3500, orders: 30 },
 ];
 
-// Products Table Data
+// initial product list
 const initialProducts = [
   { id: 1, name: "Organic Fertilizer", price: 1200, stock: true },
   { id: 2, name: "Hybrid Seeds Pack", price: 850, stock: true },
@@ -62,81 +63,152 @@ export default function VendorDashboard() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
 
-      {/* Header */}
-      <h1 className="text-2xl lg:text-3xl font-bold">Vendor Dashboard</h1>
+      {/* Title */}
+      <h1 className="text-2xl lg:text-3xl font-bold text-black">
+        Vendor Dashboard
+      </h1>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Products" value={vendorStats.totalProducts} icon={<Package />} />
-        <StatCard title="Total Orders" value={vendorStats.totalOrders} icon={<ShoppingCart />} />
-        <StatCard title="Total Revenue" value={`₹ ${vendorStats.totalRevenue}`} icon={<IndianRupee />} />
-        <StatCard title="Active Offers" value={vendorStats.activeOffers} icon={<Percent />} />
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-white font-bold">
+        <StatCard
+          title="Total Products"
+          value={vendorStats.totalProducts}
+          icon={<Package />}
+          bg="from-blue-500 to-cyan-500"
+        />
+        <StatCard
+          title="Total Orders"
+          value={vendorStats.totalOrders}
+          icon={<ShoppingCart />}
+          bg="from-green-500 to-emerald-500"
+        />
+        <StatCard
+          title="Total Revenue"
+          value={`₹ ${vendorStats.totalRevenue}`}
+          icon={<IndianRupee />}
+          bg="from-purple-500 to-pink-500"
+        />
+        <StatCard
+          title="Active Offers"
+          value={vendorStats.activeOffers}
+          icon={<Percent />}
+          bg="from-orange-500 to-red-500"
+        />
       </div>
 
-      {/* Graph Section */}
-      <div className="bg-[#FDFBD4] rounded-xl p-6 shadow">
-        <h2 className="text-lg font-semibold mb-4">Revenue & Orders (Weekly)</h2>
-        <div className="h-72">
-          <div className="h-72 flex items-center justify-center text-gray-400">
-            Weekly revenue chart coming soon 📊
-          </div>
+      {/* Revenue Chart */}
+      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <h2 className="text-lg font-semibold mb-4">
+          Revenue & Orders (Weekly)
+        </h2>
 
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={revenueData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#6366F1"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="orders"
+                stroke="#10B981"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Product Table */}
-      <div className="bg-[#CFFFDC] rounded-xl p-6 shadow">
-        <h2 className="text-lg font-semibold mb-4">Manage Products</h2>
+      {/* Product Section */}
+      <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Manage Products
+          </h2>
+          <span className="text-sm text-gray-500">
+            {products.length} Products
+          </span>
+        </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
-                <th className="text-left p-2">Product</th>
-                <th className="text-left p-2">Price</th>
-                <th className="text-left p-2">Stock</th>
-                <th className="text-left p-2">Actions</th>
+              <tr className="text-gray-500 uppercase text-xs tracking-wider border-b">
+                <th className="text-left py-3">Product</th>
+                <th className="text-left py-3">Price</th>
+                <th className="text-left py-3">Stock Status</th>
+                <th className="text-left py-3">Actions</th>
               </tr>
             </thead>
-            <tbody>
+
+            <tbody className="divide-y divide-gray-100">
               {products.map((p) => (
-                <tr key={p.id} className="border-b hover:bg-gray-50 dark:hover:bg-zinc-800">
-                  <td className="p-2">{p.name}</td>
-                  <td className="p-2">₹ {p.price}</td>
-                  <td className="p-2">
+                <tr
+                  key={p.id}
+                  className="hover:bg-gray-50 transition duration-200"
+                >
+                  <td className="py-4 font-medium text-gray-800">
+                    {p.name}
+                  </td>
+
+                  <td className="py-4 text-gray-600">
+                    ₹ {p.price}
+                  </td>
+
+                  <td className="py-4">
                     <span
-                      className={`px-2 py-1 text-xs rounded ${p.stock ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      className={`px-3 py-1 text-xs font-semibold rounded-full ${p.stock
+                        ? "bg-green-50 text-green-600"
+                        : "bg-red-50 text-red-600"
                         }`}
                     >
                       {p.stock ? "In Stock" : "Out of Stock"}
                     </span>
                   </td>
-                  <td className="p-2 flex gap-3">
-                    <button
-                      onClick={() => toggleStock(p.id)}
-                      className="text-blue-600 hover:scale-110 transition"
-                      title="Toggle Stock"
-                    >
-                      {p.stock ? <ToggleRight /> : <ToggleLeft />}
-                    </button>
-                    <button className="text-yellow-600 hover:scale-110 transition" title="Edit">
-                      <Edit />
-                    </button>
-                    <button
-                      onClick={() => deleteProduct(p.id)}
-                      className="text-red-600 hover:scale-110 transition"
-                      title="Delete"
-                    >
-                      <Trash2 />
-                    </button>
+
+                  <td className="py-4">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleStock(p.id)}
+                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                      >
+                        {p.stock ? (
+                          <ToggleRight size={18} />
+                        ) : (
+                          <ToggleLeft size={18} />
+                        )}
+                      </button>
+
+                      <button className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition">
+                        <Edit size={18} />
+                      </button>
+
+                      <button
+                        onClick={() => deleteProduct(p.id)}
+                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+
               {products.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center p-4 text-gray-400">
+                  <td colSpan="4" className="text-center py-6 text-gray-400">
                     No products available
                   </td>
                 </tr>
@@ -149,15 +221,17 @@ export default function VendorDashboard() {
   );
 }
 
-/* Small reusable stat card */
-function StatCard({ title, value, icon }) {
+/* reusable stat card */
+function StatCard({ title, value, icon, bg }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow flex justify-between items-center">
+    <div className={`bg-gradient-to-r ${bg} text-white rounded-xl p-6 shadow-lg hover:scale-105 transition transform duration-300 flex justify-between items-center`}>
       <div>
-        <p className="text-sm text-gray-500">{title}</p>
+        <p className="text-sm opacity-80">{title}</p>
         <p className="text-2xl font-bold">{value}</p>
       </div>
-      <div className="w-8 h-8 text-green-600">{icon}</div>
+      <div className="w-8 h-8 text-white">
+        {icon}
+      </div>
     </div>
   );
 }
