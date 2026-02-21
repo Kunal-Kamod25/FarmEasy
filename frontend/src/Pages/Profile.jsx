@@ -1,24 +1,138 @@
-import My_Orders from "./My_Orders";
-const Profile = () => {
-    return <div className="min-h-screen flex flex-col">
-        <div className="flex-grow container mx-auto p-4 md:p-6">
-            <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ProfileSidebar from "../components/Profile/ProfileSidebar";
+import ProfileContent from "../components/Profile/ProfileContent";
 
-                {/* left side */}
-                <div className="w-full md:w-1/3 lg:w-1/4 shadow-md rounded-lg p-6">
-                    <h1 className="text-2xl md:text-3xl font-bold mb-4">Shravani Pilane</h1>
-                    <p className="text-lg text-gray-600 mb-4">shravanipilane@gmail.com</p>
-                    <button className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-red-600">
-                        Logout
-                    </button>
-                </div>
-                {/* Right Side */}
-                <div className="w-full md:w-2/3 lg:w-3/4">
-                    <My_Orders />
+const Profile = () => {
+    const [activeTab, setActiveTab] = useState("profile");
+    const [user, setUser] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: "", text: "" });
+    const navigate = useNavigate();
+
+    const [formData, setFormData] = useState({
+        fullname: "",
+        email: "",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        bio: "",
+        role: ""
+    });
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+
+        if (!storedUser) {
+            navigate("/login");
+        } else {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+
+            const fetchLatestData = async () => {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/profile/${userData.id || userData.user_id}`);
+                    if (response.ok) {
+                        const latestUser = await response.json();
+                        const formattedUser = {
+                            ...latestUser,
+                            fullname: latestUser.full_name,
+                            phone: latestUser.phone_number
+                        };
+
+                        setUser(formattedUser);
+                        localStorage.setItem("user", JSON.stringify(formattedUser));
+
+                        setFormData({
+                            fullname: formattedUser.fullname || "",
+                            email: formattedUser.email || "",
+                            phone: formattedUser.phone || "",
+                            address: formattedUser.address || "",
+                            city: formattedUser.city || "",
+                            state: formattedUser.state || "",
+                            pincode: formattedUser.pincode || "",
+                            bio: formattedUser.bio || "",
+                            role: formattedUser.role || "customer"
+                        });
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch user data:", error);
+                }
+            };
+
+            fetchLatestData();
+        }
+    }, [navigate]);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage({ type: "", text: "" });
+
+        try {
+            const response = await fetch("http://localhost:5000/api/profile/update", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.id,
+                    ...formData
+                }),
+            });
+
+            if (response.ok) {
+                const updatedUser = { ...user, ...formData };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                setUser(updatedUser);
+                setIsEditing(false);
+                setMessage({ type: "success", text: "Profile updated successfully!" });
+            } else {
+                setMessage({ type: "error", text: "Failed to update profile." });
+            }
+        } catch {
+            setMessage({ type: "error", text: "Something went wrong. Please try again." });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!user) return null;
+
+    return (
+        <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8">
+            <div className="max-w-6xl mx-auto">
+
+                <div className="mt-10 flex flex-col lg:flex-row gap-8">
+
+                    <ProfileSidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        navigate={navigate}
+                    />
+
+                    <ProfileContent
+                        activeTab={activeTab}
+                        user={user}
+                        formData={formData}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        loading={loading}
+                        message={message}
+                        handleInputChange={handleInputChange}
+                        handleSave={handleSave}
+                    />
+
                 </div>
             </div>
         </div>
-    </div>;
+    );
 };
 
 export default Profile;

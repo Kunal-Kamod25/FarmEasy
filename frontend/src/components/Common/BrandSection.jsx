@@ -8,7 +8,7 @@ const BrandSection = () => {
     const scroll = (direction) => {
         const container = scrollContainerRef.current;
         if (container) {
-            const scrollAmount = 300;
+            const scrollAmount = 600;
             const newScrollLeft = direction === 'left'
                 ? container.scrollLeft - scrollAmount
                 : container.scrollLeft + scrollAmount;

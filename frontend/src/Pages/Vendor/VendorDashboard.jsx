@@ -157,7 +157,7 @@ export default function VendorDashboard() {
               {products.map((p) => (
                 <tr
                   key={p.id}
-                  className="hover:bg-gray-50 transition duration-200"
+                  className="hover:bg-gray-200 transition duration-200"
                 >
                   <td className="py-4 font-medium text-gray-800">
                     {p.name}

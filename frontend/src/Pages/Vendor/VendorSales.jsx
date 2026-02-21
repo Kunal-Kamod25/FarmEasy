@@ -35,22 +35,22 @@ const VendorSales = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm text-black font-semibold">Total Revenue</p>
+                <div className="bg-gradient-to-r hover:shadow-lg transition from-blue-500 to-cyan-500 p-6 rounded-xl shadow-sm border border-gray-100">
+                    <p className="text-sm text-white font-semibold">Total Revenue</p>
                     <h3 className="text-2xl font-bold text-white">
                         ₹ 2,10,000
                     </h3>
                 </div>
 
-                <div className="bg-gradient-to-r from-orange-500 to-yellow-500 p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm text-black font-semibold">Total Orders</p>
+                <div className="bg-gradient-to-r hover:shadow-lg transition from-orange-500 to-yellow-500 p-6 rounded-xl shadow-sm border border-gray-100">
+                    <p className="text-sm text-white font-semibold">Total Orders</p>
                     <h3 className="text-2xl font-bold text-white">
                         132
                     </h3>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm text-black font-semibold">Average Order Value</p>
+                <div className="bg-gradient-to-r hover:shadow-lg transition from-purple-500 to-pink-500 p-6 rounded-xl shadow-sm border border-gray-100">
+                    <p className="text-sm text-white font-semibold">Average Order Value</p>
                     <h3 className="text-2xl font-bold text-white">
                         ₹ 1,590
                     </h3>
@@ -102,7 +102,7 @@ const VendorSales = () => {
 
                         <tbody className="divide-y divide-gray-100">
 
-                            <tr className="hover:bg-gray-50 transition">
+                            <tr className="hover:bg-gray-200 transition">
                                 <td className="py-4 font-medium">#101</td>
                                 <td className="py-4">Rahul Sharma</td>
                                 <td className="py-4 text-green-600 font-semibold">
@@ -115,7 +115,7 @@ const VendorSales = () => {
                                 </td>
                             </tr>
 
-                            <tr className="hover:bg-gray-50 transition">
+                            <tr className="hover:bg-gray-200 transition">
                                 <td className="py-4 font-medium">#102</td>
                                 <td className="py-4">Priya Verma</td>
                                 <td className="py-4 text-green-600 font-semibold">
