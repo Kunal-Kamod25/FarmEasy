@@ -14,116 +14,174 @@ const Footer = () => {
         subject
     )}&body=${encodeURIComponent(body)}`;
 
-    return <footer className="border-t py-5">
-        <div className="px-15">
-            <div className="bg-black w-30 h-18 border border-gray-300 rounded flex items-center justify-center">
-                <Link to="/">
-                    <img
-                        src={logo}
-                        alt="logo"
-                        className="pl-1 h-25 w-50 object-contain"
-                    />
-                </Link>
-            </div>
-        </div>
+    return (
+        <div className="bg-gray-950">
+            <footer className="border-t border-gray-800 py-10">
 
+                {/* Logo */}
+                <div className="container mx-auto px-4 lg:px-10 mb-0.1">
+                    <Link to="/">
+                        <img
+                            src={logo}
+                            alt="FarmEasy Logo"
+                            className="h-16 w-16 object-contain"
+                        />
+                    </Link>
+                </div>
 
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-15 px-4 lg:px-10">
-            <div>
-                <h3 className="px-5 stext-lg text-bold font-bold text-black mb-4">NewsLetter</h3>
-                <p className=" px-5 text-gray-500 mb-4 text-inter text-sm">
-                    {/* Browse thousands of products from trusted vendors.
-                    Quality equipment, seeds, fertilizers, and
-                    irrigation systems for modern farming. */}
-                </p>
-                <p className="text-inter px-5 text-black mb-4 text-inter text-sm">
-                    Sign up and get free delivery of your first order.
-                </p>
-                {/* NewsLetter From */}
-                <form className="px-5 flex ">
-                    <input
-                        type="email"
-                        placeholder="Enter Your Email"
-                        className="p-3 w-full text-sm border-t border-l border-b border-gray-300 rounded-l-md
-                    focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all" required />
-                    <button type="submit" className="bg-black text-white px-6 py-3 text-sm rounded-r-md hover:bg-gray-800 transition-all">Subscribe</button>
-                </form>
-            </div>
+                {/* Main Grid */}
+                <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 px-4 lg:px-10">
 
-            {/* Shop links */}
-            <div>
-                <h3 className="text-lg text-black font-bold mb-4">Shop</h3>
-                <ul className="space-y-2 text-gray-800">
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Fertilizers</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Seeds</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Equipments</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Irrigation</Link>
-                    </li>
-
-                </ul>
-            </div>
-
-            {/* Customer Services */}
-            <div>
-                <h3 className="text-lg text-black font-bold mb-4">Customer Services</h3>
-                <ul className="space-y-2 text-gray-800">
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Support</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Contact Us</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">About Us</Link>
-                    </li>
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">Features</Link>
-                    </li>
-
-                </ul>
-            </div>
-
-            {/* Contact us */}
-            <div>
-                <h3 className="text-lg text-black font-bold mb-4">Contact Us</h3>
-                <ul className="space-y-6 text-gray-800">
-                    <li>
-                        <Link to="#" className="hover:text-gray-600 hover:underline cursor-pointer transition-colors">128, Farm Road, pune,maharashtra, 411007</Link>
-                    </li>
-
+                    {/* Newsletter */}
                     <div>
-                        <a
-                            href="tel:+917767859953"
-                            className="hover:text-gray-600 hover:underline cursor-pointer transition-colors inline-block"
-                        >
-                            <FiPhoneCall className="inline-block mr-2" />
-                            +91 7767859953
+                        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                            Newsletter
+                        </h3>
+                        <p className="text-gray-400 text-sm mb-3">
+                            Browse thousands of products from trusted vendors.
+                            Quality equipment, seeds, fertilizers, and irrigation systems.
+                        </p>
+                        <p className="text-gray-400 text-sm mb-5">
+                            Sign up and get free delivery on your first order.
+                        </p>
+
+                        <form className="flex">
+                            <input
+                                type="email"
+                                placeholder="Enter Your Email"
+                                required
+                                className="p-3 w-full text-sm bg-gray-900 text-white border border-gray-700 rounded-l-md 
+                focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-green-600 text-white font-semibold px-6 py-3 text-sm rounded-r-md 
+                hover:bg-green-500 transition-all"
+                            >
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Shop Links */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                            Shop
+                        </h3>
+                        <ul className="space-y-3 text-gray-400 text-sm">
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Fertilizers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Seeds
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Equipment
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Irrigation
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Customer Services */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                            Customer Services
+                        </h3>
+                        <ul className="space-y-3 text-gray-400 text-sm">
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Support
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Contact Us
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    About Us
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                    Features
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                            Contact Us
+                        </h3>
+                        <ul className="space-y-4 text-gray-400 text-sm">
+                            <li>
+                                <Link
+                                    to="#"
+                                    className="hover:text-green-400 transition-colors"
+                                >
+                                    128, Farm Road, Pune, Maharashtra, 411007
+                                </Link>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="tel:+917767859953"
+                                    className="inline-flex items-center hover:text-green-400 transition-colors"
+                                >
+                                    <FiPhoneCall className="mr-2" />
+                                    +91 7767859953
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href={mailtoLink}
+                                    className="inline-flex items-center hover:text-green-400 transition-colors"
+                                >
+                                    <FiMail className="mr-2" />
+                                    farmeasy003@gmail.com
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Bottom Section */}
+                <div className="container mx-auto mt-12 px-4 lg:px-10 border-t border-gray-800 pt-6 text-center">
+
+                    {/* Policy Links */}
+                    <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
+                        <a href="#" className="hover:text-green-400 transition-colors">
+                            Privacy Policy
+                        </a>
+                        <a href="#" className="hover:text-green-400 transition-colors">
+                            Terms of Service
+                        </a>
+                        <a href="#" className="hover:text-green-400 transition-colors">
+                            Shipping Policy
                         </a>
                     </div>
-                    <a
-                        href={mailtoLink}
-                        className="group inline-flex items-center hover:text-gray-600 hover:underline transition-colors cursor-pointer"
-                    >
-                        <FiMail className="mr-2 group-hover:text-gray-600" />
-                        farmeasy003@gmail.com
-                    </a>
-                </ul>
-            </div>
 
+                    <p className="text-gray-500 text-sm">
+                        © 2026 FarmEasy Agro Private Limited. All rights reserved.
+                    </p>
+                </div>
+            </footer>
         </div>
-        {/* footer bottom */}
-        <div className="container mx-auto mt-12 px-4 lg:px-0 border-t border-gray-200 pt-6">
-            <p className="text-gray-500 text-sm tracking-tighter text-center ">
-                Copyright © 2026 FarmEasy Agro Private Limited
-            </p>
-        </div>
-    </footer>
+    );
 };
+
 export default Footer;

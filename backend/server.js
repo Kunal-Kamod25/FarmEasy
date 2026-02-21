@@ -12,10 +12,12 @@ app.use(express.json());
 
 // Routes
 const sellerRoutes = require("./routes/seller");
-const authRoutes = require("./routes/authRoutes"); 
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 app.use("/seller", sellerRoutes);
-app.use("/api/authentication", authRoutes); 
+app.use("/api/authentication", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Test route
 app.get("/", (req, res) => {

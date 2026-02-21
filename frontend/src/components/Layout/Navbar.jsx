@@ -8,7 +8,8 @@ import Searchbar from "../Common/SearchBar";
 import CartDrawer from "./CartDrawer";
 
 const Navbar = () => {
-  const truncateText = (text, maxLength = 10) => {
+  const truncateText = (text = "", maxLength = 10) => {
+    if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + "...";
   };
@@ -112,9 +113,8 @@ const Navbar = () => {
                 }}
                 className="text-white font-normal hover:underline px-2"
               >
-                Hi, {truncateText(user.fullname, 10)}
+                Hi, {truncateText(user?.fullname || user?.full_name, 10)}
               </button>
-
               {profileOpen && (
                 <div className="absolute right-0.6 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <Link

@@ -57,7 +57,7 @@ const VendorProducts = () => {
                         </thead>
 
                         <tbody className="divide-y divide-gray-100">
-                            <tr className="hover:bg-gray-50 transition">
+                            <tr className="hover:bg-gray-200 transition">
                                 <td className="py-4 font-medium text-gray-800">
                                     Urea Fertilizer
                                 </td>

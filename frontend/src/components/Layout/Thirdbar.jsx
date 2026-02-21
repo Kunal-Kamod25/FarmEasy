@@ -1,84 +1,17 @@
-// import { useState } from "react";
-// import { Link } from "react-router-dom";
-// import { RiArrowDownSLine } from "react-icons/ri";
-
-// const Thirdbar = () => {
-//   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-//   const categories = [
-//     {name: "Fertilizers", path: "/fertilizers" },
-//     {name: "Equipments", path: "/equipments" },
-//     {name: "Seeds", path: "/seeds" },
-//     {name: "Irrigation", path: "/irrigation"},
-//   ];
-
-//   return (
-//     <div className="bg-[#0b6e4f] text-white">
-//       <nav className="container mx-auto flex items-center py-1 px-6 space-x-4"> 
-
-//         {/* Dropdown Start */}
-//         <div 
-//         className="relative group"
-//         onMouseEnter={() => setIsDropdownOpen(true)}
-//         onMouseLeave={() => setIsDropdownOpen(false)}
-//         >
-
-//         <div className="flex items-center gap-1 ">
-//               <span>All Products</span>
-//               <RiArrowDownSLine size={22} 
-//               className={'transition-transform ${isDropdownOpen ? "rotate-180" : ""}'} 
-//               />
-//             </div>
-
-//             {/* dropdown menu box */}
-//             {isDropdownOpen && (
-//             <div className="absolute left-0 top-full w-48 bg-white text-gray-800 shadow-xl rounded-b-md z-50 border-t-2 border-[#0b6e4f]">
-//               <ul className="py-2">
-//                 {categories.map((item, index) => (
-//                   <li key={index}>
-//                     <Link
-//                       to={item.path}
-//                       className="block px-4 py-2 hover:bg-gray-100 hover:text-[#0b6e4f] transition-colors text-sm font-medium"
-//                     >
-//                       {item.name}
-//                     </Link>
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Center - Navigation Links */}
-//         <div className="hidden md:flex space-x-4 flex-grow">
-//             <Link to="#" className="font-inter text-2xl text-white hover:text-gray-300 text-sm 
-//             font-medium uppercase hover:underline cursor-pointer ">Brands</Link>
-//             <Link to="#" className="font-inter text-2xl text-white hover:text-gray-300 text-sm 
-//             font-medium uppercase hover:underline cursor-pointer ">Fertilizers</Link>
-//             <Link to="#" className="font-inter text-2xl text-white hover:text-gray-300 text-sm 
-//             font-medium uppercase hover:underline cursor-pointer ">Equipment</Link>
-//             <Link to="#" className="font-inter text-2xl text-white hover:text-gray-300 text-sm 
-//             font-medium uppercase hover:underline cursor-pointer ">seeds</Link>
-//             <Link to="#" className="font-inter text-2xl text-white hover:text-gray-300 text-sm 
-//             font-medium uppercase hover:underline cursor-pointer ">irrigation</Link>
-//         </div>
-
-//       </nav>
-//     </div>
-//   );
-// };
-
-// export default Thirdbar;
-
-
-
-
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 
-const NavItem = ({ title, items }) => {
+const NavItem = ({ title, items, categoryId }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (e) => {
+    if (categoryId) {
+      e.stopPropagation();
+      navigate(`/?category=${categoryId}`);
+    }
+  };
 
   return (
     <div
@@ -90,7 +23,12 @@ const NavItem = ({ title, items }) => {
         className="flex items-center justify-between md:justify-start gap-1 cursor-pointer py-3 md:py-0.5 text-white border-b border-[#128a64] md:border-none"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm font-medium uppercase">{title}</span>
+        <span
+          className="text-sm font-medium uppercase hover:text-emerald-200 transition-colors"
+          onClick={handleCategoryClick}
+        >
+          {title}
+        </span>
         <RiArrowDownSLine
           size={20}
           className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -103,9 +41,12 @@ const NavItem = ({ title, items }) => {
           <ul className="py-2">
             {items.map((item, index) => (
               <li key={index}>
-                <Link to={item.path} className="block px-6 md:px-4 py-2 hover:bg-gray-100 text-xs font-bold uppercase">
+                <button
+                  onClick={() => navigate(item.path)}
+                  className="w-full text-left block px-6 md:px-4 py-2 hover:bg-gray-100 text-xs font-bold uppercase transition-colors"
+                >
                   {item.name}
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
@@ -116,13 +57,14 @@ const NavItem = ({ title, items }) => {
 };
 
 const Thirdbar = () => {
-  const [navOpen, setNavOpen] = useState(false); // Controls the Hamburger menu
+  const [navOpen, setNavOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="bg-[#0b6e4f] text-white">
       <nav className="container mx-auto flex items-center justify-between py-2 px-6">
 
-        {/* 1. Hamburger Icon (Visible only on Mobile) */}
+        {/* 1. Hamburger Icon */}
         <div className="md:hidden flex items-center" onClick={() => setNavOpen(!navOpen)}>
           {navOpen ? <RiCloseLine size={30} /> : <RiMenuLine size={30} />}
           <span className="ml-2 font-bold uppercase text-sm">Menu</span>
@@ -135,87 +77,74 @@ const Thirdbar = () => {
           ${navOpen ? "opacity-100 visible" : "opacity-0 invisible md:opacity-100 md:visible md:flex"}
           z-40 border-t border-[#128a64] md:border-none
         `}>
-          <NavItem title="All Products" items={[{ name: "Catalog", path: "/all" }]} />
+          <NavItem title="All Products" categoryId="main" items={[{ name: "Catalog", path: "/?category=main" }]} />
           <NavItem title="Brands"
             items={[{ name: "Bayer", path: "/bayer" },
             { name: "Syngenta", path: "/Syngenta" },
             { name: "Dhanuka", path: "/dhanuka" },
-            { name: "UPL", path: "/upl" },
-              // { name: "IFFCO", path: "/iffco" }
+            { name: "UPL", path: "/upl" }
             ]}
           />
-          <NavItem title="Fertilizers"
-            items={[{ name: "Urea", path: "/urea" },
-            { name: "IFFCO", path: "/iffco" },
-            { name: "DAP", path: "/dap" },
-            { name: "SSP", path: "/ssp" },
-            { name: "NPK", path: "/npk" },
-            { name: "MOP", path: "/mop" },
-            { name: "SOP", path: "/sop" },
-            { name: "Micronutrients", path: "/micronutrients" },
-            { name: "Organic Fertilizers", path: "/organic-fertilizers" },
-            ]}
-          />
-          <NavItem title="Equipment"
-            items={[{ name: "Handpump", path: "/handpump" },
-
-            ]}
-          />
-          <NavItem title="Seeds"
+          <NavItem
+            title="Fertilizers"
+            categoryId="fertilizers"
             items={[
-              { name: "Corn", path: "/corn" },
-              { name: "Paddy", path: "/paddy" },
-              { name: "Wheat", path: "/wheat" },
-              { name: "Soybean", path: "/soybean" },
-              { name: "Mustard", path: "/mustard" },
-              { name: "Sunflower", path: "/sunflower" },
-              { name: "Groundnut", path: "/groundnut" },
-              { name: "Cotton", path: "/cotton" },
-              { name: "Jowar", path: "/jowar" },
-              { name: "Bajra", path: "/bajra" },
-              { name: "Maize", path: "/maize" },
-              { name: "Barley", path: "/barley" },
-              { name: "Pulses", path: "/pulses" },
-              { name: "Spices", path: "/spices" },
-              { name: "Fruits", path: "/fruits" },
-              { name: "Flowers", path: "/flowers" },
-              { name: "Herbs", path: "/herbs" },
+              { name: "Urea", path: "/?category=fertilizers" },
+              { name: "IFFCO", path: "/?category=fertilizers" },
+              { name: "DAP", path: "/?category=fertilizers" },
+              { name: "NPK", path: "/?category=fertilizers" },
+              { name: "Organic Fertilizers", path: "/?category=fertilizers" },
             ]}
           />
-          <NavItem title="Irrigation"
+          <NavItem
+            title="Equipment"
+            categoryId="equipment"
+            items={[{ name: "Handpump", path: "/?category=equipment" }]}
+          />
+          <NavItem
+            title="Seeds"
+            categoryId="seeds"
             items={[
-              { name: "Sprinklers", path: "/sprinklers" },
-              { name: "Drip Irrigation", path: "/drip-irrigation" },
-              { name: "Pumps", path: "/pumps" },
-              { name: "Pipes", path: "/pipes" },
-              { name: "Fittings", path: "/fittings" },
-              { name: "Valves", path: "/valves" },
-              { name: "Nozzles", path: "/nozzles" },
-              { name: "Filters", path: "/filters" },
-              { name: "Timers", path: "/timers" },
-              { name: "Sensors", path: "/sensors" },
-              { name: "Controllers", path: "/controllers" },
-              { name: "Accessories", path: "/accessories" },
+              { name: "Corn", path: "/?category=seeds" },
+              { name: "Paddy", path: "/?category=seeds" },
+              { name: "Wheat", path: "/?category=seeds" },
             ]}
           />
-          <NavItem title="Animal Feed"
+          <NavItem
+            title="Irrigation"
+            categoryId="irrigation"
             items={[
-              { name: "Cattle Feed", path: "/cattle-feed" },
-              { name: "Dairy Feed", path: "/dairy-feed" },
-              { name: "Buffalo Feed", path: "/buffalo-feed" },
-              { name: "Poultry Feed", path: "/poultry-feed" },
-              { name: "Broiler Feed", path: "/broiler-feed" },
-              { name: "Layer Feed", path: "/layer-feed" },
-              { name: "Goat Feed", path: "/goat-feed" },
-              { name: "Sheep Feed", path: "/sheep-feed" },
-              { name: "Calf Starter Feed", path: "/calf-starter-feed" }
+              { name: "Sprinklers", path: "/?category=irrigation" },
+              { name: "Drip Irrigation", path: "/?category=irrigation" },
+            ]}
+          />
+          <NavItem
+            title="Animal Food"
+            categoryId="pets"
+            items={[
+              { name: "Cattle Feed", path: "/?category=pets" },
+              { name: "Poultry Feed", path: "/?category=pets" },
+            ]}
+          />
+          <NavItem
+            title="Tools"
+            categoryId="tools"
+            items={[
+              { name: "Hand Tools", path: "/?category=tools" },
+            ]}
+          />
+          <NavItem
+            title="Pesticides"
+            categoryId="pesticides"
+            items={[
+              { name: "Crop Protection", path: "/?category=pesticides" },
             ]}
           />
         </div>
 
-        {/* 3. Optional Search or Cart Icon for Desktop */}
-        <div className="hidden md:block text-xs italic">
-          Free Delivery on orders over 3000 rs
+        {/* 3. Delivery info */}
+        <div className="hidden md:block text-xs font-bold uppercase tracking-wider text-emerald-100">
+          Free Delivery on orders over ₹3,000
         </div>
       </nav>
     </div>
