@@ -19,10 +19,12 @@ CREATE TABLE IF NOT EXISTS farmer (
 -- PRODUCT CATEGORY
 -- =============================
 
-CREATE TABLE IF NOT EXISTS product_category (
+CREATE TABLE product_subcategory (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  product_cat_name VARCHAR(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  subcategory_name VARCHAR(255) NOT NULL,
+  category_id INT,
+  FOREIGN KEY (category_id) REFERENCES product_category(id) ON DELETE CASCADE
+);
 
 
 -- =============================

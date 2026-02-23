@@ -170,7 +170,7 @@ const Navbar = () => {
             >
               <HiOutlineShoppingCart className="h-6 w-6 text-white hover:text-green-500" />
               <span className="absolute -top-4 text-white text-xs rounded-full bg-[#0C970C] px-2 py-0.5">
-                3
+                0
               </span>
             </button>
 

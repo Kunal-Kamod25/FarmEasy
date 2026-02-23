@@ -28,7 +28,11 @@ export default function HomeSections({
                     {fertilizerProducts.slice(0, 4).map((product) => (
                         <div
                             key={product.id}
-                            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100"
+                            className="group bg-white rounded-3xl shadow-sm 
+                            hover:shadow-2xl hover:shadow-emerald-200 
+                            transition-all duration-200 border border-slate-100 
+                            overflow-hidden w-full flex flex-col h-full
+                            hover:-translate-y-2"
                         >
                             {/* Image */}
                             <div className="relative bg-gray-50 h-56 flex items-center justify-center">
