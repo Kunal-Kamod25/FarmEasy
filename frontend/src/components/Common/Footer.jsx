@@ -24,7 +24,7 @@ const Footer = () => {
                         <img
                             src={logo}
                             alt="FarmEasy Logo"
-                            className="h-16 w-16 object-contain"
+                            className="h-16 md:h-25 object-contain"
                         />
                     </Link>
                 </div>

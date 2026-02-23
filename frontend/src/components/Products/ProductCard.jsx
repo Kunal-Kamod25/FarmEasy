@@ -7,7 +7,7 @@ const ProductCard = ({ product }) => {
   const brandLogo = brandData ? brandData.logo : null;
 
   return (
-    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-emerald-100 transition-all duration-500 border border-slate-100 overflow-hidden w-full flex flex-col h-full">
+    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-emerald-200 transition-all duration-500 border border-slate-100 overflow-hidden w-full flex flex-col h-full">
       {/* Image Container with Stock Badge */}
       <div className="relative h-56 w-full bg-slate-50/50 p-6 flex items-center justify-center overflow-hidden">
         <img

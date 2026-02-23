@@ -14,10 +14,14 @@ app.use(express.json());
 const sellerRoutes = require("./routes/seller");
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 app.use("/seller", sellerRoutes);
 app.use("/api/authentication", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
 
 // Test route
 app.get("/", (req, res) => {
