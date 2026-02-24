@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import MainPage from "../../assets/MainPage.png";
+import Fartilizers1 from "../../assets/Fartilizers1.png";
+import Fartilizers2 from "../../assets/Fartilizers2.png";
+import Seeds from "../../assets/Seeds.png";
+import Irrigation from "../../assets/Irrigation.png";
+import Feed from "../../assets/Feed.png";
 
 const slides = [
   {
@@ -7,8 +13,7 @@ const slides = [
     subtitle: "Your one-stop Agricultural Marketplace",
     description:
       "Buy everything you need for modern farming from trusted vendors.",
-    bgImage:
-      "https://images.pexels.com/photos/94039/pexels-photo-94039.jpeg",
+    bgImage:MainPage,
     button: "Explore Platform",
   },
   {
@@ -16,8 +21,7 @@ const slides = [
     subtitle: "Boost your crop yield",
     description:
       "High-quality organic and chemical fertilizers for every soil type.",
-    bgImage:
-      "https://images.pexels.com/photos/31673795/pexels-photo-31673795.jpeg",
+    bgImage:Fartilizers1,
     button: "Shop Fertilizers",
   },
   {
@@ -25,8 +29,7 @@ const slides = [
     subtitle: "Power your productivity",
     description:
       "Tractors, tools, and machines designed for efficiency and durability.",
-    bgImage:
-      "https://images.pexels.com/photos/5529580/pexels-photo-5529580.jpeg",
+    bgImage:Fartilizers2,
     button: "View Equipment",
   },
   {
@@ -34,8 +37,7 @@ const slides = [
     subtitle: "Strong roots start here",
     description:
       "Certified seeds and pulses for maximum germination and yield.",
-    bgImage:
-      "https://images.pexels.com/photos/6086066/pexels-photo-6086066.jpeg",
+    bgImage:Seeds,
     button: "Browse Seeds",
   },
   {
@@ -43,8 +45,7 @@ const slides = [
     subtitle: "Smart water management",
     description:
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
-    bgImage:
-      "https://images.pexels.com/photos/31231190/pexels-photo-31231190.jpeg",
+    bgImage:Irrigation,
     button: "Explore Irrigation",
   },
   {
@@ -52,8 +53,7 @@ const slides = [
     subtitle: "Healthy cows, horses & bulls",
     description:
       "Nutritious animal feed and trusted veterinary medicines.",
-    bgImage:
-      "https://images.pexels.com/photos/32461697/pexels-photo-32461697.jpeg",
+    bgImage:Feed,
     button: "Shop Animal Care",
   },
 ];

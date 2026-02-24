@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 const VendorAddProduct = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  // ================= STATE =================
   const [formData, setFormData] = useState({
     product_name: "",
     product_description: "",
@@ -16,9 +16,8 @@ const VendorAddProduct = () => {
     product_quantity: "",
   });
 
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]); // UI only (not sent yet)
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
 
   // ================= HANDLE INPUT =================
   const handleChange = (e) => {
@@ -29,7 +28,7 @@ const VendorAddProduct = () => {
     }));
   };
 
-  // ================= HANDLE IMAGE UPLOAD =================
+  // ================= HANDLE IMAGE UPLOAD (UI only for now) =================
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
 
@@ -41,7 +40,6 @@ const VendorAddProduct = () => {
     setImages((prev) => [...prev, ...imagePreviews]);
   };
 
-  // ================= REMOVE IMAGE =================
   const removeImage = (index) => {
     const updated = [...images];
     updated.splice(index, 1);
@@ -51,35 +49,31 @@ const VendorAddProduct = () => {
   // ================= SUBMIT PRODUCT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     try {
       setLoading(true);
 
-      const data = new FormData();
-
-      Object.keys(formData).forEach((key) => {
-        data.append(key, formData[key]);
-      });
-
-      images.forEach((img) => {
-        data.append("images", img.file);
-      });
-
       await axios.post(
         "http://localhost:5000/api/vendor/products",
-        data,
+        {
+          product_name: formData.product_name,
+          product_description: formData.product_description,
+          product_type: formData.product_type,
+          price: formData.price,
+          category_id: formData.category_id,
+          product_quantity: formData.product_quantity,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
       alert("Product added successfully!");
 
-      // Reset form
       setFormData({
         product_name: "",
         product_description: "",
@@ -88,33 +82,31 @@ const VendorAddProduct = () => {
         category_id: "",
         product_quantity: "",
       });
+
       setImages([]);
 
       navigate("/vendor/products");
 
     } catch (error) {
-      console.error("Add product error:", error);
-      alert("Failed to add product");
+      console.error("Add product error:", error.response?.data || error);
+      alert(error.response?.data?.message || "Failed to add product");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen p-6 bg-cover bg-center relative"
+    <div className="min-h-screen p-6 bg-cover bg-center relative"
       style={{
         backgroundImage:
           "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')",
       }}
     >
-      {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 via-emerald-800/70 to-yellow-700/60 backdrop-blur-sm"></div>
 
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 border border-green-200">
 
-          {/* Header */}
           <div className="mb-10 border-b border-green-200 pb-5">
             <h2 className="text-3xl font-bold text-green-800">
               Add New Product 🌾
@@ -124,16 +116,11 @@ const VendorAddProduct = () => {
             </p>
           </div>
 
-          {/* ================= FORM START ================= */}
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-10"
-          >
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
             {/* LEFT SECTION */}
             <div className="lg:col-span-2 space-y-8">
 
-              {/* Product Name */}
               <div>
                 <label className="block text-sm font-semibold text-green-800 mb-2">
                   Product Name
@@ -143,13 +130,11 @@ const VendorAddProduct = () => {
                   name="product_name"
                   value={formData.product_name}
                   onChange={handleChange}
-                  className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Enter product name"
                   required
+                  className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
                 />
               </div>
 
-              {/* Product Type */}
               <div>
                 <label className="block text-sm font-semibold text-green-800 mb-2">
                   Product Type
@@ -160,11 +145,9 @@ const VendorAddProduct = () => {
                   value={formData.product_type}
                   onChange={handleChange}
                   className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Enter product type"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-semibold text-green-800 mb-2">
                   Description
@@ -175,11 +158,9 @@ const VendorAddProduct = () => {
                   value={formData.product_description}
                   onChange={handleChange}
                   className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Write detailed product description"
                 />
               </div>
 
-              {/* Price & Quantity */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-green-800 mb-2">
@@ -190,8 +171,8 @@ const VendorAddProduct = () => {
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
-                    className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
                     required
+                    className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
                   />
                 </div>
 
@@ -210,16 +191,16 @@ const VendorAddProduct = () => {
               </div>
             </div>
 
-            {/* RIGHT SECTION - IMAGES */}
+            {/* RIGHT SECTION - UI IMAGE ONLY */}
             <div className="space-y-6">
               <label className="block text-sm font-semibold text-green-800 mb-2">
-                Product Images
+                Product Images (Coming Soon)
               </label>
 
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-green-300 rounded-2xl p-8 cursor-pointer hover:border-green-500 transition bg-green-50">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-green-300 rounded-2xl p-8 cursor-pointer bg-green-50">
                 <Upload className="text-green-600 mb-3" size={30} />
                 <span className="text-sm text-green-700">
-                  Click to upload images
+                  Image upload will be enabled soon
                 </span>
                 <input
                   type="file"
@@ -233,10 +214,7 @@ const VendorAddProduct = () => {
               {images.length > 0 && (
                 <div className="grid grid-cols-2 gap-4">
                   {images.map((img, index) => (
-                    <div
-                      key={index}
-                      className="relative rounded-xl overflow-hidden shadow-md"
-                    >
+                    <div key={index} className="relative rounded-xl overflow-hidden shadow-md">
                       <img
                         src={img.preview}
                         alt="preview"
@@ -245,7 +223,7 @@ const VendorAddProduct = () => {
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-red-100"
+                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow"
                       >
                         <X size={16} />
                       </button>
@@ -255,7 +233,6 @@ const VendorAddProduct = () => {
               )}
             </div>
 
-            {/* FOOTER BUTTONS INSIDE FORM */}
             <div className="lg:col-span-3 flex justify-end gap-4 mt-10 border-t border-green-200 pt-6">
               <button
                 type="button"
@@ -268,16 +245,13 @@ const VendorAddProduct = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-2 rounded-xl bg-gradient-to-r from-green-600 to-lime-500 
-                hover:from-green-700 hover:to-lime-600 text-white shadow-lg transition disabled:opacity-50"
+                className="px-8 py-2 rounded-xl bg-gradient-to-r from-green-600 to-lime-500 text-white shadow-lg transition disabled:opacity-50"
               >
                 {loading ? "Saving..." : "Save Product"}
               </button>
             </div>
 
           </form>
-          {/* ================= FORM END ================= */}
-
         </div>
       </div>
     </div>

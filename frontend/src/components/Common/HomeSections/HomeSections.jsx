@@ -1,5 +1,6 @@
-import { Star } from "lucide-react";
-import { ShoppingCart } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Star, ShoppingCart, Heart } from "lucide-react";
 
 export default function HomeSections({
     fertilizerProducts = [],
@@ -7,9 +8,55 @@ export default function HomeSections({
     onNavigate = () => { },
     onViewDetails = () => { }
 }) {
+
+    const [wishlist, setWishlist] = useState([]);
+    const token = localStorage.getItem("token");
+
+    // Fetch wishlist once
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            try {
+                const res = await axios.get("http://localhost:5000/api/wishlist", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setWishlist(res.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+
+        if (token) fetchWishlist();
+    }, [token]);
+
+    const toggleWishlist = async (productId) => {
+        try {
+            await axios.post(
+                "http://localhost:5000/api/wishlist",
+                { productId },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const exists = wishlist.some(item => item.id === productId);
+
+            if (exists) {
+                setWishlist(prev => prev.filter(item => item.id !== productId));
+            } else {
+                setWishlist(prev => [...prev, { id: productId }]);
+            }
+
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const isWishlisted = (id) => {
+        return wishlist.some(item => item.id === id);
+    };
+
     return (
-        <main className="bg-[#FFFFF] min-h-screen pb-16">
-            {/* ================= BEST SELLERS IN FERTILIZERS ================= */}
+        <main className="bg-[#FFFFFF] min-h-screen pb-16">
+
+            {/* ================= BEST SELLERS ================= */}
             <section className="px-4 mt-10">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-800">
@@ -24,25 +71,37 @@ export default function HomeSections({
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {fertilizerProducts.slice(0, 4).map((product) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                     {fertilizerProducts.slice(0, 8).map((product) => (
                         <div
                             key={product.id}
-                            className="group bg-white rounded-3xl shadow-sm 
-                            hover:shadow-2xl hover:shadow-emerald-200 
-                            transition-all duration-200 border border-slate-100 
-                            overflow-hidden w-full flex flex-col h-full
-                            hover:-translate-y-2"
+                            className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-emerald-200 transition-all duration-200 border border-slate-100 overflow-hidden flex flex-col hover:-translate-y-2"
                         >
+
                             {/* Image */}
-                            <div className="relative bg-gray-50 h-56 flex items-center justify-center">
+                            <div className="relative bg-gray-50 h-48 flex items-center justify-center">
+
+                                {/* ❤️ Wishlist */}
+                                <button
+                                    onClick={() => toggleWishlist(product.id)}
+                                    className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm border border-slate-100 hover:scale-110 transition-all duration-200"
+                                    >
+                                    <Heart
+                                        size={16}
+                                        className={
+                                        isWishlisted(product.id)
+                                            ? "text-red-500 fill-red-500"
+                                            : "text-slate-400 hover:text-red-500 transition-colors"
+                                        }
+                                    />
+                                    </button>
+
                                 <img
                                     src={product.image}
                                     alt={product.name}
-                                    className="object-contain h-full w-full p-6"
+                                    className="object-contain h-full w-full p-4"
                                 />
 
-                                {/* Stock Badge */}
                                 <span className="absolute top-4 right-4 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                     IN STOCK
                                 </span>
@@ -50,23 +109,18 @@ export default function HomeSections({
 
                             {/* Content */}
                             <div className="p-6">
-
-                                {/* Brand */}
                                 <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">
                                     {product.brand || "FERTILIZER"}
                                 </p>
 
-                                {/* Title */}
                                 <h3 className="text-lg font-bold text-slate-800 mb-2">
                                     {product.name}
                                 </h3>
 
-                                {/* Description */}
                                 <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                                    {product.description || "High quality fertilizer for better crop yield."}
+                                    {product.description}
                                 </p>
 
-                                {/* Rating */}
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="text-yellow-500 font-semibold">
                                         ★ {product.rating}
@@ -76,59 +130,23 @@ export default function HomeSections({
                                     </span>
                                 </div>
 
-                                {/* Bottom Row */}
                                 <div className="flex items-center justify-between">
                                     <p className="text-xl font-bold text-slate-900">
                                         ₹{product.price.toLocaleString()}
                                     </p>
 
-                                    <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest py-3.5 px-6 rounded-2xl transition-all shadow-xl shadow-emerald-100 hover:shadow-emerald-200 active:scale-95 group/btn">
-                                        <ShoppingCart size={16} className="group-hover:rotate-12 transition-transform" />
-                                        <span>Add</span>
+                                    <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
+                                        <ShoppingCart size={16} />
+                                        Add
                                     </button>
                                 </div>
-
                             </div>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* ================= SMART FARMING HERO ================= */}
-            <section className="px-4 mt-14">
-                <div className="relative rounded-3xl overflow-hidden shadow-xl">
-
-                    <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{
-                            backgroundImage:
-                                "url('https://images.unsplash.com/photo-1708794666324-85ad91989d20')"
-                        }}
-                    />
-
-                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
-
-                    <div className="relative z-10 p-12 max-w-2xl">
-                        <h3 className="text-4xl font-bold text-slate-800 mb-4">
-                            Smart Farming Technology
-                        </h3>
-
-                        <p className="text-slate-700 mb-6 text-lg">
-                            Monitor soil moisture, crop health and automate irrigation
-                            systems using advanced IoT based solutions.
-                        </p>
-
-                        <button
-                            onClick={() => onNavigate("products")}
-                            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition"
-                        >
-                            Explore Smart Tech
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* ================= RECOMMENDED PRODUCTS ================= */}
+            {/* ================= RECOMMENDED ================= */}
             <section className="px-4 mt-14">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold text-slate-800">
@@ -147,9 +165,23 @@ export default function HomeSections({
                     {products.slice(0, 8).map((product) => (
                         <div
                             key={product.id}
-                            onClick={() => onViewDetails(product)}
-                            className="bg-white rounded-2xl p-5 border border-green-100 hover:shadow-xl transition cursor-pointer group"
+                            className="bg-white rounded-2xl p-5 border border-green-100 hover:shadow-xl transition group relative"
                         >
+
+                            {/* ❤️ Wishlist */}
+                            <button
+                                    onClick={() => toggleWishlist(product.id)}
+                                    className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm border border-slate-100 hover:scale-110 transition-all duration-200"
+                                    >
+                                    <Heart
+                                        size={16}
+                                        className={
+                                        isWishlisted(product.id)
+                                            ? "text-red-500 fill-red-500"
+                                            : "text-slate-400 hover:text-red-500 transition-colors"
+                                        }
+                                    />
+                                    </button>
                             <div className="h-32 flex items-center justify-center mb-4">
                                 <img
                                     src={product.image}
@@ -172,9 +204,6 @@ export default function HomeSections({
                                             }`}
                                     />
                                 ))}
-                                <span className="text-xs text-gray-600">
-                                    ({product.reviews})
-                                </span>
                             </div>
 
                             <p className="font-bold text-lg text-slate-900 mb-3">
@@ -188,7 +217,6 @@ export default function HomeSections({
                     ))}
                 </div>
             </section>
-
         </main>
     );
 }
