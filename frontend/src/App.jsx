@@ -15,7 +15,7 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import AdminHomePage from "./Pages/AdminHomePage";
 
 /* Vendor */
-import VendorLayout from "./components/Vendor/VendorLayout";
+import VendorLayout from "./Pages/Vendor/VendorLayout";
 import VendorDashboard from "./Pages/Vendor/VendorDashboard";
 import VendorProducts from "./Pages/Vendor/VendorProducts";
 import VendorAddProduct from "./Pages/Vendor/VendorAddProduct";
@@ -25,6 +25,9 @@ import VendorProfile from "./Pages/Vendor/VendorProfile";
 
 /* Protected Routes */
 import VendorRoute from "./routes/VendorRoute";
+
+/* Wish_list */
+import Wishlist from "./components/Products/wishlist";
 
 const App = () => {
   return (
@@ -55,6 +58,7 @@ const App = () => {
           <Route path="sales" element={<VendorSales />} />
           <Route path="profile" element={<VendorProfile />} />
         </Route>
+        <Route path="/wishlist" element={<Wishlist />} />
 
       </Routes>
     </BrowserRouter>

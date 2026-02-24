@@ -16,6 +16,8 @@ const profileRoutes = require("./routes/profileRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
+
 
 // Use routes
 app.use("/seller", sellerRoutes);
@@ -24,6 +26,8 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/vendor", vendorRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+
 
 // ================= TEST ROUTE =================
 app.get("/", (req, res) => {

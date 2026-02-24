@@ -30,43 +30,48 @@ const Home = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* 1. Hero Section (Only show on main home or optionally always) */}
+
+      {/* Hero - FULL WIDTH */}
       {categoryParam === "main" && <Hero />}
 
-      <div className="max-w-7xl mx-auto py-12 px-4">
+      {/* Main Content Container */}
+      <div className="w-full max-w-12xl mx-auto px-10 py-10">
 
-        {/* 2. Page Title / Breadcrumbs (Dynamic based on category) */}
-        <div className="mb-10 text-center md:text-left">
-          <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tight">
-            {categoryParam === "main" ? "Our Best Products" : `${categoryParam.replace("-", " ")}`}
+        {/* Page Title */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-extrabold text-slate-800 uppercase tracking-tight">
+            {categoryParam === "main"
+              ? "Our Best Products"
+              : categoryParam.replace("-", " ")}
           </h1>
           <p className="text-slate-500 mt-2 font-medium">
             Discover high-quality supplies for your farming needs.
           </p>
         </div>
 
-        {/* 3. Brand Section (Optional: maybe only show on main home) */}
-        {categoryParam === "main" && (
-          <div className="mb-16">
-            <BrandSection />
-          </div>
-        )}
+      </div>
 
-        {/* 4. Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-20">
+      {/* Brand Section - DO NOT WRAP AGAIN */}
+      {categoryParam === "main" && <BrandSection />}
+
+      {/* Products Section */}
+      <div className="max-w-7xl mx-auto px-4 pb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))
           ) : (
             <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-              <p className="text-slate-400 font-bold">No products found for this category.</p>
+              <p className="text-slate-400 font-bold">
+                No products found for this category.
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 5. Home Sections (Only on main page) */}
+      {/* Home Sections */}
       {categoryParam === "main" && (
         <HomeSections
           fertilizerProducts={fertilizerProducts}
@@ -78,6 +83,5 @@ const Home = () => {
     </div>
   );
 };
-
 
 export default Home;
