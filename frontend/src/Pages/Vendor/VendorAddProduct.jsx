@@ -1,131 +1,287 @@
-import React from "react";
-import { Upload } from "lucide-react";
+import React, { useState } from "react";
+import axios from "axios";
+import { Upload, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const VendorAddProduct = () => {
-    return (
-        <div className="min-h-screen bg-gray-50 p-6">
+  const navigate = useNavigate();
 
-            {/* Page Header */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">
-                    Add New Product
-                </h2>
-                <p className="text-sm text-gray-500">
-                    Fill in the details below to list your product
-                </p>
+  // ================= STATE =================
+  const [formData, setFormData] = useState({
+    product_name: "",
+    product_description: "",
+    product_type: "",
+    price: "",
+    category_id: "",
+    product_quantity: "",
+  });
+
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token");
+
+  // ================= HANDLE INPUT =================
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // ================= HANDLE IMAGE UPLOAD =================
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    const imagePreviews = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setImages((prev) => [...prev, ...imagePreviews]);
+  };
+
+  // ================= REMOVE IMAGE =================
+  const removeImage = (index) => {
+    const updated = [...images];
+    updated.splice(index, 1);
+    setImages(updated);
+  };
+
+  // ================= SUBMIT PRODUCT =================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const data = new FormData();
+
+      Object.keys(formData).forEach((key) => {
+        data.append(key, formData[key]);
+      });
+
+      images.forEach((img) => {
+        data.append("images", img.file);
+      });
+
+      await axios.post(
+        "http://localhost:5000/api/vendor/products",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Product added successfully!");
+
+      // Reset form
+      setFormData({
+        product_name: "",
+        product_description: "",
+        product_type: "",
+        price: "",
+        category_id: "",
+        product_quantity: "",
+      });
+      setImages([]);
+
+      navigate("/vendor/products");
+
+    } catch (error) {
+      console.error("Add product error:", error);
+      alert("Failed to add product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen p-6 bg-cover bg-center relative"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')",
+      }}
+    >
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 via-emerald-800/70 to-yellow-700/60 backdrop-blur-sm"></div>
+
+      <div className="relative z-10 max-w-6xl mx-auto">
+        <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 border border-green-200">
+
+          {/* Header */}
+          <div className="mb-10 border-b border-green-200 pb-5">
+            <h2 className="text-3xl font-bold text-green-800">
+              Add New Product 🌾
+            </h2>
+            <p className="text-sm text-green-600 mt-2">
+              Fill all required details carefully before publishing.
+            </p>
+          </div>
+
+          {/* ================= FORM START ================= */}
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-10"
+          >
+
+            {/* LEFT SECTION */}
+            <div className="lg:col-span-2 space-y-8">
+
+              {/* Product Name */}
+              <div>
+                <label className="block text-sm font-semibold text-green-800 mb-2">
+                  Product Name
+                </label>
+                <input
+                  type="text"
+                  name="product_name"
+                  value={formData.product_name}
+                  onChange={handleChange}
+                  className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  placeholder="Enter product name"
+                  required
+                />
+              </div>
+
+              {/* Product Type */}
+              <div>
+                <label className="block text-sm font-semibold text-green-800 mb-2">
+                  Product Type
+                </label>
+                <input
+                  type="text"
+                  name="product_type"
+                  value={formData.product_type}
+                  onChange={handleChange}
+                  className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  placeholder="Enter product type"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-green-800 mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows="5"
+                  name="product_description"
+                  value={formData.product_description}
+                  onChange={handleChange}
+                  className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  placeholder="Write detailed product description"
+                />
+              </div>
+
+              {/* Price & Quantity */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-green-800 mb-2">
+                    Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-green-800 mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    name="product_quantity"
+                    value={formData.product_quantity}
+                    onChange={handleChange}
+                    className="w-full border border-green-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Main Card */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-8 max-w-4xl">
+            {/* RIGHT SECTION - IMAGES */}
+            <div className="space-y-6">
+              <label className="block text-sm font-semibold text-green-800 mb-2">
+                Product Images
+              </label>
 
-                <form className="space-y-6">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-green-300 rounded-2xl p-8 cursor-pointer hover:border-green-500 transition bg-green-50">
+                <Upload className="text-green-600 mb-3" size={30} />
+                <span className="text-sm text-green-700">
+                  Click to upload images
+                </span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </label>
 
-                    {/* Product Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Product Name
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Enter product name"
-                            className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                        />
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative rounded-xl overflow-hidden shadow-md"
+                    >
+                      <img
+                        src={img.preview}
+                        alt="preview"
+                        className="object-cover w-full h-32"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-red-100"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
-
-                    {/* Price + Category */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Price (₹)
-                            </label>
-                            <input
-                                type="number"
-                                placeholder="Enter price"
-                                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Category
-                            </label>
-                            <select className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none">
-                                <option>Select category</option>
-                                <option>Fertilizers</option>
-                                <option>Seeds</option>
-                                <option>Pesticides</option>
-                                <option>Tools</option>
-                            </select>
-                        </div>
-
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Description
-                        </label>
-                        <textarea
-                            rows="4"
-                            placeholder="Write product description..."
-                            className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                        />
-                    </div>
-
-                    {/* Image Upload */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Product Image
-                        </label>
-
-                        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-green-500 transition cursor-pointer">
-                            <div className="text-center">
-                                <Upload className="mx-auto text-gray-400 mb-2" size={28} />
-                                <p className="text-sm text-gray-500">
-                                    Click to upload product image
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stock Toggle */}
-                    <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                        <div>
-                            <p className="text-sm font-medium text-gray-700">
-                                Available in Stock
-                            </p>
-                            <p className="text-xs text-gray-500">
-                                Enable if product is ready for sale
-                            </p>
-                        </div>
-
-                        <input type="checkbox" className="w-5 h-5 accent-green-600" />
-                    </div>
-
-                    {/* Buttons */}
-                    <div className="flex justify-end gap-4 pt-4">
-
-                        <button
-                            type="button"
-                            className="px-6 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition shadow"
-                        >
-                            Add Product
-                        </button>
-
-                    </div>
-
-                </form>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* FOOTER BUTTONS INSIDE FORM */}
+            <div className="lg:col-span-3 flex justify-end gap-4 mt-10 border-t border-green-200 pt-6">
+              <button
+                type="button"
+                onClick={() => navigate("/vendor/products")}
+                className="px-6 py-2 rounded-xl border border-green-300 text-green-700 hover:bg-green-50 transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-2 rounded-xl bg-gradient-to-r from-green-600 to-lime-500 
+                hover:from-green-700 hover:to-lime-600 text-white shadow-lg transition disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Save Product"}
+              </button>
+            </div>
+
+          </form>
+          {/* ================= FORM END ================= */}
+
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default VendorAddProduct;
