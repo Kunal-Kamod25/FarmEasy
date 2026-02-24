@@ -35,55 +35,51 @@ const Login = () => {
 
   // submit login form
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // decide which value to send to backend
-    const identifier =
-      loginType === "email" ? email.trim() : phone.trim();
+  const identifier =
+    loginType === "email" ? email.trim() : phone.trim();
 
-    // simple frontend validation
-    if (!identifier || !password) {
-      alert("Identifier (email or phone) and password are required.");
-      return;
-    }
+  if (!identifier || !password) {
+    alert("Identifier (email or phone) and password are required.");
+    return;
+  }
 
-    try {
-      const response = await fetch(`${API_URL}/api/authentication/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+  try {
+    const response = await fetch(`${API_URL}/api/authentication/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        identifier,
+        password,
+      }),
+    });
 
-        // backend expects identifier + password
-        body: JSON.stringify({
-          identifier,
-          password,
-        }),
-      }
-      );
+    const data = await response.json();
 
-      const data = await response.json();
+    if (response.ok) {
+      // ✅ STORE TOKEN
+      localStorage.setItem("token", data.token);
 
-      if (response.ok) {
-        // store logged in user
-        localStorage.setItem("user", JSON.stringify(data.user));
+      // ✅ STORE USER
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-        alert(`Welcome ${data.user.fullname}`);
-
-        // redirect based on role
-        if (data.user.role === "vendor") {
-          navigate("/vendor");
-        } else if (data.user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+      // Redirect based on role
+      if (data.user.role === "vendor") {
+        navigate("/vendor/products");
+      } else if (data.user.role === "admin") {
+        navigate("/admin");
       } else {
-        alert(data.message || "Login failed");
+        navigate("/");
       }
-    } catch (err) {
-      alert("Server not responding");
+    } else {
+      alert(data.message || "Login failed");
     }
-  };
 
+  } catch (err) {
+    alert("Server not responding");
+  }
+};
   return (
     <div className="min-h-screen grid grid-cols-2 font-Lora">
       {/* LEFT SIDE */}
