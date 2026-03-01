@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
-import { HiOutlineUser, HiBars3BottomRight, HiOutlineShoppingCart, HiOutlineBuildingStorefront } from "react-icons/hi2";
+import {
+  HiOutlineUser,
+  HiBars3BottomRight,
+  HiOutlineShoppingCart,
+  HiOutlineHeart,
+} from "react-icons/hi2";
 import Searchbar from "../Common/SearchBar";
-// import LanguageSwitcher from "../Common/LanguageSwitcher";
-// import AiSpeechOrder from "../Common/AiSpeechOrder";
 import CartDrawer from "./CartDrawer";
+import { useCart } from "../../context/CartContext";
+import { useWishlist } from "../../context/WishlistContext";
 
 const Navbar = () => {
   const truncateText = (text = "", maxLength = 10) => {
@@ -13,6 +18,7 @@ const Navbar = () => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + "...";
   };
+
   const [SearchTerm, setSearchTerm] = useState("");
   const handleSearch = (e) => {
     e.preventDefault();
@@ -27,6 +33,12 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
 
+  /* 🛒 CART */
+  const { cartCount } = useCart();
+
+  /* ❤️ WISHLIST */
+  const { wishlistCount } = useWishlist();
+
   // close on outside click
   const profileRef = useRef(null);
 
@@ -36,14 +48,11 @@ const Navbar = () => {
         setProfileOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -54,6 +63,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     navigate("/login");
   };
@@ -88,20 +98,6 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
-          {/* <AiSpeechOrder className="hidden md:block mr-6 items-right" />
-          <LanguageSwitcher className="hidden md:block mr-6 items-right" /> */}
-
-          {!user && (
-            <Link
-              to="/login"
-              className="hidden flex items-center gap-1 border border-green-600 px-3 py-1 rounded-md
-                          text-sm uppercase font-medium hover:bg-green-600 hover:text-black transition"
-            >
-              <HiOutlineBuildingStorefront className="h-5 w-5" />
-              Vendor
-            </Link>
-          )}
-
 
           {/* 🔐 AUTH SECTION */}
           {user ? (
@@ -116,7 +112,7 @@ const Navbar = () => {
                 Hi, {truncateText(user?.fullname || user?.full_name, 10)}
               </button>
               {profileOpen && (
-                <div className="absolute right-0.6 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
@@ -124,7 +120,6 @@ const Navbar = () => {
                   >
                     Update Profile
                   </Link>
-
                   <button
                     onClick={() => {
                       setProfileOpen(false);
@@ -157,21 +152,38 @@ const Navbar = () => {
           <div className="flex items-center space-x-4 py-0.5">
             {user && (
               <>
-                <Link to="/admin" className="block px-2 rounded text-sm">Admin</Link>
+                {/* ❤️ Wishlist Icon with count badge */}
+                <Link
+                  to="/wishlist"
+                  title="My Wishlist"
+                  className="relative group"
+                >
+                  <HiOutlineHeart className="h-6 w-6 text-white hover:text-red-400 transition-colors" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-4 -right-1 text-white text-xs rounded-full bg-red-500 min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold">
+                      {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* 👤 Profile Icon */}
                 <Link to="/profile">
-                  <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500" />
+                  <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500 transition-colors" />
                 </Link>
               </>
             )}
 
+            {/* 🛒 Cart Icon with live badge */}
             <button
               onClick={toggleCartDrawer}
-              className="relative hover:text-black"
+              className="relative hover:text-green-500 transition-colors"
             >
               <HiOutlineShoppingCart className="h-6 w-6 text-white hover:text-green-500" />
-              <span className="absolute -top-4 text-white text-xs rounded-full bg-[#0C970C] px-2 py-0.5">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-4 -right-1 text-white text-xs rounded-full bg-[#0C970C] min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </button>
 
             <button
@@ -182,7 +194,7 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-      </nav >
+      </nav>
 
       <CartDrawer
         drawerOpen={drawerOpen}
@@ -190,33 +202,38 @@ const Navbar = () => {
       />
 
       {/* Mobile Menu */}
-      {
-        isMobileMenuOpen && (
-          <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
-            <Link className="block uppercase hover:text-green-500 hover:underline">
-              Brands
-            </Link>
-            <Link className="block uppercase hover:text-green-500 hover:underline">
-              Fertilizers
-            </Link>
-            <Link className="block uppercase hover:text-green-500 hover:underline">
-              Equipment
-            </Link>
-            <Link className="block uppercase hover:text-green-500 hover:underline">
-              Seeds
-            </Link>
-            <Link className="block uppercase hover:text-green-500 hover:underline">
-              Irrigation
-            </Link>
-
-            <div className="border-t border-green-700"></div>
-
-            <AiSpeechOrder className="w-full" />
-            <LanguageSwitcher className="w-full" />
-          </div>
-        )
-      }
-    </div >
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
+          <Link className="block uppercase hover:text-green-500 hover:underline">
+            Brands
+          </Link>
+          <Link className="block uppercase hover:text-green-500 hover:underline">
+            Fertilizers
+          </Link>
+          <Link className="block uppercase hover:text-green-500 hover:underline">
+            Equipment
+          </Link>
+          <Link className="block uppercase hover:text-green-500 hover:underline">
+            Seeds
+          </Link>
+          <Link className="block uppercase hover:text-green-500 hover:underline">
+            Irrigation
+          </Link>
+          {user && (
+            <>
+              <div className="border-t border-green-700" />
+              <Link
+                to="/wishlist"
+                className="block uppercase hover:text-red-400 hover:underline"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                ❤️ My Wishlist
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

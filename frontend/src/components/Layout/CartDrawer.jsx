@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import CartContents from "../Cart/CartContents";
-
+import { useCart } from "../../context/CartContext";
 
 const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
   const drawerRef = useRef(null);
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,7 +19,6 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
     };
 
     document.addEventListener("pointerdown", handleClickOutside);
-
     return () => {
       document.removeEventListener("pointerdown", handleClickOutside);
     };
@@ -28,31 +28,45 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
     <div
       ref={drawerRef}
       onPointerDown={(e) => e.stopPropagation()}
-      className={'fixed top-0 right-0 w-3/4 sm:w-1/2 md:w-[30rem] h-full bg-white shadow-lg transform transition-transform duration-300 flex flex-col z-50 ' + (drawerOpen ? 'translate-x-0' : 'translate-x-full')}>
-
-      {/* Close button */}
-      <div className="flex justify-end p-4">
-        <button onClick={toggleCartDrawer} >
-          <IoMdClose className="h-6 w-6 text-black hover:text-red-600" />
+      className={
+        "fixed top-0 right-0 w-3/4 sm:w-1/2 md:w-[30rem] h-full bg-white shadow-2xl transform transition-transform duration-300 flex flex-col z-50 " +
+        (drawerOpen ? "translate-x-0" : "translate-x-full")
+      }
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-bold text-gray-900">Your Cart</h2>
+          {cartCount > 0 && (
+            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {cartCount} item{cartCount !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={toggleCartDrawer}
+          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <IoMdClose className="h-5 w-5 text-gray-500 hover:text-red-600" />
         </button>
       </div>
 
-      {/* Cart Content */}
-      <div className="flex-grow p-4 overflow-y-auto scrollbar-hide h-full">
-        <h2 className="text-xl text-black font-semibold mb-4 hover:underline cursor-pointer">Your Cart</h2>
+      {/* Cart Content - scrollable */}
+      <div className="flex-grow px-5 py-3 overflow-y-auto scrollbar-hide">
         <CartContents />
       </div>
 
-      {/* Checkout Button */}
-      <div className="p-4 border-t sticky border-gray-200">
-        <button className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 hover:underline cursor-pointer">
+      {/* Footer - Checkout Button */}
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <button className="w-full bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 font-semibold transition-all active:scale-95 shadow-md hover:shadow-lg">
           Proceed to Checkout
         </button>
-        <div className="p-0.5 pl-1 border-t sticky border-gray-200">
-          <p className="font-inter text-sm tracking-tighter text-black whitespace-nowrap ">Shipping, taxes, and discount codes calculated at checkout.</p>
-        </div>
+        <p className="text-xs text-gray-400 text-center mt-2">
+          Shipping, taxes, and discounts calculated at checkout.
+        </p>
       </div>
     </div>
   );
 };
+
 export default CartDrawer;

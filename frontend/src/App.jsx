@@ -26,42 +26,60 @@ import VendorProfile from "./Pages/Vendor/VendorProfile";
 /* Protected Routes */
 import VendorRoute from "./routes/VendorRoute";
 
-/* Wish_list */
+/* Wishlist */
 import Wishlist from "./components/Products/wishlist";
+import ProductDetails from "./Pages/ProductDetails";
+import CustomerService from "./Pages/CustomerService";
+import Support from "./Pages/Support";
+import ContactUs from "./Pages/ContactUs";
+import AboutUs from "./Pages/AboutUs";
+
+/* Cart Context */
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
+    <CartProvider>
+      <WishlistProvider>
+        <BrowserRouter>
+          <Routes>
 
-        {/* USER ROUTES */}
-        <Route element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
+            {/* USER ROUTES */}
+            <Route element={<UserLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/customer-service" element={<CustomerService />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+            </Route>
 
-        {/* AUTH */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+            {/* AUTH */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-        {/* ADMIN */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminHomePage />} />
-        </Route>
+            {/* ADMIN */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminHomePage />} />
+            </Route>
 
-        {/* VENDOR */}
-        <Route path="/vendor" element={<VendorRoute><VendorLayout /></VendorRoute>}>
-          <Route index element={<VendorDashboard />} />
-          <Route path="products" element={<VendorProducts />} />
-          <Route path="add-product" element={<VendorAddProduct />} />
-          <Route path="orders" element={<VendorOrders />} />
-          <Route path="sales" element={<VendorSales />} />
-          <Route path="profile" element={<VendorProfile />} />
-        </Route>
-        <Route path="/wishlist" element={<Wishlist />} />
+            {/* VENDOR */}
+            <Route path="/vendor" element={<VendorRoute><VendorLayout /></VendorRoute>}>
+              <Route index element={<VendorDashboard />} />
+              <Route path="products" element={<VendorProducts />} />
+              <Route path="add-product" element={<VendorAddProduct />} />
+              <Route path="orders" element={<VendorOrders />} />
+              <Route path="sales" element={<VendorSales />} />
+              <Route path="profile" element={<VendorProfile />} />
+            </Route>
 
-      </Routes>
-    </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </WishlistProvider>
+    </CartProvider>
   );
 };
 

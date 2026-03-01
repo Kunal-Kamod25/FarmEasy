@@ -99,22 +99,22 @@ const Footer = () => {
                         </h3>
                         <ul className="space-y-3 text-gray-400 text-sm">
                             <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                <Link to="/support" className="hover:text-green-400 transition-colors">
                                     Support
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                <Link to="/contact" className="hover:text-green-400 transition-colors">
                                     Contact Us
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                <Link to="/about" className="hover:text-green-400 transition-colors">
                                     About Us
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
+                                <Link to="/support" className="hover:text-green-400 transition-colors">
                                     Features
                                 </Link>
                             </li>
