@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Star, ShoppingCart, Heart } from "lucide-react";
+import { useCart } from "../../../context/CartContext"; // add cart support
 
 export default function HomeSections({
     fertilizerProducts = [],
@@ -8,6 +9,7 @@ export default function HomeSections({
     onNavigate = () => { },
     onViewDetails = () => { }
 }) {
+    const { addToCart } = useCart();
 
     const [wishlist, setWishlist] = useState([]);
     const token = localStorage.getItem("token");
@@ -97,7 +99,7 @@ export default function HomeSections({
                                     </button>
 
                                 <img
-                                    src={product.image}
+                                    src={product.image || product.img || `https://placehold.co/200x200?text=${encodeURIComponent(product.name?.slice(0,8)||'No+Image')}`}
                                     alt={product.name}
                                     className="object-contain h-full w-full p-4"
                                 />
@@ -135,7 +137,13 @@ export default function HomeSections({
                                         ₹{product.price.toLocaleString()}
                                     </p>
 
-                                    <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
+                                    <button
+                                        onClick={() => addToCart({
+                                        ...product,
+                                        id: product.id || product.product_id || product._id
+                                    })}
+                                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition"
+                                    >
                                         <ShoppingCart size={16} />
                                         Add
                                     </button>
@@ -184,7 +192,7 @@ export default function HomeSections({
                                     </button>
                             <div className="h-32 flex items-center justify-center mb-4">
                                 <img
-                                    src={product.image}
+                                    src={product.image || product.img || `https://placehold.co/200x200?text=${encodeURIComponent(product.name?.slice(0,8) || 'No+Image')}`}
                                     alt={product.name}
                                     className="object-contain max-h-full transition group-hover:scale-110"
                                 />
