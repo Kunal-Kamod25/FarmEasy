@@ -104,10 +104,10 @@ const Login = () => {
           <p className="font-semibold mb-2">Login as</p>
           <div className="flex gap-4 mb-6">
             <label
-              className={`border px-4 py-3 rounded-md cursor-pointer flex items-center gap-2
+              className={` px-4 py-3 cursor-pointer flex items-center gap-2
               ${loginAs === "farmer"
-                  ? "border-green-700 bg-green-50 text-green-700"
-                  : "text-gray-300 hover:bg-green-700 hover:text-white"
+                  ? " text-green-700"
+                  : "text-gray-500 hover:text-black"
                 }`}
             >
               <input
@@ -119,10 +119,10 @@ const Login = () => {
             </label>
 
             <label
-              className={`border px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 
+              className={`px-4 py-2 flex items-center gap-2 
                 ${loginAs === "vendor"
-                  ? "border-green-700 bg-green-50 text-green-700"
-                  : "text-gray-300 hover:bg-green-700 hover:text-white"
+                  ? "text-green-700"
+                  : "text-gray-500 hover:text-black"
                 }`}
             >
               <input

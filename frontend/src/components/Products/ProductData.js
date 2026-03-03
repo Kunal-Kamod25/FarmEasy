@@ -1,3 +1,8 @@
+import Farm2 from "../../assets/Farm2.jpeg";  
+
+
+
+
 export const categories = [
   { id: 'main', name: 'Home', title: 'Welcome to FarmEasy', subtitle: 'Your one-stop Agricultural Marketplace', color: '#f0fdf4' },
   { id: 'fertilizers', name: 'Fertilizers', title: 'Premium Fertilizers', subtitle: 'Boost your crop yield with organic nutrients.' },
@@ -20,7 +25,7 @@ export const products = [
     rating: 4.5,
     reviewsCount: 700,
     inStock: true,
-    img: 'https://via.placeholder.com/150'
+    img: Farm2
   },
   {
     id: 2,

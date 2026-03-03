@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import MainPage from "../../assets/MainPage.png";
-import Fartilizers1 from "../../assets/Fartilizers1.png";
+import Farm1 from "../../assets/Farm1.jpeg";
+import Farm2 from "../../assets/Farm2.jpeg";
 import Fartilizers2 from "../../assets/Fartilizers2.png";
-import Seeds from "../../assets/Seeds.png";
+import Farm4 from "../../assets/Farm4.jpeg";
 import Irrigation from "../../assets/Irrigation.png";
 import Feed from "../../assets/Feed.png";
+import Farm5 from "../../assets/Farm5.jpeg";
 
 const slides = [
-  {
+  { 
     title: "Welcome to FarmEasy",
     subtitle: "Your one-stop Agricultural Marketplace",
     description:
       "Buy everything you need for modern farming from trusted vendors.",
-    bgImage:MainPage,
+    bgImage:Farm1,
     button: "Explore Platform",
   },
   {
@@ -21,7 +22,7 @@ const slides = [
     subtitle: "Boost your crop yield",
     description:
       "High-quality organic and chemical fertilizers for every soil type.",
-    bgImage:Fartilizers1,
+    bgImage:Farm2,
     button: "Shop Fertilizers",
   },
   {
@@ -37,7 +38,7 @@ const slides = [
     subtitle: "Strong roots start here",
     description:
       "Certified seeds and pulses for maximum germination and yield.",
-    bgImage:Seeds,
+    bgImage: Farm4,
     button: "Browse Seeds",
   },
   {
@@ -45,7 +46,7 @@ const slides = [
     subtitle: "Smart water management",
     description:
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
-    bgImage:Irrigation,
+    bgImage:Farm5,
     button: "Explore Irrigation",
   },
   {

@@ -51,8 +51,11 @@ const ProductCard = ({ product }) => {
         </button>
 
         <img
-          src={product.img || product.image || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.name?.slice(0, 8) || 'Product')}`}
+          src={product.img || product.image}
           alt={product.name}
+          onError={(e) => {
+            e.target.src = `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.name?.slice(0, 8) || 'Product')}`;
+          }}
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
 
