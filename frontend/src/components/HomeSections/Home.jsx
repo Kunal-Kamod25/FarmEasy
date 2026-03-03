@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import Hero from "../components/Common/Hero";
-import HomeSections from "../components/Common/HomeSections/HomeSections";
-import { products } from "../components/Products/ProductData";
-import ProductCard from "../components/Products/ProductCard";
-import BrandSection from "../components/Common/BrandSection";
+import Hero from "./Hero";
+import HomeSections from "./HomeSections";
+import { products } from "../Products/ProductData";
+import ProductCard from "../Products/ProductCard";
+import BrandSection from "../HomeSections/BrandSection";
 
 const Home = () => {
   const [searchParams] = useSearchParams();

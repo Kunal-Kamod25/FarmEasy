@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
-import CartContents from "../Cart/CartContents";
+import CartContents from "./CartContents";
 import { useCart } from "../../context/CartContext";
 
 const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {

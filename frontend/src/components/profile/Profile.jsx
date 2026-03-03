@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ProfileSidebar from "../components/Profile/ProfileSidebar";
-import ProfileContent from "../components/Profile/ProfileContent";
+import ProfileSidebar from "./ProfileSidebar";
+import ProfileContent from "./ProfileContent";
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState("profile");

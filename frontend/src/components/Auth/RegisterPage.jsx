@@ -225,7 +225,7 @@ const Register = () => {
                     checked={role === "customer"} // if role is customer, this stays checked
                     onChange={() => setRole("customer")} // update role state
                   />
-                  Customer
+                  Farmer
                 </label>
 
                 {/* Vendor Radio */}

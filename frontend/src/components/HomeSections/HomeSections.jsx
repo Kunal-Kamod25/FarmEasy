@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Star, ShoppingCart, Heart } from "lucide-react";
-import { useCart } from "../../../context/CartContext"; // add cart support
+import { useCart } from "../../context/CartContext"; // add cart support
 
 export default function HomeSections({
     fertilizerProducts = [],

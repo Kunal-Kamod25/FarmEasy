@@ -8,7 +8,7 @@ import {
   HiOutlineHeart,
 } from "react-icons/hi2";
 import Searchbar from "../Common/SearchBar";
-import CartDrawer from "./CartDrawer";
+import CartDrawer from "../Cart/CartDrawer";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 

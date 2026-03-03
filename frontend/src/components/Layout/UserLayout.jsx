@@ -85,7 +85,7 @@ import React, { useState } from 'react'; // Added useState for page logic
 import Topbar from "./Topbar";
 import Navbar from "./Navbar";
 import Thirdbar from "./Thirdbar";
-import Hero from "../Common/Hero";
+import Hero from "../HomeSections/Hero";
 import Footer from "../Common/Footer";
 import ProductCard from '../Products/ProductCard';
 import { products } from '../Products/ProductData';
