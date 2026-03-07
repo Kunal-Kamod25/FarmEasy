@@ -314,27 +314,25 @@ const Login = () => {
 
   // submit login form
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // run validation first
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+  e.preventDefault();
 
     const identifier =
       loginType === "email" ? email.trim() : phone.trim();
 
-    try {
-      const response = await fetch(`${API_URL}/api/authentication/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identifier,
-          password,
-        }),
-      });
+  if (!identifier || !password) {
+    alert("Identifier (email or phone) and password are required.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/authentication/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        identifier,
+        password,
+      }),
+    });
 
       const data = await response.json();
 
@@ -357,11 +355,10 @@ const Login = () => {
         alert(data.message || "Login failed");
       }
 
-    } catch (err) {
-      alert("Server not responding");
-    }
-  };
-
+  } catch (err) {
+    alert("Server not responding");
+  }
+};
   return (
     <div className="min-h-screen grid grid-cols-2 font-Lora">
       {/* LEFT SIDE */}

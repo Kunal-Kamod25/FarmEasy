@@ -1,3 +1,27 @@
+import AppRoutes from "./routes/AppRoutes";
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
+
+const App = () => {
+  return (
+    <CartProvider>
+      <WishlistProvider>
+        <AppRoutes />
+      </WishlistProvider>
+    </CartProvider>
+  );
+};
+
+export default App;
+
+
+
+
+
+
+
+
+
 
 // import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -85,18 +109,3 @@
 
 // export default App;
 
-import AppRoutes from "./routes/AppRoutes";
-import { CartProvider } from "./context/CartContext";
-import { WishlistProvider } from "./context/WishlistContext";
-
-const App = () => {
-  return (
-    <CartProvider>
-      <WishlistProvider>
-        <AppRoutes />
-      </WishlistProvider>
-    </CartProvider>
-  );
-};
-
-export default App;

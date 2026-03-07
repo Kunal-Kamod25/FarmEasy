@@ -18,6 +18,7 @@ const productRoutes = require("./routes/productRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 
 // Use routes
@@ -29,6 +30,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 
 
 // ================= TEST ROUTE =================

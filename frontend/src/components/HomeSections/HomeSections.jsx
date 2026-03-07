@@ -74,7 +74,7 @@ export default function HomeSections({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                     {fertilizerProducts.slice(0, 8).map((product) => (
+                     {fertilizerProducts.slice(0, 16).map((product) => (
                         <div
                             key={product.id}
                             className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-emerald-200 transition-all duration-200 border border-slate-100 overflow-hidden flex flex-col hover:-translate-y-2"
