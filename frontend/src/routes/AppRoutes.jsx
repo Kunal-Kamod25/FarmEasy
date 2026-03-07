@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-/* User */
+/* User Layout + Pages */
 import UserLayout from "../components/Layout/UserLayout";
 import Home from "../components/HomeSections/Home";
 import Profile from "../components/profile/Profile";
@@ -21,13 +21,17 @@ import VendorAddProduct from "../components/Vendor/VendorAddProduct";
 import VendorOrders from "../components/Vendor/VendorOrders";
 import VendorSales from "../components/Vendor/VendorSales";
 import VendorProfile from "../components/Vendor/VendorProfile";
+import VendorEditProduct from "../components/Vendor/vendorEditProduct";
 
 /* Protected Routes */
 import VendorRoute from "./VendorRoute";
 
-/* Wishlist */
+/* Products */
 import Wishlist from "../components/Products/wishlist";
-import ProductDetails from "../Pages/ProductDetails";
+import AllProductsPage from "../components/Products/AllProductsPage";
+
+/* Pages */
+import ProductDetailPage from "../Pages/ProductDetails";
 import CustomerService from "../Pages/CustomerService";
 import Support from "../Pages/Support";
 import ContactUs from "../Pages/ContactUs";
@@ -38,10 +42,16 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
 
-        {/* USER ROUTES */}
+        {/* ── USER / MAIN ROUTES ── */}
         <Route element={<UserLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
+
+          {/* All products page with filters - this is the "View All" page */}
+          <Route path="/products" element={<AllProductsPage />} />
+
+          {/* Single product detail */}
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/support" element={<Support />} />
           <Route path="/contact" element={<ContactUs />} />
@@ -50,16 +60,16 @@ const AppRoutes = () => {
           <Route path="/wishlist" element={<Wishlist />} />
         </Route>
 
-        {/* AUTH */}
+        {/* ── AUTH ── */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* ADMIN */}
+        {/* ── ADMIN ── */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHomePage />} />
         </Route>
 
-        {/* VENDOR */}
+        {/* ── VENDOR (protected - only logged in vendors can access) ── */}
         <Route
           path="/vendor"
           element={
@@ -68,9 +78,15 @@ const AppRoutes = () => {
             </VendorRoute>
           }
         >
+          {/* dashboard with tabs for My Products and My Orders */}
           <Route index element={<VendorDashboard />} />
+
+          {/* products management */}
           <Route path="products" element={<VendorProducts />} />
           <Route path="add-product" element={<VendorAddProduct />} />
+          <Route path="products/edit/:id" element={<VendorEditProduct />} />
+
+          {/* orders, sales, profile */}
           <Route path="orders" element={<VendorOrders />} />
           <Route path="sales" element={<VendorSales />} />
           <Route path="profile" element={<VendorProfile />} />

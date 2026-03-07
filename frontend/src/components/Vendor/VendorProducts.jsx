@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
@@ -58,28 +59,28 @@ const VendorProducts = () => {
           <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
           <p className="text-gray-500 text-sm mt-0.5">Manage your product catalog</p>
         </div>
-        <button
-          onClick={() => navigate("/vendor/products/add")}
+        <Link
+          onClick={() => navigate("/vendor/add-product")}
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm font-semibold"
         >
           <Plus size={16} />
           Add Product
-        </button>
+        </Link>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+        <div className="bg-gradient-to-br from-emerald-400 to-green-600 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
           <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Total Products</p>
           <h3 className="text-3xl font-bold mt-1">{products.length}</h3>
           <p className="text-white/60 text-xs mt-2">In your catalog</p>
         </div>
-        <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+        <div className="bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
           <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Active</p>
           <h3 className="text-3xl font-bold mt-1">{totalActive}</h3>
           <p className="text-white/60 text-xs mt-2">In stock & live</p>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+        <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
           <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Out of Stock</p>
           <h3 className="text-3xl font-bold mt-1">{outOfStock}</h3>
           <p className="text-white/60 text-xs mt-2">Needs restocking</p>
@@ -120,12 +121,12 @@ const VendorProducts = () => {
               {search ? "Try a different search term" : "Add your first product to get started"}
             </p>
             {!search && (
-              <button
-                onClick={() => navigate("/vendor/products/add")}
+              <Link
+                onClick={() => navigate("/vendor/products/add-product")}
                 className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2 rounded-xl hover:bg-emerald-700 transition font-semibold"
               >
                 + Add Product
-              </button>
+              </Link>
             )}
           </div>
         ) : (

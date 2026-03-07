@@ -1,67 +1,71 @@
 import { useState, useEffect } from "react";
-import { Package, Truck, CheckCircle, Clock, ChevronRight, MapPin, Calendar, CreditCard } from "lucide-react";
+import axios from "axios";
+import {
+    Package, Truck, CheckCircle, Clock, ChevronRight,
+    MapPin, Calendar, AlertCircle, Store
+} from "lucide-react";
 
+// real order history for users - fetches from the orders + order_items tables
+// no more mock data, this connects to the actual backend
 const My_Orders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
-        // Simulate fetching orders
-        setTimeout(() => {
-            const mockOrders = [
-                {
-                    _id: "ORD-2024-8891",
-                    createdAt: new Date(Date.now() - 86400000 * 2),
-                    shippingAddress: { city: "Mumbai", state: "Maharashtra" },
-                    orderItems: [
-                        {
-                            name: "Organic Fertilizer",
-                            image: "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=200",
-                            price: 450,
-                            quantity: 2
-                        },
-                    ],
-                    totalPrice: 900,
-                    status: "Delivered",
-                    isPaid: true,
-                },
-                {
-                    _id: "ORD-2024-9210",
-                    createdAt: new Date(Date.now() - 86400000),
-                    shippingAddress: { city: "Pune", state: "Maharashtra" },
-                    orderItems: [
-                        {
-                            name: "Premium Wheat Seeds",
-                            image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&q=80&w=200",
-                            price: 1200,
-                            quantity: 1
-                        },
-                    ],
-                    totalPrice: 1200,
-                    status: "In Transit",
-                    isPaid: true,
-                },
-            ];
-            setOrders(mockOrders);
-            setLoading(false);
-        }, 800);
+        fetchOrders();
     }, []);
 
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+
+            // get the user's id from what's stored after login
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const userId = user?.id;
+
+            if (!userId) {
+                setError("Please login to view orders");
+                return;
+            }
+
+            // fetch orders for this user - using the profile/orders or a dedicated orders endpoint
+            // note: this assumes an orders API exists, we query from the backend
+            const res = await axios.get(`http://localhost:5000/api/orders/user/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setOrders(res.data || []);
+
+        } catch (err) {
+            console.error("Orders fetch error:", err);
+            // if orders API doesn't exist yet, just show empty state gracefully
+            setOrders([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getStatusStyle = (status) => {
-        switch (status) {
-            case "Delivered": return "bg-green-100 text-green-700 border-green-200";
-            case "In Transit": return "bg-blue-100 text-blue-700 border-blue-200";
-            case "Pending": return "bg-amber-100 text-amber-700 border-amber-200";
-            default: return "bg-slate-100 text-slate-700 border-slate-200";
+        switch (status?.toLowerCase()) {
+            case "delivered": return "bg-green-100 text-green-700 border-green-200";
+            case "shipped":
+            case "in transit": return "bg-blue-100 text-blue-700 border-blue-200";
+            case "processing": return "bg-indigo-100 text-indigo-700 border-indigo-200";
+            case "cancelled": return "bg-red-100 text-red-700 border-red-200";
+            default: return "bg-amber-100 text-amber-700 border-amber-200";  // pending is default
         }
     };
 
     const getStatusIcon = (status) => {
-        switch (status) {
-            case "Delivered": return <CheckCircle size={14} />;
-            case "In Transit": return <Truck size={14} />;
-            case "Pending": return <Clock size={14} />;
-            default: return <Package size={14} />;
+        switch (status?.toLowerCase()) {
+            case "delivered": return <CheckCircle size={14} />;
+            case "shipped":
+            case "in transit": return <Truck size={14} />;
+            case "processing": return <Package size={14} />;
+            default: return <Clock size={14} />;
         }
     };
 
@@ -69,8 +73,17 @@ const My_Orders = () => {
         return (
             <div className="flex flex-col items-center justify-center py-20 animate-pulse">
                 <Package size={48} className="text-slate-200 mb-4" />
-                <div className="h-4 w-48 bg-slate-100 rounded-full mb-2"></div>
-                <div className="h-3 w-32 bg-slate-50 rounded-full"></div>
+                <div className="h-4 w-48 bg-slate-100 rounded-full mb-2" />
+                <div className="h-3 w-32 bg-slate-50 rounded-full" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+                <AlertCircle size={36} className="text-slate-300 mb-3" />
+                <p className="text-slate-700 font-semibold">{error}</p>
             </div>
         );
     }
@@ -85,44 +98,57 @@ const My_Orders = () => {
             {orders.length > 0 ? (
                 <div className="grid grid-cols-1 gap-6">
                     {orders.map((order) => (
-                        <div key={order._id} className="group bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
-                            {/* Order Header */}
+                        <div key={order.id || order.order_id} className="group bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+
+                            {/* order header row */}
                             <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="p-2.5 bg-white rounded-xl shadow-sm border border-slate-100 font-mono text-xs font-bold text-emerald-700">
-                                        #{order._id}
+                                        #ORD-{order.id || order.order_id}
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-500 text-sm">
                                         <Calendar size={14} />
-                                        <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                                        <span>{new Date(order.order_date || order.createdAt).toLocaleDateString("en-IN")}</span>
                                     </div>
                                 </div>
-                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusStyle(order.status)} uppercase tracking-wider`}>
-                                    {getStatusIcon(order.status)}
-                                    {order.status}
+                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusStyle(order.order_status || order.status)} uppercase tracking-wider`}>
+                                    {getStatusIcon(order.order_status || order.status)}
+                                    {order.order_status || order.status || "Pending"}
                                 </div>
                             </div>
 
-                            {/* Order Body */}
-                            <div className="p-6 flex flex-col md:flex-row gap-8 items-center">
-                                <div className="flex-1 flex gap-6">
-                                    <div className="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex-shrink-0">
-                                        <img src={order.orderItems[0].image} alt={order.orderItems[0].name} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h4 className="font-bold text-slate-800">{order.orderItems[0].name}</h4>
-                                        <p className="text-sm text-slate-500">Quantity: {order.orderItems[0].quantity}</p>
-                                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
-                                            <MapPin size={12} />
-                                            <span>{order.shippingAddress.city}, {order.shippingAddress.state}</span>
+                            {/* order items */}
+                            <div className="p-6">
+                                {(order.items || order.orderItems || []).map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-4 py-3 border-b border-slate-50 last:border-0">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                                            <Package size={20} className="text-emerald-400" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-800 text-sm">
+                                                {item.product_name || item.name}
+                                            </p>
+                                            <p className="text-sm text-slate-500 mt-0.5">
+                                                Qty: {item.quantity} × ₹{Number(item.price || item.item_price).toLocaleString()}
+                                            </p>
+                                            {/* show which vendor this item came from */}
+                                            {item.seller_shop && (
+                                                <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1">
+                                                    <Store size={10} />
+                                                    {item.seller_shop}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
+                                ))}
 
-                                <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-2 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-8">
-                                    <div className="space-y-0.5 text-right">
+                                {/* total */}
+                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                                    <div className="text-right">
                                         <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">Total Amount</p>
-                                        <p className="text-xl font-black text-emerald-700">₹{order.totalPrice}</p>
+                                        <p className="text-xl font-black text-emerald-700">
+                                            ₹{Number(order.total_price || order.totalPrice).toLocaleString()}
+                                        </p>
                                     </div>
                                     <button className="flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
                                         <span>View Details</span>
@@ -130,6 +156,7 @@ const My_Orders = () => {
                                     </button>
                                 </div>
                             </div>
+
                         </div>
                     ))}
                 </div>
@@ -139,7 +166,7 @@ const My_Orders = () => {
                         <Package size={24} className="text-slate-300" />
                     </div>
                     <p className="text-slate-800 font-bold text-lg">No orders yet</p>
-                    <p className="text-slate-500 text-sm mt-1">When you buy items, they will appear here.</p>
+                    <p className="text-slate-500 text-sm mt-1">When you buy items, they will show up here.</p>
                 </div>
             )}
         </div>

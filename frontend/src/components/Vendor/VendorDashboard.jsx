@@ -3,55 +3,83 @@ import axios from "axios";
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-  LineChart, Line, Legend,
   AreaChart, Area,
 } from "recharts";
 import {
   Package, ShoppingCart, IndianRupee, TrendingUp,
-  Star, AlertCircle, ArrowUpRight, ArrowDownRight,
-  Plus, Eye, Pencil
+  AlertCircle, ArrowUpRight, Plus, Eye, Pencil,
+  LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
+// months for the revenue chart labels
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Simulated monthly revenue data (you can replace with real API later)
+// generate some basic revenue trend from total revenue
+// in the future this should come from a real monthly breakdown API - but that needs the orders table to have monthly data
 const generateMonthlyData = (totalRevenue) => {
-  const base = totalRevenue / 12 || 5000;
+  const base = totalRevenue / 6 || 3000;
   return MONTHS.slice(0, 6).map((m, i) => ({
     month: m,
-    revenue: Math.floor(base * (0.6 + Math.random() * 0.8)),
-    orders: Math.floor(Math.random() * 20 + 5),
+    revenue: Math.floor(base * (0.5 + (i * 0.1) + Math.random() * 0.4)),
+    orders: Math.floor(Math.random() * 15 + 3),
   }));
 };
 
+const PIE_COLORS = ["#16a34a", "#f59e0b", "#6366f1", "#ef4444", "#06b6d4", "#8b5cf6"];
+
 export default function VendorDashboard() {
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    activeOffers: 0,
-  });
-  const [recentProducts, setRecentProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const user = (() => { try { return JSON.parse(localStorage.getItem("user")); } catch { return {}; } })();
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem("user")); }
+    catch { return {}; }
+  })();
+
+  // which tab is active: dashboard | my-products | my-orders
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  // dashboard stats from API
+  const [stats, setStats] = useState({
+    totalProducts: 0, totalOrders: 0, totalRevenue: 0, activeOffers: 0, categoryBreakdown: []
+  });
+
+  // vendor's own products
+  const [recentProducts, setRecentProducts] = useState([]);
+
+  // vendor's purchases as a buyer
+  const [myOrders, setMyOrders] = useState([]);
+
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+
+  // fetch real vendor name from profile
+  const [vendorName, setVendorName] = useState(user?.full_name || user?.fullname || "Vendor");
 
   useEffect(() => {
-    fetchDashboard();
+    fetchStats();
     fetchRecentProducts();
   }, []);
 
-  const fetchDashboard = async () => {
+  // lazy load orders only when tab is clicked - no need to load on mount
+  useEffect(() => {
+    if (activeTab === "my-orders" && !ordersLoaded) {
+      fetchMyOrders();
+    }
+  }, [activeTab]);
+
+  const fetchStats = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/vendor/dashboard", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setStats(res.data || {});
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      setStats(res.data);
+    } catch (err) {
+      console.error("Dashboard stats error:", err);
     } finally {
-      setLoading(false);
+      setStatsLoading(false);
     }
   };
 
@@ -60,53 +88,54 @@ export default function VendorDashboard() {
       const res = await axios.get("http://localhost:5000/api/vendor/products", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRecentProducts((res.data || []).slice(0, 5));
+      setRecentProducts(res.data || []);
     } catch (err) {
-      console.error(err);
+      console.error("Products fetch error:", err);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const fetchMyOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      const res = await axios.get("http://localhost:5000/api/vendor/my-purchases", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMyOrders(res.data || []);
+      setOrdersLoaded(true);
+    } catch (err) {
+      console.error("My orders error:", err);
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
   const monthlyData = generateMonthlyData(stats.totalRevenue);
 
-  const pieData = [
-    { name: "Products", value: stats.totalProducts || 1 },
-    { name: "Orders", value: stats.totalOrders || 1 },
-    { name: "Offers", value: stats.activeOffers || 1 },
-  ];
-  const PIE_COLORS = ["#16a34a", "#f59e0b", "#6366f1"];
-
-  const categoryData = [
-    { name: "Seeds", count: 12 },
-    { name: "Fertilizers", count: 8 },
-    { name: "Equipment", count: 5 },
-    { name: "Pesticides", count: 9 },
-    { name: "Irrigation", count: 4 },
-  ];
+  // build pie chart data from real category breakdown
+  const pieData = stats.categoryBreakdown?.length > 0
+    ? stats.categoryBreakdown
+    : [{ name: "No Products", count: 1 }];
 
   const statCards = [
     {
       title: "Total Products",
       value: stats.totalProducts || 0,
       icon: <Package size={22} />,
-      color: "from-emerald-500 to-green-600",
-      change: "+3 this month",
-      up: true,
+      color: "from-emerald-400 to-green-600",
     },
     {
       title: "Total Orders",
       value: stats.totalOrders || 0,
       icon: <ShoppingCart size={22} />,
-      color: "from-blue-500 to-cyan-500",
-      change: "+12% vs last month",
-      up: true,
+      color: "from-blue-400 to-cyan-500",
     },
     {
       title: "Total Revenue",
       value: `₹${Number(stats.totalRevenue || 0).toLocaleString()}`,
       icon: <IndianRupee size={22} />,
-      color: "from-violet-500 to-purple-600",
-      change: "+8.2% this month",
-      up: true,
+      color: "from-violet-400 to-purple-600",
     },
     {
       title: "Avg. Order Value",
@@ -114,10 +143,15 @@ export default function VendorDashboard() {
         ? `₹${Math.floor(stats.totalRevenue / stats.totalOrders).toLocaleString()}`
         : "₹0",
       icon: <TrendingUp size={22} />,
-      color: "from-orange-500 to-amber-500",
-      change: "Per order",
-      up: null,
+      color: "from-orange-400 to-amber-500",
     },
+  ];
+
+  // tab config for clean rendering
+  const tabs = [
+    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
+    { id: "my-products", label: "My Products", icon: <Package size={16} /> },
+    { id: "my-orders", label: "My Orders", icon: <ClipboardList size={16} /> },
   ];
 
   return (
@@ -127,12 +161,13 @@ export default function VendorDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.full_name || user?.fullname || "Vendor"} 👋
+            Welcome back, {vendorName} 👋
           </h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            Here's what's happening with your store today.
+            {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
+        {/* Add Product button right in the header - not in sidebar */}
         <Link
           to="/vendor/add-product"
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm font-semibold"
@@ -142,265 +177,367 @@ export default function VendorDashboard() {
         </Link>
       </div>
 
-      {/* ── STAT CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card, i) => (
-          <div
-            key={i}
-            className={`bg-gradient-to-br ${card.color} rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}
+      {/* ── TABS ── */}
+      <div className="flex items-center gap-1 bg-white rounded-2xl p-1.5 border border-gray-100 shadow-sm w-fit">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === tab.id
+                ? "bg-emerald-600 text-white shadow-md"
+                : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+              }`}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="bg-white/20 p-2.5 rounded-xl">
-                {card.icon}
-              </div>
-              {card.up !== null && (
-                <span className="bg-white/20 rounded-lg px-2 py-1 text-xs font-semibold flex items-center gap-1">
-                  {card.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {card.up ? "Up" : "Down"}
-                </span>
-              )}
-            </div>
-            <p className="text-white/70 text-xs font-medium uppercase tracking-wider">{card.title}</p>
-            <h3 className="text-3xl font-bold mt-1">{card.value}</h3>
-            <p className="text-white/60 text-xs mt-2">{card.change}</p>
-          </div>
+            {tab.icon}
+            {tab.label}
+          </button>
         ))}
       </div>
 
-      {/* ── CHARTS ROW 1 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {/* Revenue Area Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-800">Revenue Overview</h2>
-            <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold">
-              Last 6 Months
-            </span>
-          </div>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9ca3af" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-                  formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#16a34a" strokeWidth={2.5}
-                  fill="url(#colorRev)" dot={{ r: 4, fill: "#16a34a" }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Donut Chart */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-2">Business Split</h2>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  innerRadius={55}
-                  outerRadius={80}
-                  paddingAngle={4}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={PIE_COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "none" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-2 mt-2">
-            {pieData.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
-                  <span className="text-gray-600">{item.name}</span>
+      {/* ═══════════════════════════════════════════════
+           TAB: DASHBOARD (stats + charts)
+      ═══════════════════════════════════════════════ */}
+      {activeTab === "dashboard" && (
+        <>
+          {/* stat cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statCards.map((card, i) => (
+              <div
+                key={i}
+                className={`bg-gradient-to-br ${card.color} rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="bg-white/20 p-2.5 rounded-xl">
+                    {card.icon}
+                  </div>
                 </div>
-                <span className="font-bold text-gray-800">{item.value}</span>
+                <p className="text-white/70 text-xs font-medium uppercase tracking-wider">{card.title}</p>
+                <h3 className="text-3xl font-bold mt-1">{statsLoading ? "..." : card.value}</h3>
               </div>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* ── CHARTS ROW 2 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* charts row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* Orders Bar Chart */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-4">Monthly Orders</h2>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9ca3af" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-                />
-                <Bar dataKey="orders" radius={[6, 6, 0, 0]}>
-                  {monthlyData.map((_, idx) => (
-                    <Cell key={idx} fill={idx % 2 === 0 ? "#16a34a" : "#4ade80"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {/* revenue area chart */}
+            <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-gray-800">Revenue Overview</h2>
+                <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold">
+                  Last 6 Months
+                </span>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyData}>
+                    <defs>
+                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9ca3af" }} />
+                    <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                      formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
+                    />
+                    <Area type="monotone" dataKey="revenue" stroke="#16a34a" strokeWidth={2.5}
+                      fill="url(#colorRev)" dot={{ r: 4, fill: "#16a34a" }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* real category breakdown pie chart - from DB */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h2 className="text-base font-bold text-gray-800 mb-2">Products by Category</h2>
+              {statsLoading ? (
+                <div className="h-48 bg-gray-50 rounded-xl animate-pulse" />
+              ) : (
+                <>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData.map(c => ({ name: c.name, value: c.count || c.value || 1 }))}
+                          innerRadius={50}
+                          outerRadius={75}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {pieData.map((_, index) => (
+                            <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ borderRadius: 12, border: "none" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-1.5 mt-2">
+                    {pieData.slice(0, 4).map((item, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                          <span className="text-gray-600 truncate max-w-[120px]">{item.name}</span>
+                        </div>
+                        <span className="font-bold text-gray-800">{item.count || item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Category Distribution */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-4">Products by Category</h2>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryData} layout="vertical" barSize={14}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: "#6b7280" }} width={80} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "none" }}
-                />
-                <Bar dataKey="count" fill="#16a34a" radius={[0, 6, 6, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* ── RECENT PRODUCTS TABLE ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-800">Recent Products</h2>
-          <Link
-            to="/vendor/products"
-            className="text-emerald-600 text-sm font-semibold hover:underline flex items-center gap-1"
-          >
-            View All <ArrowUpRight size={14} />
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="p-6 space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+          {/* quick actions */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Add Product", to: "/vendor/add-product", icon: <Plus size={20} />, color: "bg-emerald-500" },
+              { label: "View Products", to: ".", icon: <Package size={20} />, color: "bg-blue-500", tab: "my-products" },
+              { label: "My Orders", to: ".", icon: <ShoppingCart size={20} />, color: "bg-violet-500", tab: "my-orders" },
+              { label: "Sales Report", to: "/vendor/sales", icon: <TrendingUp size={20} />, color: "bg-orange-500" },
+            ].map((action, i) => (
+              action.tab ? (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(action.tab)}
+                  className={`${action.color} hover:opacity-90 text-white rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95`}
+                >
+                  <div className="bg-white/20 p-2.5 rounded-xl">{action.icon}</div>
+                  <span className="text-sm font-semibold">{action.label}</span>
+                </button>
+              ) : (
+                <Link
+                  key={i}
+                  to={action.to}
+                  className={`${action.color} hover:opacity-90 text-white rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95`}
+                >
+                  <div className="bg-white/20 p-2.5 rounded-xl">{action.icon}</div>
+                  <span className="text-sm font-semibold">{action.label}</span>
+                </Link>
+              )
             ))}
           </div>
-        ) : recentProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <AlertCircle className="w-10 h-10 text-gray-300 mb-3" />
-            <p className="text-gray-500">No products yet. Add your first product!</p>
+        </>
+      )}
+
+      {/* ═══════════════════════════════════════════════
+           TAB: MY PRODUCTS (vendor's product cards)
+      ═══════════════════════════════════════════════ */}
+      {activeTab === "my-products" && (
+        <div>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-bold text-gray-800">
+              My Products ({recentProducts.length})
+            </h2>
             <Link
               to="/vendor/add-product"
-              className="mt-3 bg-emerald-600 text-white text-sm px-5 py-2 rounded-xl hover:bg-emerald-700 transition font-semibold"
+              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition"
             >
-              + Add Product
+              <Plus size={14} /> Add New
             </Link>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="text-left px-6 py-3">Product</th>
-                  <th className="text-left px-6 py-3">Type</th>
-                  <th className="text-left px-6 py-3">Stock</th>
-                  <th className="text-left px-6 py-3">Price</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="text-left px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {recentProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <Package size={16} className="text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800 leading-tight line-clamp-1 max-w-[180px]">
-                            {p.product_name}
-                          </p>
-                          <p className="text-gray-400 text-xs line-clamp-1 max-w-[180px]">
-                            {p.product_description}
-                          </p>
-                        </div>
+
+          {productsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[1, 2, 3].map(i => <div key={i} className="h-48 bg-white rounded-2xl animate-pulse border border-gray-100" />)}
+            </div>
+          ) : recentProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+              <Package className="w-12 h-12 text-gray-200 mb-3" />
+              <p className="text-gray-600 font-bold">No products yet</p>
+              <p className="text-gray-400 text-sm mt-1">Add your first product to start selling</p>
+              <Link
+                to="/vendor/add-product"
+                className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition font-semibold"
+              >
+                + Add Product
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {recentProducts.map(p => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                >
+                  {/* colored top bar for visual variety */}
+                  <div className={`h-1.5 ${p.product_quantity > 10 ? "bg-emerald-500" : p.product_quantity > 0 ? "bg-amber-400" : "bg-red-400"}`} />
+
+                  <div className="p-5">
+                    {/* product icon + name */}
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Package size={18} className="text-emerald-600" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {p.product_type || "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-semibold ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>
-                        {p.product_quantity ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-gray-800">
-                      ₹{Number(p.price).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${p.product_quantity > 0
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{p.product_name}</h3>
+                        <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">
+                          {p.product_description || "No description"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* info grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-gray-50 rounded-xl p-2.5">
+                        <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Price</p>
+                        <p className="text-gray-800 font-bold text-sm mt-0.5">₹{Number(p.price).toLocaleString()}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-2.5">
+                        <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Stock</p>
+                        <p className={`font-bold text-sm mt-0.5 ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>
+                          {p.product_quantity} units
+                        </p>
+                      </div>
+                      {p.category_name && (
+                        <div className="col-span-2 bg-gray-50 rounded-xl p-2.5">
+                          <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Category</p>
+                          <p className="text-gray-700 text-sm mt-0.5">{p.category_name}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* status + actions */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${p.product_quantity > 0
                           ? "bg-emerald-50 text-emerald-700"
                           : "bg-red-50 text-red-600"
                         }`}>
                         {p.product_quantity > 0 ? "Active" : "Out of Stock"}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <Link
-                          to="/vendor/products"
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => navigate(`/vendor/products/edit/${p.id}`)}
                           className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
+                          title="Edit"
                         >
-                          <Eye size={14} />
-                        </Link>
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/product/${p.id}`)}
+                          className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition"
+                          title="View on site"
+                        >
+                          <Eye size={13} />
+                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* ── QUICK ACTIONS ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Add Product", to: "/vendor/add-product", icon: <Plus size={20} />, color: "bg-emerald-500" },
-          { label: "View Products", to: "/vendor/products", icon: <Package size={20} />, color: "bg-blue-500" },
-          { label: "View Orders", to: "/vendor/orders", icon: <ShoppingCart size={20} />, color: "bg-violet-500" },
-          { label: "Sales Report", to: "/vendor/sales", icon: <TrendingUp size={20} />, color: "bg-orange-500" },
-        ].map((action, i) => (
-          <Link
-            key={i}
-            to={action.to}
-            className={`${action.color} hover:opacity-90 text-white rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95`}
-          >
-            <div className="bg-white/20 p-2.5 rounded-xl">
-              {action.icon}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <span className="text-sm font-semibold">{action.label}</span>
-          </Link>
-        ))}
-      </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════
+           TAB: MY ORDERS (as a buyer from other vendors)
+      ═══════════════════════════════════════════════ */}
+      {activeTab === "my-orders" && (
+        <div>
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-gray-800">My Orders</h2>
+            <p className="text-gray-500 text-sm mt-0.5">Orders you placed as a buyer from other vendors</p>
+          </div>
+
+          {ordersLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-gray-100" />)}
+            </div>
+          ) : myOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+              <ClipboardList className="w-12 h-12 text-gray-200 mb-3" />
+              <p className="text-gray-600 font-bold">No orders placed yet</p>
+              <p className="text-gray-400 text-sm mt-1">Browse products and place your first order</p>
+              <Link
+                to="/"
+                className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition font-semibold"
+              >
+                Browse Products
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {myOrders.map(order => (
+                <div
+                  key={order.order_id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                >
+                  {/* order header */}
+                  <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-gray-500 font-mono">Order #{order.order_id}</span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(order.order_date).toLocaleDateString("en-IN")}
+                      </span>
+                    </div>
+                    <OrderStatusBadge status={order.order_status} />
+                  </div>
+
+                  {/* order items */}
+                  <div className="p-5">
+                    {order.items.map(item => (
+                      <div key={item.item_id} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
+                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Package size={16} className="text-emerald-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-800 text-sm line-clamp-1">{item.product_name}</p>
+                          <p className="text-gray-400 text-xs mt-0.5">
+                            Qty: {item.quantity} × ₹{Number(item.item_price).toLocaleString()}
+                          </p>
+                          {item.seller_shop && (
+                            <div className="flex items-center gap-1 text-xs text-emerald-600 mt-0.5">
+                              <Store size={10} />
+                              {item.seller_shop}
+                            </div>
+                          )}
+                        </div>
+                        <p className="font-bold text-gray-800 text-sm flex-shrink-0">
+                          ₹{Number(item.item_price * item.quantity).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+
+                    {/* order total */}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <span className="text-sm text-gray-500 font-medium">Order Total</span>
+                      <span className="font-black text-emerald-700 text-lg">
+                        ₹{Number(order.total_price).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   );
 }
+
+
+// tiny helper component for order status badge
+const OrderStatusBadge = ({ status }) => {
+  const styles = {
+    Pending: { cls: "bg-amber-50 text-amber-700 border-amber-200", icon: <Clock size={12} /> },
+    Processing: { cls: "bg-blue-50 text-blue-700 border-blue-200", icon: <Package size={12} /> },
+    Shipped: { cls: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: <Truck size={12} /> },
+    Delivered: { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle size={12} /> },
+    Cancelled: { cls: "bg-red-50 text-red-700 border-red-200", icon: <AlertCircle size={12} /> },
+  };
+  const s = styles[status] || styles["Pending"];
+  return (
+    <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${s.cls}`}>
+      {s.icon}
+      {status || "Pending"}
+    </span>
+  );
+};
