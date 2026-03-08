@@ -3,7 +3,7 @@ import { FiMail, FiPhoneCall, FiMapPin, FiInfo, FiTool, FiStar } from "react-ico
 
 const CustomerService = () => {
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-lime-50/20 to-green-50 py-10 px-4 md:px-8">
       <div className="max-w-5xl mx-auto space-y-12">
         <header className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">Customer Services</h1>

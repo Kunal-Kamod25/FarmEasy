@@ -38,6 +38,7 @@ router.get("/all", async (req, res) => {
         p.product_type,
         p.product_quantity,
         p.price,
+        p.product_image,
         p.created_at,
         p.seller_id,
         pc.product_cat_name AS category_name,
@@ -140,7 +141,7 @@ router.get("/:id", async (req, res) => {
     // also get other products from the same seller so we can show "More from this seller" section
     const product = rows[0];
     const [moreFromSeller] = await db.query(`
-      SELECT id, product_name, price, product_quantity, product_type
+      SELECT id, product_name, price, product_quantity, product_type, product_image
       FROM product
       WHERE seller_id = ? AND id != ?
       LIMIT 4

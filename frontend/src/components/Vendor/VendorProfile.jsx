@@ -1,3 +1,31 @@
+// ===========================================================================
+// VendorProfile.jsx - Vendor Profile Management Page
+// ===========================================================================
+//
+// WHAT THIS DOES:
+// - Lets the vendor view and edit their personal info, shop details, and profile pic
+// - On load, fetches vendor data from GET /api/vendor/profile using JWT token
+// - On save, sends FormData to PUT /api/vendor/profile (supports image upload)
+//
+// HOW IT WORKS:
+// 1. Component mounts -> fetchProfile() fires
+// 2. fetchProfile sends GET request with Bearer token in headers
+//    Backend decodes token to find user ID, queries users + seller tables
+// 3. Response comes back with vendor_name, email, phone, store_name, etc.
+//    We map these into local state so form fields show the current values
+// 4. User edits fields + optionally picks a new profile picture
+// 5. handleSubmit builds a FormData object (text fields + optional image file)
+//    and sends PUT request to the same endpoint
+// 6. Backend updates users table (personal info) and seller table (shop info)
+//    If a new profile image was uploaded, multer saves it and we store the path
+// 7. After save, we re-fetch to show the latest data including new image URL
+//
+// WHY FORMDATA INSTEAD OF JSON:
+// - JSON can't carry binary files (images)
+// - FormData lets us send both text fields and files in one HTTP request
+// - multer middleware on backend only works with multipart/form-data
+// ===========================================================================
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -6,6 +34,7 @@ import {
 } from "lucide-react";
 
 const VendorProfile = () => {
+  // grab the JWT token that was stored after login — every API call needs this
   const token = localStorage.getItem("token");
 
   const [profile, setProfile] = useState({
@@ -35,13 +64,43 @@ const VendorProfile = () => {
     fetchProfile();
   }, []);
 
+  // ── FETCH PROFILE ──
+  // calls GET /api/vendor/profile which reads from users + seller table using the JWT token
+  // the token has the user id inside it, so backend knows who we are
   const fetchProfile = async () => {
     try {
       setFetching(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/profile", {
-        headers: { Authorization: `Bearer ${token}` },
+
+      const res = await axios.get(
+        "http://localhost:5000/api/vendor/profile",
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // map backend field names to our local state shape
+      setProfile({
+        vendor_name: res.data.vendor_name || "",
+        store_name: res.data.store_name || "",
+        phone: res.data.phone || "",
+        address: res.data.address || "",
+        city: res.data.city || "",
+        state: res.data.state || "",
+        pincode: res.data.pincode || "",
+        bio: res.data.bio || "",
+        email: res.data.email || "",
+        gst_number: res.data.gst_number || "",
+        profile_image: res.data.profile_image || "",
+        website: "",
+        bank_account: "",
+        ifsc_code: "",
       });
-      setProfile(res.data);
+
+      // if they already have a profile pic saved in DB, show it
+      if (res.data.profile_image) {
+        setImagePreview(`http://localhost:5000${res.data.profile_image}`);
+      }
+
     } catch (error) {
       console.error("Profile fetch error:", error);
     } finally {
@@ -62,25 +121,51 @@ const VendorProfile = () => {
     }
   };
 
+  // ── SAVE PROFILE ──
+  // sends PUT /api/vendor/profile with all form data + optional profile image file
+  // uses FormData so multer on backend can handle the image upload
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       setLoading(true);
-      const data = new FormData();
-      Object.keys(profile).forEach((key) => data.append(key, profile[key]));
-      if (imageFile) data.append("profile_image", imageFile);
 
-      await axios.put("http://localhost:5000/api/vendor/profile", data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // FormData lets us send both text fields and file in one request
+      const formData = new FormData();
+      formData.append("vendor_name", profile.vendor_name);
+      formData.append("phone", profile.phone);
+      formData.append("address", profile.address);
+      formData.append("city", profile.city);
+      formData.append("state", profile.state);
+      formData.append("pincode", profile.pincode);
+      formData.append("bio", profile.bio);
+      formData.append("store_name", profile.store_name);
+      formData.append("gst_number", profile.gst_number);
+
+      // only attach image if vendor picked a new one
+      if (imageFile) {
+        formData.append("profile_image", imageFile);
+      }
+
+      await axios.put(
+        "http://localhost:5000/api/vendor/profile",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // let browser set Content-Type with boundary for multipart
+          }
+        }
+      );
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+
+      // re-fetch to get the updated profile_image URL from server
+      await fetchProfile();
+
     } catch (error) {
-      console.error("Profile update error:", error);
+      console.error("Profile update error:", error.response?.data || error);
       alert("Failed to update profile");
     } finally {
       setLoading(false);
@@ -126,9 +211,15 @@ const VendorProfile = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
               <div className="relative mb-4">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-emerald-50 flex items-center justify-center shadow-md">
-                  {imagePreview || profile.profile_image ? (
+                  {imagePreview ? (
                     <img
-                      src={imagePreview || profile.profile_image}
+                      src={imagePreview}
+                      alt="profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : profile.profile_image ? (
+                    <img
+                      src={`http://localhost:5000${profile.profile_image}`}
                       alt="profile"
                       className="w-full h-full object-cover"
                     />

@@ -99,8 +99,8 @@ export default function HomeSections({
                                     </button>
 
                                 <img
-                                    src={product.image || product.img || `https://placehold.co/200x200?text=${encodeURIComponent(product.name?.slice(0,8)||'No+Image')}`}
-                                    alt={product.name}
+                                    src={product.product_image ? `http://localhost:5000${product.product_image}` : (product.image || product.img || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent((product.product_name || product.name || 'Product').slice(0,8))}`)}
+                                    alt={product.product_name || product.name}
                                     className="object-contain h-full w-full p-4"
                                 />
 
@@ -192,8 +192,8 @@ export default function HomeSections({
                                     </button>
                             <div className="h-32 flex items-center justify-center mb-4">
                                 <img
-                                    src={product.image || product.img || `https://placehold.co/200x200?text=${encodeURIComponent(product.name?.slice(0,8) || 'No+Image')}`}
-                                    alt={product.name}
+                                    src={product.product_image ? `http://localhost:5000${product.product_image}` : (product.image || product.img || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent((product.product_name || product.name || 'Product').slice(0,8))}`)}
+                                    alt={product.product_name || product.name}
                                     className="object-contain max-h-full transition group-hover:scale-110"
                                 />
                             </div>
