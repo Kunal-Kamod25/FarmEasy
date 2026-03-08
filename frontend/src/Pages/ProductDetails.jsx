@@ -1,3 +1,25 @@
+// ===========================================================================
+// ProductDetails.jsx - Single Product Detail Page
+// ===========================================================================
+//
+// ROUTE: /product/:id
+//
+// FLOW:
+// 1. Gets product ID from URL params (useParams)
+// 2. Calls GET /api/products/:id which returns:
+//    - All product fields (name, desc, price, quantity, product_image, etc.)
+//    - Seller info (shop_name, seller_name, city, state)
+//    - moreFromSeller array (up to 4 other products from same vendor)
+// 3. Displays the product image if uploaded, or a placeholder icon
+// 4. Shows price, stock status, quantity picker, add-to-cart button
+// 5. Shows seller info card at the bottom
+// 6. Shows "More from this seller" grid with thumbnails linking to those products
+//
+// CART & WISHLIST:
+// - Uses CartContext and WishlistContext for add-to-cart and wishlist toggle
+// - Both require login (checks token in localStorage)
+// ===========================================================================
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -78,7 +100,7 @@ const ProductDetailPage = () => {
   // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50 p-6">
         <div className="max-w-5xl mx-auto animate-pulse">
           <div className="h-8 w-32 bg-slate-200 rounded-xl mb-6" />
           <div className="bg-white rounded-2xl p-8 flex gap-8">
@@ -99,7 +121,7 @@ const ProductDetailPage = () => {
   // ── ERROR STATE ──
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl p-12 shadow-sm border border-slate-100">
           <AlertCircle size={48} className="text-red-300 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-700 mb-2">Product Not Found</h2>
@@ -119,7 +141,7 @@ const ProductDetailPage = () => {
   const wishlisted = isWishlisted(product.id);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50">
 
       {/* ── BREADCRUMB / BACK NAV ── */}
       <div className="bg-white border-b border-slate-100 px-6 py-4">
@@ -161,12 +183,24 @@ const ProductDetailPage = () => {
                 </span>
               )}
 
-              {/* placeholder since we don't store images yet */}
-              <div className="text-center p-8">
+              {/* show real product image if it exists, otherwise show a styled placeholder */}
+              {product.product_image ? (
+                <img
+                  src={`http://localhost:5000${product.product_image}`}
+                  alt={product.product_name}
+                  className="max-w-full max-h-full object-contain p-4"
+                  onError={(e) => {
+                    // fallback if the saved image file is missing
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className="text-center p-8" style={{ display: product.product_image ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="w-32 h-32 mx-auto bg-emerald-50 rounded-3xl flex items-center justify-center mb-4">
                   <Package size={56} className="text-emerald-300" />
                 </div>
-                <p className="text-slate-400 text-xs">Product image coming soon</p>
+                <p className="text-slate-400 text-xs">No product image uploaded</p>
               </div>
             </div>
 
@@ -332,8 +366,13 @@ const ProductDetailPage = () => {
                   to={`/product/${p.id}`}
                   className="bg-slate-50 hover:bg-emerald-50 rounded-xl p-4 transition group border border-transparent hover:border-emerald-200"
                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                    <Package size={20} className="text-emerald-400" />
+                  {/* show product thumbnail if uploaded, else placeholder icon */}
+                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
+                    {p.product_image ? (
+                      <img src={`http://localhost:5000${p.product_image}`} alt={p.product_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package size={20} className="text-emerald-400" />
+                    )}
                   </div>
                   <p className="text-xs font-semibold text-slate-700 text-center line-clamp-2 group-hover:text-emerald-700">
                     {p.product_name}

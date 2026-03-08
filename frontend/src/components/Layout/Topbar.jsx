@@ -16,7 +16,7 @@ Thanks
         subject
     )}&body=${encodeURIComponent(body)}`;
     return (
-        <div className="hidden lg:block text-white bg-[#0b6e4f]">
+        <div className="hidden lg:block text-white bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700">
             <div className="container mx-auto flex justify-between items-center py-1 px-4 md:px-0 text-sm">
                 <div className="hidden md:flex items-center space-x-4">
                     <a href="https://www.instagram.com/__farmeasy003__/" className="hover:text-gray-300 py-0.5 px-18">

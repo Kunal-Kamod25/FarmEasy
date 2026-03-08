@@ -66,10 +66,13 @@ exports.addProduct = async (req, res) => {
 
     const sellerId = seller[0].id;
 
+    // if vendor uploaded a product image, multer saves it to /uploads and gives us the filename
+    const productImage = req.file ? `/uploads/${req.file.filename}` : null;
+
     await db.query(
       `INSERT INTO product 
-        (product_name, product_description, product_type, price, category_id, product_quantity, seller_id) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        (product_name, product_description, product_type, price, category_id, product_quantity, seller_id, product_image) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         product_description || null,
@@ -77,7 +80,8 @@ exports.addProduct = async (req, res) => {
         price,
         category_id || null,
         product_quantity || 0,
-        sellerId
+        sellerId,
+        productImage
       ]
     );
 
@@ -258,21 +262,42 @@ exports.updateProfile = async (req, res) => {
       bio, store_name, gst_number
     } = req.body;
 
-    // update users table with personal info
-    await db.query(`
-      UPDATE users 
-      SET full_name = ?, phone_number = ?, address = ?, city = ?, state = ?, pincode = ?, bio = ?
-      WHERE id = ?
-    `, [
-      vendor_name || null,
-      phone || null,
-      address || null,
-      city || null,
-      state || null,
-      pincode || null,
-      bio || null,
-      userId
-    ]);
+    // if vendor uploaded a new profile pic, multer saves it and gives us the file info
+    const profilePic = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // update users table with personal info (only update profile_pic if a new one was uploaded)
+    if (profilePic) {
+      await db.query(`
+        UPDATE users 
+        SET full_name = ?, phone_number = ?, address = ?, city = ?, state = ?, pincode = ?, bio = ?, profile_pic = ?
+        WHERE id = ?
+      `, [
+        vendor_name || null,
+        phone || null,
+        address || null,
+        city || null,
+        state || null,
+        pincode || null,
+        bio || null,
+        profilePic,
+        userId
+      ]);
+    } else {
+      await db.query(`
+        UPDATE users 
+        SET full_name = ?, phone_number = ?, address = ?, city = ?, state = ?, pincode = ?, bio = ?
+        WHERE id = ?
+      `, [
+        vendor_name || null,
+        phone || null,
+        address || null,
+        city || null,
+        state || null,
+        pincode || null,
+        bio || null,
+        userId
+      ]);
+    }
 
     // check if seller record exists
     const [seller] = await db.query("SELECT id FROM seller WHERE user_id = ?", [userId]);

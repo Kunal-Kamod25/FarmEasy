@@ -12,7 +12,7 @@ import {
     ShoppingBag,
 } from "lucide-react";
 
-import CompanyLogo from "../../assets/logo.png";
+import logo from "../../assets/Logo.png";
 
 const VendorSidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +60,7 @@ const VendorSidebar = () => {
                 {/* logo */}
                 <div className="flex items-center justify-center h-28 border-b border-white/10 px-4">
                     <img
-                        src={CompanyLogo}
+                        src={logo}
                         alt="FarmEasy"
                         className="h-25 w-25 object-contain"
                     />

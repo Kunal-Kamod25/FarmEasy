@@ -147,8 +147,13 @@ const VendorProducts = () => {
                   <tr key={product.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <Package size={16} className="text-emerald-600" />
+                        {/* show real product image thumbnail if uploaded */}
+                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {product.product_image ? (
+                            <img src={`http://localhost:5000${product.product_image}`} alt={product.product_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Package size={16} className="text-emerald-600" />
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800 leading-tight line-clamp-1 max-w-[180px]">

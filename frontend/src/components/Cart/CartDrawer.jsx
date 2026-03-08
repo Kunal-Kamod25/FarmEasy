@@ -29,7 +29,7 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
       ref={drawerRef}
       onPointerDown={(e) => e.stopPropagation()}
       className={
-        "fixed top-0 right-0 w-3/4 sm:w-1/2 md:w-[30rem] h-full bg-white shadow-2xl transform transition-transform duration-300 flex flex-col z-50 " +
+        "fixed top-0 right-0 w-3/4 sm:w-1/2 md:w-[30rem] h-full bg-gradient-to-b from-emerald-50 to-white shadow-2xl transform transition-transform duration-300 flex flex-col z-50 " +
         (drawerOpen ? "translate-x-0" : "translate-x-full")
       }
     >

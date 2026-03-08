@@ -1,3 +1,23 @@
+// ===========================================================================
+// VendorAddProduct.jsx - Add New Product Page
+// ===========================================================================
+//
+// FLOW:
+// 1. Vendor fills in product name, description, type, price, quantity
+// 2. Vendor optionally uploads a product image (click the upload area)
+// 3. On submit, we build a FormData with all text fields + the image file
+// 4. POST /api/vendor/products with Bearer token + FormData
+// 5. Backend: verifyToken -> multer saves image -> controller inserts into
+//    product table with product_image path like "/uploads/1712345678.jpg"
+// 6. After success, navigate to the products list page
+//
+// IMAGE HANDLING:
+// - Images are stored in local state as { file, preview } objects
+// - Preview URLs are created with URL.createObjectURL for instant display
+// - On submit, the first image's file object is appended to FormData
+// - Backend multer saves it to /backend/uploads/ and we store the path in DB
+// ===========================================================================
+
 import React, { useState } from "react";
 import axios from "axios";
 import { Upload, X, Plus, ArrowLeft } from "lucide-react";
@@ -46,20 +66,28 @@ const VendorAddProduct = () => {
     try {
       setLoading(true);
 
+      // use FormData so we can send both text fields and the product image file
+      // multer on the backend expects a field called "product_image"
+      const submitData = new FormData();
+      submitData.append("product_name", formData.product_name);
+      submitData.append("product_description", formData.product_description);
+      submitData.append("product_type", formData.product_type);
+      submitData.append("price", formData.price);
+      submitData.append("category_id", formData.category_id);
+      submitData.append("product_quantity", formData.product_quantity);
+
+      // attach the first selected image as the product thumbnail
+      if (images.length > 0) {
+        submitData.append("product_image", images[0].file);
+      }
+
       await axios.post(
         "http://localhost:5000/api/vendor/products",
-        {
-          product_name: formData.product_name,
-          product_description: formData.product_description,
-          product_type: formData.product_type,
-          price: formData.price,
-          category_id: formData.category_id,
-          product_quantity: formData.product_quantity,
-        },
+        submitData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            // don't set Content-Type manually — browser sets multipart boundary automatically
           },
         }
       );
@@ -216,9 +244,6 @@ const VendorAddProduct = () => {
                 </div>
                 <span className="text-sm font-semibold text-gray-700">Click to upload</span>
                 <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</span>
-                <span className="text-xs text-amber-600 mt-2 font-medium bg-amber-50 px-2 py-0.5 rounded-full">
-                  Coming Soon
-                </span>
                 <input
                   type="file"
                   multiple

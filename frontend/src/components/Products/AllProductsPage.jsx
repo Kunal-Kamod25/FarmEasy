@@ -99,7 +99,7 @@ const AllProductsPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-amber-50/20 to-teal-50">
 
             {/* ── PAGE HEADER ── */}
             <div className="bg-white border-b border-slate-100 px-6 py-5">
@@ -318,14 +318,7 @@ const AllProductsPage = () => {
 
 // ── PRODUCT CARD (local to this page, shows vendor name + price) ──
 const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onViewDetail }) => {
-    const [added, setAdded] = useState(false);
     const token = localStorage.getItem("token");
-
-    const handleAdd = async () => {
-        await onAddToCart(product);
-        setAdded(true);
-        setTimeout(() => setAdded(false), 1500);
-    };
 
     const handleWishlist = () => {
         if (!token) {
@@ -358,9 +351,20 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onV
                     </span>
                 )}
 
-                {/* product placeholder image since we don't have real images yet */}
+                {/* product image — show the real uploaded image if available */}
                 <div className="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                    <div className="text-center">
+                    {product.product_image ? (
+                        <img
+                            src={`http://localhost:5000${product.product_image}`}
+                            alt={product.product_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                            }}
+                        />
+                    ) : null}
+                    <div className="text-center" style={{ display: product.product_image ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <div className="w-20 h-20 mx-auto bg-emerald-50 rounded-2xl flex items-center justify-center mb-2">
                             <Package size={32} className="text-emerald-400" />
                         </div>
@@ -408,26 +412,12 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onV
                         <p className="text-lg font-black text-slate-900">₹{Number(product.price).toLocaleString()}</p>
                     </div>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onViewDetail}
-                            className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:border-emerald-400 hover:text-emerald-600 transition"
-                        >
-                            Details
-                        </button>
-                        <button
-                            onClick={handleAdd}
-                            disabled={product.product_quantity === 0}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold transition ${added
-                                ? "bg-green-500 text-white"
-                                : product.product_quantity === 0
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                                }`}
-                        >
-                            {added ? "✓ Added" : "Add"}
-                        </button>
-                    </div>
+                    <button
+                        onClick={onViewDetail}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-sm active:scale-95"
+                    >
+                        View Details
+                    </button>
                 </div>
             </div>
         </div>

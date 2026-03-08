@@ -3,7 +3,7 @@ import SupportImg from "../components/../assets/Fartilizers1.png";
 
 const Support = () => {
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50/20 to-emerald-50 py-10 px-4 md:px-8">
       <div className="max-w-6xl mx-auto space-y-10">
         <header className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">Support</h1>
