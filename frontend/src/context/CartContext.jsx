@@ -73,6 +73,17 @@ export const CartProvider = ({ children }) => {
             setCartItems((prev) => {
                 const existing = prev.find((i) => getPid(i) === pid);
                 let updated;
+
+                // standard shape for cart items
+                const normalizedProduct = {
+                    ...product,
+                    id: pid,
+                    name: product.name || product.product_name,
+                    description: product.description || product.product_description,
+                    price: product.price,
+                    image: product.image || product.product_image || product.img
+                };
+
                 if (existing) {
                     updated = prev.map((i) =>
                         getPid(i) === pid
@@ -80,7 +91,7 @@ export const CartProvider = ({ children }) => {
                             : i
                     );
                 } else {
-                    updated = [...prev, { ...product, id: pid, quantity }];
+                    updated = [...prev, { ...normalizedProduct, quantity }];
                 }
                 localStorage.setItem("guestCart", JSON.stringify(updated));
                 return updated;

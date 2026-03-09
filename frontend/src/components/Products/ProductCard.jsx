@@ -28,7 +28,8 @@ const ProductCard = ({ product }) => {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const token = localStorage.getItem("token");
 
-  const wishlisted = isWishlisted(product.id);
+  const pid = product.id || product.product_id;
+  const wishlisted = isWishlisted(pid);
 
   const handleViewDetails = () => {
     navigate(`/product/${product.id}`);

@@ -41,6 +41,81 @@ exports.getProducts = async (req, res) => {
 
 
 // =====================================================
+// GET A SINGLE PRODUCT FOR EDITING
+// =====================================================
+exports.getProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.user.id;
+
+    // Verify ownership
+    const [seller] = await db.query("SELECT id FROM seller WHERE user_id = ?", [userId]);
+    if (!seller.length) return res.status(403).json({ message: "Seller not found" });
+
+    const sellerId = seller[0].id;
+
+    const [product] = await db.query(
+      "SELECT * FROM product WHERE id = ? AND seller_id = ?",
+      [productId, sellerId]
+    );
+
+    if (!product.length) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json(product[0]);
+  } catch (error) {
+    console.error("getProduct error:", error);
+    res.status(500).json({ message: "Server error while fetching product" });
+  }
+};
+
+// =====================================================
+// UPDATE A PRODUCT
+// =====================================================
+exports.updateProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.user.id;
+    const { product_name, product_description, product_type, price, category_id, product_quantity } = req.body;
+
+    // Verify ownership
+    const [seller] = await db.query("SELECT id FROM seller WHERE user_id = ?", [userId]);
+    if (!seller.length) return res.status(403).json({ message: "Seller not found" });
+
+    const sellerId = seller[0].id;
+
+    // Check if the product belongs to this seller
+    const [existingProduct] = await db.query("SELECT id FROM product WHERE id = ? AND seller_id = ?", [productId, sellerId]);
+    if (!existingProduct.length) {
+      return res.status(404).json({ message: "Product not found or unauthorized" });
+    }
+
+    const productImage = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (productImage) {
+      await db.query(`
+        UPDATE product 
+        SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?, product_image = ?
+        WHERE id = ? AND seller_id = ?
+      `, [product_name, product_description || null, product_type || null, price, category_id || null, product_quantity || 0, productImage, productId, sellerId]);
+    } else {
+      await db.query(`
+        UPDATE product 
+        SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?
+        WHERE id = ? AND seller_id = ?
+      `, [product_name, product_description || null, product_type || null, price, category_id || null, product_quantity || 0, productId, sellerId]);
+    }
+
+    res.json({ message: "Product updated successfully" });
+  } catch (error) {
+    console.error("updateProduct error:", error);
+    res.status(500).json({ message: "Server error while updating product" });
+  }
+};
+
+
+// =====================================================
 // ADD NEW PRODUCT
 // vendor adds a product with all details
 // =====================================================

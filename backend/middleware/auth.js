@@ -18,7 +18,7 @@
 
 const jwt = require("jsonwebtoken");
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -32,11 +32,20 @@ const verifyToken = (req, res, next) => {
     // decode the token and verify it hasn't been tampered with
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // ✅ EXTRA SECURITY: Check if user exists in DB (avoids stale token issues)
+    const db = require("../config/db");
+    const [user] = await db.execute("SELECT id FROM users WHERE id = ?", [decoded.id]);
+
+    if (user.length === 0) {
+      return res.status(401).json({ message: "User no longer exists. Please login again." });
+    }
+
     // attach user info (id, role) to the request so controllers can use it
     req.user = decoded;
 
     next();
   } catch (error) {
+    console.error("Auth Middleware Error:", error);
     return res.status(403).json({ message: "Invalid token" });
   }
 };

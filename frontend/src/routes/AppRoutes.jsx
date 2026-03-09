@@ -8,6 +8,8 @@ import Profile from "../components/profile/Profile";
 /* Auth */
 import Login from "../components/Auth/Login";
 import Register from "../components/Auth/RegisterPage";
+import ForgotPassword from "../components/Auth/ForgotPassword";
+import ResetPassword from "../components/Auth/ResetPassword";
 
 /* Admin */
 import AdminLayout from "../components/Admin/AdminLayout";
@@ -32,10 +34,13 @@ import AllProductsPage from "../components/Products/AllProductsPage";
 
 /* Pages */
 import ProductDetailPage from "../Pages/ProductDetails";
+import CheckoutPage from "../Pages/Checkout";
+import OrderSuccessPage from "../Pages/OrderSuccess";
 import CustomerService from "../Pages/CustomerService";
 import Support from "../Pages/Support";
 import ContactUs from "../Pages/ContactUs";
 import AboutUs from "../Pages/AboutUs";
+
 
 const AppRoutes = () => {
   return (
@@ -58,11 +63,19 @@ const AppRoutes = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/wishlist" element={<Wishlist />} />
+
+          {/* Checkout & Success */}
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
         </Route>
+
 
         {/* ── AUTH ── */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* ── ADMIN ── */}
         <Route path="/admin" element={<AdminLayout />}>
