@@ -73,8 +73,8 @@ const Navbar = () => {
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-black text-white gap-4">
-      <nav className="container mx-auto flex items-center py-1 px-6 gap-4">
+    <div className="bg-black text-white py-1">
+      <nav className="container mx-auto flex items-center px-6 gap-4">
         {/* Left Side */}
         <div className="flex items-center flex-1 gap-4 min-w-0">
           <div className="pl-1 flex items-center px-8 h-15">

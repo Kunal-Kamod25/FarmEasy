@@ -7,18 +7,18 @@ const db = require("./config/db");
 
 const seedProducts = async () => {
     try {
-        console.log("🌱 Starting seed for Roshan's products...\n");
+        console.log("🌱 Starting seed for Sayali's products...\n");
 
         // step 1 - find roshan's user account (checking by name, email contains roshan)
         const [users] = await db.query(`
       SELECT id, full_name, email FROM users 
-      WHERE LOWER(full_name) LIKE '%roshan%' 
-         OR LOWER(email) LIKE '%roshan%'
+      WHERE LOWER(full_name) LIKE '%sayali%' 
+         OR LOWER(email) LIKE '%sayali%'
       LIMIT 1
     `);
 
         if (!users.length) {
-            console.log("❌ Could not find user named 'Roshan'.");
+            console.log("❌ Could not find user named 'Sayali'.");
             console.log("   Please check what name/email she used to register.");
             const [allUsers] = await db.query("SELECT id, full_name, email FROM users");
             console.log("\n👥 All users in DB:", allUsers);

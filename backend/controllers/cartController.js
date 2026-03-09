@@ -7,18 +7,21 @@ const getCart = async (req, res) => {
     try {
         const [rows] = await db.execute(
             `SELECT
-         c.id         AS cart_id,
-         c.quantity,
-         p.id,
-         p.product_name  AS name,
-         p.price,
-         p.product_description AS description,
-         p.product_type  AS brand,
-         p.product_quantity AS stock
-       FROM cart c
-       INNER JOIN product p ON c.product_id = p.id
-       WHERE c.user_id = ?
-       ORDER BY c.created_at DESC`,
+          c.id         AS cart_id,
+          c.quantity,
+          p.id,
+          p.product_name  AS name,
+          p.price,
+          p.product_description AS description,
+          p.product_type  AS brand,
+          p.product_quantity AS stock,
+          p.product_image AS image,
+          s.shop_name
+        FROM cart c
+        INNER JOIN product p ON c.product_id = p.id
+        LEFT JOIN seller s ON p.seller_id = s.id
+        WHERE c.user_id = ?
+        ORDER BY c.created_at DESC`,
             [userId]
         );
         return res.status(200).json({ success: true, data: rows });

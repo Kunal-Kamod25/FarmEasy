@@ -62,7 +62,7 @@ const BrandSection = () => {
 
   return (
     <section className="py-10 bg-gradient-to-b from-white via-emerald-50/40 to-white">
-      <div className="w-full max-w-7xl mx-auto px-6">
+      <div className="w-full max-w-8xl mx-auto px-9">
 
         {/* Section header */}
         <div className="flex items-center justify-between mb-7">

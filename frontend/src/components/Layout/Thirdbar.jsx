@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import axios from "axios";
@@ -17,28 +17,13 @@ const BRAND_LIST = [
 
 
 // single nav item with hover dropdown
-// title click → navigates to the category/products page
-// hover → opens dropdown showing individual products under this category
-// dropdown item click → navigates to that specific product's detail page
-const NavItem = ({ title, items, onClick }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const NavItem = ({ title, items, onClick, isOpen, onMouseEnter }) => {
   const navigate = useNavigate();
-  let closeTimer = null;
-
-  const handleMouseEnter = () => {
-    if (closeTimer) clearTimeout(closeTimer);
-    if (items && items.length > 0) setIsOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    closeTimer = setTimeout(() => setIsOpen(false), 150);
-  };
 
   return (
     <div
       className="relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={onMouseEnter}
     >
       {/* Title — click goes to category page, hover opens dropdown */}
       <div
@@ -48,7 +33,7 @@ const NavItem = ({ title, items, onClick }) => {
           if (onClick) onClick();
         }}
       >
-        <span className="text-[13px] font-semibold uppercase tracking-wide hover:text-emerald-200 transition-colors">
+        <span className="text-[13px] font-semibold uppercase tracking-wide hover:text-emerald-200 transition-colors text-nowrap">
           {title}
         </span>
         {items && items.length > 0 && (
@@ -63,13 +48,11 @@ const NavItem = ({ title, items, onClick }) => {
       {isOpen && items && items.length > 0 && (
         <div
           className="absolute left-0 top-full w-56 bg-white text-slate-800 rounded-b-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-slate-100"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
         >
           {/* first item: "View All" link for this category */}
           {onClick && (
             <button
-              onClick={() => { setIsOpen(false); onClick(); }}
+              onClick={() => { onClick(); }}
               className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-50 border-b border-slate-100 transition-colors"
             >
               View All {title} →
@@ -80,7 +63,6 @@ const NavItem = ({ title, items, onClick }) => {
               <li key={index}>
                 <button
                   onClick={() => {
-                    setIsOpen(false);
                     navigate(item.path);
                   }}
                   className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-xs font-bold uppercase text-slate-700 hover:text-emerald-700 transition-colors"
@@ -100,6 +82,7 @@ const NavItem = ({ title, items, onClick }) => {
 const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [openIndex, setOpenIndex] = useState(null);
   const navigate = useNavigate();
 
   // fetch categories + their products from backend on mount
@@ -129,10 +112,10 @@ const Thirdbar = () => {
   }, []);
 
   // build brand dropdown items — each brand searches by name in /products
-  const brandItems = BRAND_LIST.map((name) => ({
+  const brandItems = useMemo(() => BRAND_LIST.map((name) => ({
     name,
     path: `/products?search=${encodeURIComponent(name)}`,
-  }));
+  })), []);
 
   return (
     <div className="bg-gradient-to-r from-[#0a5e43] via-[#0b6e4f] to-[#0a5e43] text-white shadow-md">
@@ -149,34 +132,44 @@ const Thirdbar = () => {
 
         {/* Menu Links — dynamic from DB */}
         <div
+          onMouseLeave={() => setOpenIndex(null)}
           className={`
             absolute md:static top-[45px] left-0 w-full md:w-auto
             bg-[#0b6e4f] md:bg-transparent
             flex flex-col md:flex-row md:items-center md:space-x-5 px-6 md:px-0
-            ${navOpen ? "block z-50" : "hidden md:flex"}
+            ${navOpen ? "block z-50 shadow-xl" : "hidden md:flex"}
           `}
         >
           {/* All Products — goes to /products page */}
           <NavItem
             title="All Products"
+            isOpen={openIndex === "all"}
+            onMouseEnter={() => setOpenIndex("all")}
             onClick={() => navigate("/products")}
           />
 
           {/* Brands — dropdown of real brand names */}
-          <NavItem title="Brands" items={brandItems} />
+          <NavItem
+            title="Brands"
+            items={brandItems}
+            isOpen={openIndex === "brands"}
+            onMouseEnter={() => setOpenIndex("brands")}
+          />
 
           {/* Dynamic Categories from Database — products inside each dropdown */}
           {categories.map((category) => (
             <NavItem
               key={category.id}
               title={category.product_cat_name}
+              isOpen={openIndex === category.id}
+              onMouseEnter={() => setOpenIndex(category.id)}
               onClick={() => navigate(`/products?category=${category.id}`)}
               items={
                 category.products?.length > 0
                   ? category.products.map((product) => ({
-                      name: product.product_name,
-                      path: `/product/${product.id}`,
-                    }))
+                    name: product.product_name,
+                    path: `/product/${product.id}`,
+                  }))
                   : null
               }
             />

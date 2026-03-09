@@ -11,6 +11,13 @@ export const WishlistProvider = ({ children }) => {
 
     const getToken = () => localStorage.getItem("token");
 
+    // ─── PID HELPER ──────────────────────────────────────────────────────────
+    // normalize product id across different shapes (e.g. from DB or partial objects)
+    const getPid = (product) => {
+        if (!product) return null;
+        return product.id || product.product_id || product._id;
+    };
+
     const fetchWishlist = useCallback(async () => {
         const token = getToken();
         if (!token) {
@@ -38,15 +45,18 @@ export const WishlistProvider = ({ children }) => {
         const token = getToken();
         if (!token) return;
         try {
+            const pid = getPid(product);
+            if (!pid) return console.warn("toggleWishlist: product lacks ID", product);
+
             await axios.post(
                 "http://localhost:5000/api/wishlist",
-                { productId: product.id },
+                { productId: pid },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             // Re-fetch to update count
             await fetchWishlist();
             // Return new state
-            return !wishlistItems.some((i) => i.id === product.id);
+            return !wishlistItems.some((i) => getPid(i) === pid);
         } catch (err) {
             console.error("Wishlist toggle error:", err);
             return null;
@@ -54,7 +64,7 @@ export const WishlistProvider = ({ children }) => {
     };
 
     const isWishlisted = (productId) =>
-        wishlistItems.some((i) => i.id === productId);
+        wishlistItems.some((i) => getPid(i) === productId);
 
     return (
         <WishlistContext.Provider

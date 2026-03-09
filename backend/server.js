@@ -51,6 +51,7 @@ const vendorRoutes = require("./routes/vendorRoutes");    // vendor dashboard, p
 const wishlistRoutes = require("./routes/wishlistRoutes");// save/remove products to wishlist
 const cartRoutes = require("./routes/cartRoutes");        // add/remove/update cart items
 const orderRoutes = require("./routes/orderRoutes");      // place orders, order history
+const passwordRoutes = require("./routes/passwordRoutes"); // forgot/reset password (link & otp)
 
 
 // Use routes
@@ -63,6 +64,7 @@ app.use("/api/vendor", vendorRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/password", passwordRoutes);
 
 
 // ================= TEST ROUTE =================

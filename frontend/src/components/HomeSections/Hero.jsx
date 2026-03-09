@@ -9,12 +9,12 @@ import Feed from "../../assets/Feed.png";
 import Farm5 from "../../assets/Farm5.jpeg";
 
 const slides = [
-  { 
+  {
     title: "Welcome to FarmEasy",
     subtitle: "Your one-stop Agricultural Marketplace",
     description:
       "Buy everything you need for modern farming from trusted vendors.",
-    bgImage:Farm1,
+    bgImage: Farm1,
     button: "Explore Platform",
   },
   {
@@ -22,7 +22,7 @@ const slides = [
     subtitle: "Boost your crop yield",
     description:
       "High-quality organic and chemical fertilizers for every soil type.",
-    bgImage:Farm2,
+    bgImage: Farm2,
     button: "Shop Fertilizers",
   },
   {
@@ -30,7 +30,7 @@ const slides = [
     subtitle: "Power your productivity",
     description:
       "Tractors, tools, and machines designed for efficiency and durability.",
-    bgImage:Fartilizers2,
+    bgImage: Fartilizers2,
     button: "View Equipment",
   },
   {
@@ -46,7 +46,7 @@ const slides = [
     subtitle: "Smart water management",
     description:
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
-    bgImage:Farm5,
+    bgImage: Farm5,
     button: "Explore Irrigation",
   },
   {
@@ -54,7 +54,7 @@ const slides = [
     subtitle: "Healthy cows, horses & bulls",
     description:
       "Nutritious animal feed and trusted veterinary medicines.",
-    bgImage:Feed,
+    bgImage: Feed,
     button: "Shop Animal Care",
   },
 ];
@@ -63,12 +63,20 @@ const HeroCarousel = () => {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = prev
 
+  // PRELOAD IMAGES
+  useEffect(() => {
+    slides.forEach((slide) => {
+      const img = new Image();
+      img.src = slide.bgImage;
+    });
+  }, []);
+
   // AUTO SLIDE
   useEffect(() => {
     const timer = setInterval(() => {
       setDirection(1);
       setIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 6000); // Slightly slower auto-slide for better readability
 
     return () => clearInterval(timer);
   }, []);
@@ -84,7 +92,7 @@ const HeroCarousel = () => {
   };
 
   return (
-    <div className="relative w-full h-[450px] overflow-hidden">
+    <div className="relative w-full h-[500px] md:h-[450px] overflow-hidden bg-gray-900">
       <AnimatePresence custom={direction}>
         <motion.div
           key={index}
@@ -95,51 +103,86 @@ const HeroCarousel = () => {
           exit={{ x: direction > 0 ? "-100%" : "100%" }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
         >
-          {/* Background */}
-          <img
-            src={slides[index].bgImage}
-            alt={slides[index].title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {/* Background with Overlay */}
+          <div className="absolute inset-0">
+            <img
+              src={slides[index].bgImage}
+              alt={slides[index].title}
+              loading={index === 0 ? "eager" : "lazy"}
+              className="w-full h-full object-cover transition-transform duration-[10000ms] scale-110 group-hover:scale-100"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-black/20" /> {/* Extra subtle darkening for the whole image */}
+          </div>
 
           {/* Content */}
-          <div className="relative z-10 h-full flex items-center px-10">
-            <div className="text-white max-w-2xl">
-              <h1 className="text-6xl font-extrabold mb-4 drop-shadow-lg">
+          <div className="relative z-10 h-full flex items-center px-6 md:px-16 lg:px-24">
+            <div className="max-w-3xl">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-white leading-tight drop-shadow-2xl"
+              >
                 {slides[index].title}
-              </h1>
-              <p className="text-2xl mb-3 opacity-95">
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-xl md:text-2xl mb-4 text-emerald-400 font-semibold tracking-wide uppercase drop-shadow-md"
+              >
                 {slides[index].subtitle}
-              </p>
-              <p className="text-lg mb-8 opacity-90">
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="text-lg md:text-xl mb-10 text-gray-200 max-w-xl leading-relaxed opacity-90 drop-shadow-sm"
+              >
                 {slides[index].description}
-              </p>
-              <button className="bg-[#00c853] hover:bg-green-600 px-10 py-4 rounded-md font-bold text-lg shadow-lg">
-                {slides[index].button}
-              </button>
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <button className="group relative bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2 overflow-hidden">
+                  <span className="relative z-10">{slides[index].button}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
+              </motion.div>
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* PREV */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-5 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full"
-      >
-        ❮
-      </button>
+      {/* NAVIGATION CONTROLS */}
+      <div className="absolute inset-0 flex items-center justify-between px-4 z-20 pointer-events-none">
+        <button
+          onClick={prevSlide}
+          className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group"
+        >
+          <svg className="w-6 h-6 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
 
-      {/* NEXT */}
-      <button
-        onClick={nextSlide}
-        className="absolute right-5 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full"
-      >
-        ❯
-      </button>
+        <button
+          onClick={nextSlide}
+          className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group"
+        >
+          <svg className="w-6 h-6 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
 
-      {/* DOTS */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+      {/* DOTS INDICATOR */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -147,9 +190,10 @@ const HeroCarousel = () => {
               setDirection(i > index ? 1 : -1);
               setIndex(i);
             }}
-            className={`w-3 h-3 rounded-full ${i === index ? "bg-white" : "bg-white/50"
-              }`}
-          />
+            className="group py-2 px-1 focus:outline-none"
+          >
+            <div className={`h-1 transition-all duration-500 rounded-full ${i === index ? "w-8 bg-emerald-500" : "w-4 bg-white/30 hover:bg-white/60"}`} />
+          </button>
         ))}
       </div>
     </div>

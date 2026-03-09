@@ -74,8 +74,8 @@ const ProductDetailPage = () => {
       return;
     }
 
-    // we pass quantity info along with the product
-    await addToCart({ ...product, quantity });
+    // we pass product and quantity separately
+    await addToCart(product, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };

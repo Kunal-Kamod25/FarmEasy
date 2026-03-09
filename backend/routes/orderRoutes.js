@@ -4,6 +4,72 @@ const db = require("../config/db");
 const verifyToken = require("../middleware/auth");
 
 // =====================================================
+// PLACE A NEW ORDER
+// =====================================================
+router.post("/", verifyToken, async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const userId = req.user.id;
+        const { shippingDetails, items, totalPrice, paymentMethod } = req.body;
+
+        if (!items || items.length === 0) {
+            return res.status(400).json({ message: "No items in order" });
+        }
+
+        // 1. Create the order
+        const [orderResult] = await connection.query(
+            "INSERT INTO orders (user_id, total_price, order_status) VALUES (?, ?, 'Pending')",
+            [userId, totalPrice]
+        );
+        const orderId = orderResult.insertId;
+
+        // 2. Add order items
+        const itemValues = items.map(item => [
+            orderId,
+            item.product_id || item.id,
+            item.quantity,
+            item.price
+        ]);
+
+        await connection.query(
+            "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ?",
+            [itemValues]
+        );
+
+        // 3. Clear user's cart
+        await connection.query("DELETE FROM cart WHERE user_id = ?", [userId]);
+
+        // 4. (Optional) Create tracking entry
+        await connection.query(
+            "INSERT INTO tracking (order_id, status, user_id, user_name, user_address) VALUES (?, 'Order Placed', ?, ?, ?)",
+            [orderId, userId, shippingDetails.fullName, `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.pincode}`]
+        );
+
+        // 5. (Optional) Create payment entry
+        await connection.query(
+            "INSERT INTO payment (order_id, payment_method, amount, status) VALUES (?, ?, ?, 'Pending')",
+            [orderId, paymentMethod || 'COD', totalPrice]
+        );
+
+        await connection.commit();
+        res.status(201).json({
+            success: true,
+            message: "Order placed successfully",
+            orderId: orderId
+        });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error("Place order error:", err);
+        res.status(500).json({ message: "Failed to place order" });
+    } finally {
+        connection.release();
+    }
+});
+
+// =====================================================
 // GET USER'S OWN ORDERS (order history)
 // called from the user's profile > my orders tab
 // and also from vendor dashboard's "my orders" tab (vendor as buyer)

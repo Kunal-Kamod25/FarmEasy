@@ -2,10 +2,14 @@ import { useRef, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import CartContents from "./CartContents";
 import { useCart } from "../../context/CartContext";
+import { useNavigate } from "react-router-dom";
+
 
 const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
   const drawerRef = useRef(null);
   const { cartCount } = useCart();
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -58,9 +62,16 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
 
       {/* Footer - Checkout Button */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        <button className="w-full bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 font-semibold transition-all active:scale-95 shadow-md hover:shadow-lg">
+        <button
+          onClick={() => {
+            toggleCartDrawer();
+            navigate("/checkout");
+          }}
+          className="w-full bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 font-semibold transition-all active:scale-95 shadow-md hover:shadow-lg"
+        >
           Proceed to Checkout
         </button>
+
         <p className="text-xs text-gray-400 text-center mt-2">
           Shipping, taxes, and discounts calculated at checkout.
         </p>
