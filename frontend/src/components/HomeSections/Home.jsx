@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Hero from "./Hero";
 import BrandSection from "./BrandSection";
+import { API_URL } from '../../config';
 import {
   Sparkles, TrendingUp, ArrowRight,
   Truck, ShieldCheck, Headphones, Sprout, Star
@@ -12,7 +13,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { ProductCard, LoadingSkeleton, EmptyState } from "./HomeProductCard";
 import CategorySection from "./CategorySection";
 
-const API = "http://localhost:5000";
+const API = `${API_URL}`;
 
 const Home = () => {
   const [searchParams] = useSearchParams();

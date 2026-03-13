@@ -1,5 +1,6 @@
 import React from "react";
 import { Heart, Store, Package } from "lucide-react";
+import { API_URL } from '../../config';
 
 const AllProductsProductCard = ({
     product,
@@ -39,7 +40,7 @@ const AllProductsProductCard = ({
                 <div className="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     {product.product_image ? (
                         <img
-                            src={`http://localhost:5000${product.product_image}`}
+                            src={`${API_URL}${product.product_image}`}
                             alt={product.product_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

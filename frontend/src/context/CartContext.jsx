@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const CartContext = createContext();
 
@@ -33,7 +34,7 @@ export const CartProvider = ({ children }) => {
         }
         try {
             setLoading(true);
-            const res = await axios.get("http://localhost:5000/api/cart", {
+            const res = await axios.get(`${API_URL}/api/cart`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setCartItems(res.data.data || []);
@@ -60,7 +61,7 @@ export const CartProvider = ({ children }) => {
         if (token) {
             try {
                 await axios.post(
-                    "http://localhost:5000/api/cart",
+                    `${API_URL}/api/cart`,
                     { productId: pid, quantity },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -105,7 +106,7 @@ export const CartProvider = ({ children }) => {
 
         if (token) {
             try {
-                await axios.delete(`http://localhost:5000/api/cart/${productId}`, {
+                await axios.delete(`${API_URL}/api/cart/${productId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 await fetchCart();
@@ -132,7 +133,7 @@ export const CartProvider = ({ children }) => {
         if (token) {
             try {
                 await axios.put(
-                    `http://localhost:5000/api/cart/${productId}`,
+                    `${API_URL}/api/cart/${productId}`,
                     { quantity },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -156,7 +157,7 @@ export const CartProvider = ({ children }) => {
         const token = getToken();
         if (token) {
             try {
-                await axios.delete("http://localhost:5000/api/cart", {
+                await axios.delete(`${API_URL}/api/cart`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             } catch (err) {

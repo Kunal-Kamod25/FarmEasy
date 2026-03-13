@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from '../../config';
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
@@ -72,7 +73,7 @@ export default function VendorDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/vendor/dashboard", {
+      const res = await axios.get(`${API_URL}/api/vendor/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStats(res.data);
@@ -85,7 +86,7 @@ export default function VendorDashboard() {
 
   const fetchRecentProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/vendor/products", {
+      const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRecentProducts(res.data || []);
@@ -99,7 +100,7 @@ export default function VendorDashboard() {
   const fetchMyOrders = async () => {
     try {
       setOrdersLoading(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/my-purchases", {
+      const res = await axios.get(`${API_URL}/api/vendor/my-purchases`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMyOrders(res.data || []);

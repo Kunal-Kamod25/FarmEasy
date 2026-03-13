@@ -3,6 +3,7 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { API_URL } from '../config';
 
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
@@ -44,7 +45,7 @@ const Checkout = () => {
                 paymentMethod: formData.paymentMethod,
             };
 
-            const res = await axios.post("http://localhost:5000/api/orders", orderData, {
+            const res = await axios.post(`${API_URL}/api/orders`, orderData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -219,7 +220,7 @@ const Checkout = () => {
                                 {cartItems.map((item) => (
                                     <div key={item.id || item.product_id} className="flex gap-4 py-3 border-b border-gray-50 last:border-0">
                                         <img
-                                            src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : (item.img || "https://via.placeholder.com/80")}
+                                            src={item.image ? (item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`) : (item.img || "https://via.placeholder.com/80")}
                                             alt={item.name}
                                             className="w-16 h-20 object-cover rounded-lg border border-gray-100"
                                         />

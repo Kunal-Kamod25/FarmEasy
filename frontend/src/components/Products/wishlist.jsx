@@ -3,6 +3,7 @@ import axios from "axios";
 import ProductCard from "./ProductCard";
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { API_URL } from '../../config';
 
 const Wishlist = () => {
   const [wishlistProducts, setWishlistProducts] = useState([]);
@@ -16,7 +17,7 @@ const Wishlist = () => {
       return;
     }
     try {
-      const res = await axios.get("http://localhost:5000/api/wishlist", {
+      const res = await axios.get(`${API_URL}/api/wishlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWishlistProducts(res.data.data || []);

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const WishlistContext = createContext();
 
@@ -26,7 +27,7 @@ export const WishlistProvider = ({ children }) => {
             return;
         }
         try {
-            const res = await axios.get("http://localhost:5000/api/wishlist", {
+            const res = await axios.get(`${API_URL}/api/wishlist`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const items = res.data.data || [];
@@ -49,7 +50,7 @@ export const WishlistProvider = ({ children }) => {
             if (!pid) return console.warn("toggleWishlist: product lacks ID", product);
 
             await axios.post(
-                "http://localhost:5000/api/wishlist",
+                `${API_URL}/api/wishlist`,
                 { productId: pid },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

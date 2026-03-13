@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from '../../config';
 import {
     Package, Truck, CheckCircle, Clock, ChevronRight,
     MapPin, Calendar, AlertCircle, Store
@@ -33,7 +34,7 @@ const My_Orders = () => {
 
             // fetch orders for this user - using the profile/orders or a dedicated orders endpoint
             // note: this assumes an orders API exists, we query from the backend
-            const res = await axios.get(`http://localhost:5000/api/orders/user/${userId}`, {
+            const res = await axios.get(`${API_URL}/api/orders/user/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

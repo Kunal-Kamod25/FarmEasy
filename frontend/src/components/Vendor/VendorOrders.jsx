@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Search, Eye, ShoppingCart, Clock, CheckCircle, XCircle } from "lucide-react";
+import { API_URL } from '../../config';
 
 const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -17,7 +18,7 @@ const VendorOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/orders", {
+      const res = await axios.get(`${API_URL}/api/vendor/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data);
@@ -233,7 +234,7 @@ export default VendorOrders;
 //   const fetchOrders = async () => {
 //     try {
 //       const res = await axios.get(
-//         "http://localhost:5000/api/vendor/orders",
+//         `${API_URL}/api/vendor/orders`,
 //         {
 //           headers: { Authorization: `Bearer ${token}` },
 //         }
