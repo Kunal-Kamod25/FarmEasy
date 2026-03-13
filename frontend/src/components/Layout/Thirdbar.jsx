@@ -24,28 +24,29 @@ const NavItem = ({
   onClick,
   isOpen,
   onMouseEnter,
-  onToggleMobile,
+  onToggle,
   onItemSelect,
-  isMobile,
+  isMobileLayout,
+  useTapInteraction,
 }) => {
   const navigate = useNavigate();
 
   return (
     <div
-      className={`relative ${isMobile ? "w-full border-b border-emerald-500/35 last:border-b-0" : ""}`}
-      onMouseEnter={isMobile ? undefined : onMouseEnter}
+      className={`relative ${isMobileLayout ? "w-full border-b border-emerald-500/35 last:border-b-0" : ""}`}
+      onMouseEnter={useTapInteraction ? undefined : onMouseEnter}
     >
       {/* Title — click goes to category page, hover opens dropdown */}
       <div
         className={`cursor-pointer text-white ${
-          isMobile
+          isMobileLayout
             ? "flex w-full items-center justify-between py-2.5"
             : "flex items-center gap-1 py-3 md:py-0.5"
         }`}
         onClick={(e) => {
           e.stopPropagation();
-          if (isMobile && items && items.length > 0) {
-            if (onToggleMobile) onToggleMobile();
+          if (useTapInteraction && items && items.length > 0) {
+            if (onToggle) onToggle();
             return;
           }
           if (onClick) {
@@ -55,7 +56,7 @@ const NavItem = ({
         }}
       >
         <span className={`hover:text-emerald-200 transition-colors text-nowrap ${
-          isMobile
+          isMobileLayout
             ? "text-[14px] font-semibold uppercase tracking-[0.03em]"
             : "text-[13px] font-semibold uppercase tracking-wide"
         }`}>
@@ -63,7 +64,7 @@ const NavItem = ({
         </span>
         {items && items.length > 0 && (
           <RiArrowDownSLine
-            size={isMobile ? 20 : 18}
+            size={isMobileLayout ? 20 : 18}
             className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           />
         )}
@@ -73,7 +74,7 @@ const NavItem = ({
       {isOpen && items && items.length > 0 && (
         <div
           className={`${
-            isMobile
+            isMobileLayout
               ? "mt-1 mb-2 w-full bg-white/95 text-slate-800 rounded-lg shadow-lg max-h-52 overflow-y-auto border border-slate-200"
               : "absolute left-0 top-full w-56 bg-white text-slate-800 rounded-b-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-slate-100"
           }`}
@@ -86,7 +87,7 @@ const NavItem = ({
                 if (onItemSelect) onItemSelect();
               }}
               className={`w-full text-left py-2.5 text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-50 border-b border-slate-100 transition-colors ${
-                isMobile ? "px-3" : "px-4"
+                isMobileLayout ? "px-3" : "px-4"
               }`}
             >
               View All {title} →
@@ -101,7 +102,7 @@ const NavItem = ({
                     if (onItemSelect) onItemSelect();
                   }}
                   className={`w-full text-left hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors ${
-                    isMobile
+                    isMobileLayout
                       ? "px-3 py-2 text-[13px] leading-snug font-semibold normal-case"
                       : "px-4 py-2.5 text-xs font-bold uppercase"
                   }`}
@@ -122,6 +123,7 @@ const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const navigate = useNavigate();
   const navRef = useRef(null);
 
@@ -130,9 +132,21 @@ const Thirdbar = () => {
     setOpenIndex(null);
   };
 
-  const toggleMobileDropdown = (key) => {
+  const toggleDropdown = (key) => {
     setOpenIndex((prev) => (prev === key ? null : key));
   };
+
+  useEffect(() => {
+    const detectTouch = () => {
+      if (typeof window === "undefined") return;
+      const touch = window.matchMedia && window.matchMedia("(hover: none)").matches;
+      setIsTouchDevice(!!touch);
+    };
+
+    detectTouch();
+    window.addEventListener("resize", detectTouch);
+    return () => window.removeEventListener("resize", detectTouch);
+  }, []);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -221,7 +235,8 @@ const Thirdbar = () => {
             title="All Products"
             onClick={() => navigate("/products")}
             onItemSelect={closeMenu}
-            isMobile={navOpen}
+            isMobileLayout={navOpen}
+            useTapInteraction={navOpen || isTouchDevice}
           />
 
           {/* Brands — dropdown of real brand names */}
@@ -230,9 +245,10 @@ const Thirdbar = () => {
             items={brandItems}
             isOpen={openIndex === "brands"}
             onMouseEnter={() => setOpenIndex("brands")}
-            onToggleMobile={() => toggleMobileDropdown("brands")}
+            onToggle={() => toggleDropdown("brands")}
             onItemSelect={closeMenu}
-            isMobile={navOpen}
+            isMobileLayout={navOpen}
+            useTapInteraction={navOpen || isTouchDevice}
           />
 
           {/* Dynamic Categories from Database — products inside each dropdown */}
@@ -243,9 +259,10 @@ const Thirdbar = () => {
               isOpen={openIndex === category.id}
               onMouseEnter={() => setOpenIndex(category.id)}
               onClick={() => navigate(`/products?category=${category.id}`)}
-              onToggleMobile={() => toggleMobileDropdown(category.id)}
+              onToggle={() => toggleDropdown(category.id)}
               onItemSelect={closeMenu}
-              isMobile={navOpen}
+              isMobileLayout={navOpen}
+              useTapInteraction={navOpen || isTouchDevice}
               items={
                 category.products?.length > 0
                   ? category.products.map((product) => ({
