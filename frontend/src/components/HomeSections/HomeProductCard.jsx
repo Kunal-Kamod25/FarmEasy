@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { API_URL } from '../../config';
 import {
     Heart, Package, Store, Star,
     ArrowRight, Leaf
 } from "lucide-react";
+import LoginModal from "../Common/LoginModal";
 
 const API = `${API_URL}`;
 
@@ -17,12 +18,15 @@ export const ProductCard = ({
     badgeColor = "bg-emerald-500",
 }) => {
     const pid = product.id || product.product_id;
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginMessage, setLoginMessage] = useState("");
 
     const handleWishlist = (e) => {
         e.stopPropagation();
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("Please login to save to wishlist");
+            setLoginMessage("Please login to save products to your wishlist.");
+            setShowLoginModal(true);
             return;
         }
         onToggleWishlist(product);
@@ -31,6 +35,8 @@ export const ProductCard = ({
     const inStock = product.product_quantity > 0;
 
     return (
+        <>
+        {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
         <div
             onClick={onViewDetail}
             className="group cursor-pointer bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
@@ -150,6 +156,7 @@ export const ProductCard = ({
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

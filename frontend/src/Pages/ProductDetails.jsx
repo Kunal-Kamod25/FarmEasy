@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import LoginModal from "../components/Common/LoginModal";
 
 // single product detail page - shows everything about one product
 // also shows other products from the same seller at the bottom
@@ -43,6 +44,8 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -70,8 +73,8 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = async () => {
     if (!token) {
-      alert("Please login to add items to cart");
-      navigate("/login");
+      setLoginMessage("Please login to add items to your cart.");
+      setShowLoginModal(true);
       return;
     }
 
@@ -83,8 +86,8 @@ const ProductDetailPage = () => {
 
   const handleWishlist = () => {
     if (!token) {
-      alert("Please login to save to wishlist");
-      navigate("/login");
+      setLoginMessage("Please login to save products to your wishlist.");
+      setShowLoginModal(true);
       return;
     }
     toggleWishlist(product);
@@ -142,6 +145,8 @@ const ProductDetailPage = () => {
   const wishlisted = isWishlisted(product.id);
 
   return (
+    <>
+    {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50">
 
       {/* ── BREADCRUMB / BACK NAV ── */}
@@ -388,6 +393,7 @@ const ProductDetailPage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

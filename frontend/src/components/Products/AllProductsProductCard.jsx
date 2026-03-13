@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Heart, Store, Package } from "lucide-react";
 import { API_URL } from '../../config';
+import LoginModal from "../Common/LoginModal";
 
 const AllProductsProductCard = ({
     product,
@@ -9,16 +10,19 @@ const AllProductsProductCard = ({
     onViewDetail
 }) => {
     const token = localStorage.getItem("token");
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     const handleWishlist = () => {
         if (!token) {
-            alert("Please login to save to wishlist");
+            setShowLoginModal(true);
             return;
         }
         onToggleWishlist(product);
     };
 
     return (
+        <>
+        {showLoginModal && <LoginModal message="Please login to save products to your wishlist." onClose={() => setShowLoginModal(false)} />}
         <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
             <div className="relative h-48 bg-slate-50 flex items-center justify-center overflow-hidden">
                 <button
@@ -107,6 +111,7 @@ const AllProductsProductCard = ({
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
