@@ -19,8 +19,15 @@ const VendorEditProduct = () => {
   });
 
   const [images, setImages] = useState([]);
+  const [currentImagePath, setCurrentImagePath] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  const resolveImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    return `${API_URL}${imagePath}`;
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +45,7 @@ const VendorEditProduct = () => {
           category_id: product.category_id ?? "",
           product_quantity: product.product_quantity ?? "",
         });
+        setCurrentImagePath(product.product_image || "");
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -235,12 +243,39 @@ const VendorEditProduct = () => {
                 Product Images
               </h2>
 
+              {currentImagePath && images.length === 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Current Image
+                  </p>
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img
+                      src={resolveImageUrl(currentImagePath)}
+                      alt="current product"
+                      className="object-cover w-full h-36"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextSibling.style.display = "flex";
+                      }}
+                    />
+                    <div
+                      className="hidden h-36 items-center justify-center text-xs text-gray-500"
+                    >
+                      Current image not found on server
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-2">
+                    Keep this image by saving without selecting a new file.
+                  </p>
+                </div>
+              )}
+
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition group">
                 <div className="bg-emerald-50 group-hover:bg-emerald-100 p-3 rounded-xl mb-3 transition">
                   <Upload className="text-emerald-600" size={20} />
                 </div>
                 <span className="text-sm font-semibold text-gray-700">Upload New Images</span>
-                <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</span>
+                <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 10MB</span>
                 <input
                   type="file"
                   multiple
