@@ -28,7 +28,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 import {
   User, MapPin, Phone, Mail, Camera, Store,
   Globe, CreditCard, Shield, CheckCircle, Edit3, Save, X
@@ -99,7 +99,7 @@ const VendorProfile = () => {
 
       // if they already have a profile pic saved in DB, show it
       if (res.data.profile_image) {
-        setImagePreview(`${API_URL}${res.data.profile_image}`);
+        setImagePreview(getImageUrl(res.data.profile_image));
       }
 
     } catch (error) {
@@ -220,7 +220,7 @@ const VendorProfile = () => {
                     />
                   ) : profile.profile_image ? (
                     <img
-                      src={`${API_URL}${profile.profile_image}`}
+                      src={getImageUrl(profile.profile_image)}
                       alt="profile"
                       className="w-full h-full object-cover"
                     />

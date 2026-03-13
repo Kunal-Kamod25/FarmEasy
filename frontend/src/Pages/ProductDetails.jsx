@@ -23,7 +23,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 import {
   ArrowLeft, ShoppingCart, Heart, Store, Package,
   MapPin, Star, CheckCircle, AlertCircle, Truck,
@@ -192,7 +192,7 @@ const ProductDetailPage = () => {
               {/* show real product image if it exists, otherwise show a styled placeholder */}
               {product.product_image ? (
                 <img
-                  src={`${API_URL}${product.product_image}`}
+                  src={getImageUrl(product.product_image)}
                   alt={product.product_name}
                   className="max-w-full max-h-full object-contain p-4"
                   onError={(e) => {
@@ -375,7 +375,7 @@ const ProductDetailPage = () => {
                   {/* show product thumbnail if uploaded, else placeholder icon */}
                   <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
                     {p.product_image ? (
-                      <img src={`${API_URL}${p.product_image}`} alt={p.product_name} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-cover" />
                     ) : (
                       <Package size={20} className="text-emerald-400" />
                     )}
