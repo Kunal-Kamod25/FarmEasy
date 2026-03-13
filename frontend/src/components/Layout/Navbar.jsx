@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 import {
   HiOutlineUser,
-  HiBars3BottomRight,
   HiOutlineShoppingCart,
   HiOutlineHeart,
 } from "react-icons/hi2";
@@ -26,7 +25,6 @@ const Navbar = () => {
   };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /* 🔐 AUTH STATE */
   const [user, setUser] = useState(null);
@@ -74,30 +72,77 @@ const Navbar = () => {
 
   return (
     <div className="bg-black text-white py-1">
-      <nav className="container mx-auto flex items-center px-6 gap-4">
+      <nav className="container mx-auto flex flex-col gap-3 px-3 py-2 md:flex-row md:items-center md:px-6 md:py-0 md:gap-4">
         {/* Left Side */}
-        <div className="flex items-center flex-1 gap-4 min-w-0">
-          <div className="pl-1 flex items-center px-8 h-15">
+        <div className="flex w-full items-center justify-between gap-3 md:flex-1 md:justify-start md:min-w-0 md:gap-4">
+          <div className="flex items-center h-12 md:h-15 md:pl-1 md:px-8">
             <Link to="/">
               <img
                 src={logo}
                 alt="logo"
-                className="h-16 md:h-25 w-auto object-contain"
+                className="h-12 md:h-25 w-auto object-contain"
               />
             </Link>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <Searchbar
-              SearchTerm={SearchTerm}
-              setSearchTerm={setSearchTerm}
-              handleSearch={handleSearch}
-            />
+          <div className="flex items-center gap-3 md:hidden">
+            {!user && (
+              <>
+                <Link
+                  to="/register"
+                  className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
+                >
+                  Signup
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
+                >
+                  Login
+                </Link>
+              </>
+            )}
+
+            {user && (
+              <>
+                <Link to="/wishlist" title="My Wishlist" className="relative group">
+                  <HiOutlineHeart className="h-5 w-5 text-white hover:text-red-400 transition-colors" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-3 -right-2 text-white text-[10px] rounded-full bg-red-500 min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">
+                      {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+                <Link to="/profile">
+                  <HiOutlineUser className="h-5 w-5 text-white hover:text-green-500 transition-colors" />
+                </Link>
+              </>
+            )}
+
+            <button
+              onClick={toggleCartDrawer}
+              className="relative hover:text-green-500 transition-colors"
+            >
+              <HiOutlineShoppingCart className="h-5 w-5 text-white hover:text-green-500" />
+              {cartCount > 0 && (
+                <span className="absolute -top-3 -right-2 text-white text-[10px] rounded-full bg-[#0C970C] min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
+        <div className="w-full md:flex-1 md:min-w-0">
+          <Searchbar
+            SearchTerm={SearchTerm}
+            setSearchTerm={setSearchTerm}
+            handleSearch={handleSearch}
+          />
+        </div>
+
         {/* Right Section */}
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
 
           {/* 🔐 AUTH SECTION */}
           {user ? (
@@ -194,13 +239,6 @@ const Navbar = () => {
                 </span>
               )}
             </button>
-
-            <button
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <HiBars3BottomRight className="h-6 w-6 hover:text-green-500" />
-            </button>
           </div>
         </div>
       </nav>
@@ -209,39 +247,6 @@ const Navbar = () => {
         drawerOpen={drawerOpen}
         toggleCartDrawer={toggleCartDrawer}
       />
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#181818] text-white px-6 py-4 space-y-4 border-t border-green-700">
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Brands
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Fertilizers
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Equipment
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Seeds
-          </Link>
-          <Link className="block uppercase hover:text-green-500 hover:underline">
-            Irrigation
-          </Link>
-          {user && (
-            <>
-              <div className="border-t border-green-700" />
-              <Link
-                to="/wishlist"
-                className="block uppercase hover:text-red-400 hover:underline"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                ❤️ My Wishlist
-              </Link>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 };
