@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { X, LogIn, UserPlus, ShieldCheck } from "lucide-react";
+import { createPortal } from "react-dom";
 import logo from "../../assets/Logo.png";
 
 const LoginModal = ({ message = "Login required", onClose }) => {
@@ -15,9 +16,11 @@ const LoginModal = ({ message = "Login required", onClose }) => {
     navigate("/register");
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-md p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/55 backdrop-blur-md p-4"
       onClick={onClose}
     >
       <div
@@ -67,7 +70,8 @@ const LoginModal = ({ message = "Login required", onClose }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
