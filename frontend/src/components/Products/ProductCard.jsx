@@ -23,11 +23,14 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
+import LoginModal from '../Common/LoginModal';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const token = localStorage.getItem("token");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState("");
 
   const pid = product.id || product.product_id;
   const wishlisted = isWishlisted(pid);
@@ -38,7 +41,8 @@ const ProductCard = ({ product }) => {
 
   const handleToggleWishlist = async () => {
     if (!token) {
-      alert("Please login to add to wishlist");
+      setLoginMessage("Please login to save products to your wishlist.");
+      setShowLoginModal(true);
       return;
     }
     await toggleWishlist(product);
@@ -47,6 +51,8 @@ const ProductCard = ({ product }) => {
   const brandData = brands.find(b => b.name === product.brand);
 
   return (
+    <>
+    {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
     <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-100 transition-all duration-500 border border-slate-100 overflow-hidden w-full flex flex-col h-full">
 
       {/* Image Container */}
@@ -156,6 +162,7 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
