@@ -4,19 +4,19 @@ const SearchBar = ({ SearchTerm, setSearchTerm, handleSearch }) => {
     return (
         <form
             onSubmit={handleSearch}
-            className="flex flex-1 items-center bg-[#ffffff] rounded-md overflow-hidden max-w-xl"
+            className="flex w-full items-center bg-[#ffffff] rounded-md overflow-hidden max-w-xl"
         >
             <input
                 type="text"
                 placeholder="Search for equipment, seeds, fertilizers..."
                 value={SearchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent px-4 py-2 text-sm text-black placeholder:text-gray-400 focus:outline-none"
+                className="flex-1 bg-transparent px-3 sm:px-4 py-2 text-sm text-black placeholder:text-gray-400 placeholder:text-xs sm:placeholder:text-sm focus:outline-none"
             />
 
             <button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 px-4 py-2 transition-colors"
+                className="bg-green-500 hover:bg-green-600 px-3 sm:px-4 py-2 transition-colors"
             >
                 <HiMagnifyingGlass className="h-5 w-5 text-white" />
             </button>
