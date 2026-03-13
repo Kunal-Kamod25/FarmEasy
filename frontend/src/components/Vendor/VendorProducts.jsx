@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const VendorProducts = () => {
   const navigate = useNavigate();
@@ -151,7 +151,7 @@ const VendorProducts = () => {
                         {/* show real product image thumbnail if uploaded */}
                         <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {product.product_image ? (
-                            <img src={`${API_URL}${product.product_image}`} alt={product.product_name} className="w-full h-full object-cover" />
+                            <img src={getImageUrl(product.product_image)} alt={product.product_name} className="w-full h-full object-cover" />
                           ) : (
                             <Package size={16} className="text-emerald-600" />
                           )}

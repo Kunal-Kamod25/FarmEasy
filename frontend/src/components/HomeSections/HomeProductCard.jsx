@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 import {
     Heart, Package, Store, Star,
     ArrowRight, Leaf
@@ -73,7 +73,7 @@ export const ProductCard = ({
                 <div className="group-hover:scale-105 transition-transform duration-500 w-full h-full flex items-center justify-center p-3">
                     {product.product_image ? (
                         <img
-                            src={`${API}${product.product_image}`}
+                            src={getImageUrl(product.product_image)}
                             alt={product.product_name}
                             className="w-full h-full object-contain rounded-xl"
                         />

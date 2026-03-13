@@ -113,7 +113,8 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found or unauthorized" });
     }
 
-    const productImage = req.file ? `/uploads/${req.file.filename}` : null;
+    // req.file.path is the full Cloudinary HTTPS URL when using CloudinaryStorage
+    const productImage = req.file ? req.file.path : null;
 
     if (productImage) {
       await db.query(`
@@ -165,8 +166,8 @@ exports.addProduct = async (req, res) => {
 
     const sellerId = seller[0].id;
 
-    // if vendor uploaded a product image, multer saves it to /uploads and gives us the filename
-    const productImage = req.file ? `/uploads/${req.file.filename}` : null;
+    // if vendor uploaded a product image, CloudinaryStorage streams it to Cloudinary and req.file.path is the URL
+    const productImage = req.file ? req.file.path : null;
 
     await db.query(
       `INSERT INTO product 
@@ -361,8 +362,8 @@ exports.updateProfile = async (req, res) => {
       bio, store_name, gst_number
     } = req.body;
 
-    // if vendor uploaded a new profile pic, multer saves it and gives us the file info
-    const profilePic = req.file ? `/uploads/${req.file.filename}` : null;
+    // if vendor uploaded a new profile pic, CloudinaryStorage streams it to Cloudinary and req.file.path is the URL
+    const profilePic = req.file ? req.file.path : null;
 
     // update users table with personal info (only update profile_pic if a new one was uploaded)
     if (profilePic) {

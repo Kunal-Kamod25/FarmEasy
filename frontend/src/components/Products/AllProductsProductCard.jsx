@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Heart, Store, Package } from "lucide-react";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 import LoginModal from "../Common/LoginModal";
 
 const AllProductsProductCard = ({
@@ -44,7 +44,7 @@ const AllProductsProductCard = ({
                 <div className="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     {product.product_image ? (
                         <img
-                            src={`${API_URL}${product.product_image}`}
+                            src={getImageUrl(product.product_image)}
                             alt={product.product_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
