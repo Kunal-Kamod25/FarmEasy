@@ -1,5 +1,25 @@
 const db = require("../config/db");
 
+// Converts nullable form values to integers for MySQL INT columns.
+// Handles values coming from multipart FormData where null-like values are sent as strings.
+const toNullableInt = (value) => {
+  if (value === undefined || value === null) return null;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const lower = trimmed.toLowerCase();
+    if (lower === "null" || lower === "undefined") return null;
+
+    const parsed = Number.parseInt(trimmed, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 // =====================================================
 // GET VENDOR'S OWN PRODUCTS
 // simple - just find this vendor's seller id, then get their products
@@ -78,6 +98,8 @@ exports.updateProduct = async (req, res) => {
     const productId = req.params.id;
     const userId = req.user.id;
     const { product_name, product_description, product_type, price, category_id, product_quantity } = req.body;
+    const normalizedCategoryId = toNullableInt(category_id);
+    const normalizedQuantity = toNullableInt(product_quantity) ?? 0;
 
     // Verify ownership
     const [seller] = await db.query("SELECT id FROM seller WHERE user_id = ?", [userId]);
@@ -98,13 +120,13 @@ exports.updateProduct = async (req, res) => {
         UPDATE product 
         SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?, product_image = ?
         WHERE id = ? AND seller_id = ?
-      `, [product_name, product_description || null, product_type || null, price, category_id || null, product_quantity || 0, productImage, productId, sellerId]);
+      `, [product_name, product_description || null, product_type || null, price, normalizedCategoryId, normalizedQuantity, productImage, productId, sellerId]);
     } else {
       await db.query(`
         UPDATE product 
         SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?
         WHERE id = ? AND seller_id = ?
-      `, [product_name, product_description || null, product_type || null, price, category_id || null, product_quantity || 0, productId, sellerId]);
+      `, [product_name, product_description || null, product_type || null, price, normalizedCategoryId, normalizedQuantity, productId, sellerId]);
     }
 
     res.json({ message: "Product updated successfully" });
@@ -122,6 +144,8 @@ exports.updateProduct = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const { product_name, product_description, product_type, price, category_id, product_quantity } = req.body;
+    const normalizedCategoryId = toNullableInt(category_id);
+    const normalizedQuantity = toNullableInt(product_quantity) ?? 0;
 
     // basic check
     if (!product_name || !price) {
@@ -153,8 +177,8 @@ exports.addProduct = async (req, res) => {
         product_description || null,
         product_type || null,
         price,
-        category_id || null,
-        product_quantity || 0,
+        normalizedCategoryId,
+        normalizedQuantity,
         sellerId,
         productImage
       ]
