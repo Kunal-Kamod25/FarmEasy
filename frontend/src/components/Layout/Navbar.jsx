@@ -160,7 +160,7 @@ const Navbar = () => {
                 <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   {user?.role === "vendor" && (
                     <Link
-                      to="/vendor/dashboard"
+                      to="/vendor"
                       onClick={() => setProfileOpen(false)}
                       className="block px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 border-b border-slate-100"
                     >
