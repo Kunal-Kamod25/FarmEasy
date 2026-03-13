@@ -22,6 +22,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Upload, X, Plus, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../../config';
 
 const VendorAddProduct = () => {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ const VendorAddProduct = () => {
       }
 
       await axios.post(
-        "http://localhost:5000/api/vendor/products",
+        `${API_URL}/api/vendor/products`,
         submitData,
         {
           headers: {
@@ -381,7 +382,7 @@ export default VendorAddProduct;
 //       setLoading(true);
 
 //       await axios.post(
-//         "http://localhost:5000/api/vendor/products",
+//         `${API_URL}/api/vendor/products`,
 //         {
 //           product_name: formData.product_name,
 //           product_description: formData.product_description,

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
+import { API_URL } from '../../config';
 
 const VendorProducts = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const VendorProducts = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/products", {
+      const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(res.data);
@@ -34,7 +35,7 @@ const VendorProducts = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/vendor/products/${id}`, {
+      await axios.delete(`${API_URL}/api/vendor/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(products.filter((p) => p.id !== id));
@@ -150,7 +151,7 @@ const VendorProducts = () => {
                         {/* show real product image thumbnail if uploaded */}
                         <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {product.product_image ? (
-                            <img src={`http://localhost:5000${product.product_image}`} alt={product.product_name} className="w-full h-full object-cover" />
+                            <img src={`${API_URL}${product.product_image}`} alt={product.product_name} className="w-full h-full object-cover" />
                           ) : (
                             <Package size={16} className="text-emerald-600" />
                           )}
@@ -259,7 +260,7 @@ export default VendorProducts;
 //       setLoading(true);
 
 //       const res = await axios.get(
-//         "http://localhost:5000/api/vendor/products",
+//         `${API_URL}/api/vendor/products`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -285,7 +286,7 @@ export default VendorProducts;
 
 //     try {
 //       await axios.delete(
-//         `http://localhost:5000/api/vendor/products/${id}`,
+//         `${API_URL}/api/vendor/products/${id}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,

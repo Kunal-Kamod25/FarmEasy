@@ -1,10 +1,11 @@
 import React from "react";
+import { API_URL } from '../../config';
 import {
     Heart, Package, Store, Star,
     ArrowRight, Leaf
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = `${API_URL}`;
 
 export const ProductCard = ({
     product,

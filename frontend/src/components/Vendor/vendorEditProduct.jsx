@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Upload, X, ArrowLeft, Save } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_URL } from '../../config';
 
 const VendorEditProduct = () => {
   const { id } = useParams();
@@ -25,7 +26,7 @@ const VendorEditProduct = () => {
     const fetchProduct = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/vendor/products/${id}`,
+          `${API_URL}/api/vendor/products/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const product = res.data || {};
@@ -80,7 +81,7 @@ const VendorEditProduct = () => {
       }
 
       await axios.put(
-        `http://localhost:5000/api/vendor/products/${id}`,
+        `${API_URL}/api/vendor/products/${id}`,
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );

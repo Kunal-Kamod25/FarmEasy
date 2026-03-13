@@ -11,7 +11,7 @@
 //
 // IMAGE LOGIC:
 // - First tries product.product_image (uploaded by vendor, stored in DB)
-//   Prefixes with http://localhost:5000 since we store just "/uploads/file.jpg"
+//   Prefixes with API_URL since we store just "/uploads/file.jpg"
 // - Falls back to product.img or product.image (for any static/mock data)
 // - If all fail, shows a generated placeholder with the product name
 // ===========================================================================
@@ -22,6 +22,7 @@ import { brands } from './ProductData';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../../config';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const ProductCard = ({ product }) => {
         <img
           src={
             product.product_image
-              ? `http://localhost:5000${product.product_image}`
+              ? `${API_URL}${product.product_image}`
               : product.img || product.image || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.product_name || product.name || 'Product')}`
           }
           alt={product.name || product.product_name}

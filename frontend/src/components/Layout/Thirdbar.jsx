@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import axios from "axios";
+import { API_URL } from '../../config';
 
-const API = "http://localhost:5000";
+const API = `${API_URL}`;
 
 // ═══════════════════════════════════════════════════════════
 // BRANDS LIST — real Indian agricultural brands farmers recognize

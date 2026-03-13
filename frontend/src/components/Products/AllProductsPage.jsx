@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../../config';
 import {
     Search, SlidersHorizontal, X, ChevronDown, Package,
     ArrowUpDown, Filter
@@ -36,9 +37,9 @@ const AllProductsPage = () => {
         const fetchFilterMeta = async () => {
             try {
                 const [catRes, typeRes, sellerRes] = await Promise.all([
-                    axios.get("http://localhost:5000/api/categories"),
-                    axios.get("http://localhost:5000/api/products/meta/types"),
-                    axios.get("http://localhost:5000/api/products/meta/sellers")
+                    axios.get(`${API_URL}/api/categories`),
+                    axios.get(`${API_URL}/api/products/meta/types`),
+                    axios.get(`${API_URL}/api/products/meta/sellers`)
                 ]);
                 setCategories(catRes.data);
                 setProductTypes(typeRes.data);
@@ -62,7 +63,7 @@ const AllProductsPage = () => {
                 if (val !== "") params[key] = val;
             });
 
-            const res = await axios.get("http://localhost:5000/api/products/all", { params });
+            const res = await axios.get(`${API_URL}/api/products/all`, { params });
             setProducts(res.data);
         } catch (err) {
             console.error("Failed to load products:", err);

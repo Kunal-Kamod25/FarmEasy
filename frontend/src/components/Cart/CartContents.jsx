@@ -2,6 +2,7 @@ import { RiDeleteBin3Line } from "react-icons/ri";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { API_URL } from '../../config';
 
 const CartContents = () => {
     const { cartItems, cartTotal, removeFromCart, updateQuantity, loading } = useCart();
@@ -61,7 +62,7 @@ const CartContents = () => {
                                 <img
                                     src={
                                         product.image
-                                            ? (product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`)
+                                            ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`)
                                             : (product.img || `https://picsum.photos/80?random=${pid}`)
                                     }
                                     alt={product.name || product.product_name}

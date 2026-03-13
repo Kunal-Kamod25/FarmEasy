@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileContent from "./ProfileContent";
+import { API_URL } from '../../config';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -34,7 +35,7 @@ const Profile = () => {
 
             const fetchLatestData = async () => {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/profile/${userData.id || userData.user_id}`);
+                    const response = await fetch(`${API_URL}/api/profile/${userData.id || userData.user_id}`);
                     if (response.ok) {
                         const latestUser = await response.json();
                         const formattedUser = {
@@ -78,7 +79,7 @@ const Profile = () => {
         setMessage({ type: "", text: "" });
 
         try {
-            const response = await fetch("http://localhost:5000/api/profile/update", {
+            const response = await fetch(`${API_URL}/api/profile/update`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

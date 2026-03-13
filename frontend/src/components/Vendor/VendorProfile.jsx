@@ -28,6 +28,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from '../../config';
 import {
   User, MapPin, Phone, Mail, Camera, Store,
   Globe, CreditCard, Shield, CheckCircle, Edit3, Save, X
@@ -72,7 +73,7 @@ const VendorProfile = () => {
       setFetching(true);
 
       const res = await axios.get(
-        "http://localhost:5000/api/vendor/profile",
+        `${API_URL}/api/vendor/profile`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -98,7 +99,7 @@ const VendorProfile = () => {
 
       // if they already have a profile pic saved in DB, show it
       if (res.data.profile_image) {
-        setImagePreview(`http://localhost:5000${res.data.profile_image}`);
+        setImagePreview(`${API_URL}${res.data.profile_image}`);
       }
 
     } catch (error) {
@@ -148,7 +149,7 @@ const VendorProfile = () => {
       }
 
       await axios.put(
-        "http://localhost:5000/api/vendor/profile",
+        `${API_URL}/api/vendor/profile`,
         formData,
         {
           headers: {
@@ -219,7 +220,7 @@ const VendorProfile = () => {
                     />
                   ) : profile.profile_image ? (
                     <img
-                      src={`http://localhost:5000${profile.profile_image}`}
+                      src={`${API_URL}${profile.profile_image}`}
                       alt="profile"
                       className="w-full h-full object-cover"
                     />
@@ -505,7 +506,7 @@ export default VendorProfile;
 //   const fetchProfile = async () => {
 //     try {
 //       const res = await axios.get(
-//         "http://localhost:5000/api/vendor/profile",
+//         `${API_URL}/api/vendor/profile`,
 //         {
 //           headers: { Authorization: `Bearer ${token}` },
 //         }
@@ -547,7 +548,7 @@ export default VendorProfile;
 //       }
 
 //       await axios.put(
-//         "http://localhost:5000/api/vendor/profile",
+//         `${API_URL}/api/vendor/profile`,
 //         data,
 //         {
 //           headers: {

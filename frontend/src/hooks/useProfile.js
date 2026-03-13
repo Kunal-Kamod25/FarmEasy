@@ -1,6 +1,7 @@
 // hooks/useProfile.js
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 
 /*
     Custom Hook: Handles
@@ -30,7 +31,7 @@ const useProfile = () => {
         const fetchProfile = async () => {
             try {
                 const res = await fetch(
-                    `http://localhost:5000/api/profile/${userData.id}`
+                    `${API_URL}/api/profile/${userData.id}`
                 );
                 if (res.ok) {
                     const data = await res.json();
@@ -52,7 +53,7 @@ const useProfile = () => {
 
         try {
             const res = await fetch(
-                "http://localhost:5000/api/profile/update",
+                `${API_URL}/api/profile/update`,
                 {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -86,7 +87,7 @@ const useProfile = () => {
 
         try {
             const res = await fetch(
-                "http://localhost:5000/api/profile/upload-avatar",
+                `${API_URL}/api/profile/upload-avatar`,
                 {
                     method: "POST",
                     body: formData,
