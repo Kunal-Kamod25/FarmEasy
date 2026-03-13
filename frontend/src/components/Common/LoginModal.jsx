@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { X, LogIn, UserPlus, ShieldCheck } from "lucide-react";
+import logo from "../../assets/Logo.png";
 
 const LoginModal = ({ message = "Login required", onClose }) => {
   const navigate = useNavigate();
@@ -16,11 +17,11 @@ const LoginModal = ({ message = "Login required", onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-md p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative border border-emerald-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}
@@ -31,7 +32,11 @@ const LoginModal = ({ message = "Login required", onClose }) => {
           <X size={18} />
         </button>
 
-        {/* Icon */}
+        {/* Brand */}
+        <div className="flex justify-center mb-3">
+          <img src={logo} alt="FarmEasy" className="h-12 w-auto object-contain" />
+        </div>
+
         <div className="flex justify-center mb-4">
           <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center">
             <ShieldCheck size={28} className="text-emerald-600" />
@@ -40,25 +45,25 @@ const LoginModal = ({ message = "Login required", onClose }) => {
 
         {/* Text */}
         <h2 className="text-center text-lg font-bold text-slate-800 mb-1">
-          Sign in to continue
+          Sign up first to continue
         </h2>
         <p className="text-center text-sm text-slate-500 mb-6">{message}</p>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={handleLogin}
+            onClick={handleSignup}
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all"
           >
-            <LogIn size={16} />
-            Login
+            <UserPlus size={16} />
+            Sign Up First
           </button>
           <button
-            onClick={handleSignup}
+            onClick={handleLogin}
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-sm transition-all"
           >
-            <UserPlus size={16} />
-            Create Account
+            <LogIn size={16} />
+            Login Instead
           </button>
         </div>
       </div>
