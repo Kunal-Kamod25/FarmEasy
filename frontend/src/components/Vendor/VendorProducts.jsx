@@ -123,7 +123,7 @@ const VendorProducts = () => {
             </p>
             {!search && (
               <Link
-                onClick={() => navigate("/vendor/products/add-product")}
+                onClick={() => navigate("/vendor/add-product")}
                 className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2 rounded-xl hover:bg-emerald-700 transition font-semibold"
               >
                 + Add Product
