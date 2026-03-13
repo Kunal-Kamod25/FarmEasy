@@ -28,7 +28,15 @@ const VendorEditProduct = () => {
           `http://localhost:5000/api/vendor/products/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setFormData(res.data);
+        const product = res.data || {};
+        setFormData({
+          product_name: product.product_name ?? "",
+          product_description: product.product_description ?? "",
+          product_type: product.product_type ?? "",
+          price: product.price ?? "",
+          category_id: product.category_id ?? "",
+          product_quantity: product.product_quantity ?? "",
+        });
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -62,9 +70,14 @@ const VendorEditProduct = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      const toFormValue = (value) => (value === null || value === undefined ? "" : value);
       const data = new FormData();
-      Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-      images.forEach((img) => data.append("images", img.file));
+      Object.keys(formData).forEach((key) => data.append(key, toFormValue(formData[key])));
+
+      if (images.length > 0) {
+        data.append("product_image", images[0].file);
+      }
 
       await axios.put(
         `http://localhost:5000/api/vendor/products/${id}`,
