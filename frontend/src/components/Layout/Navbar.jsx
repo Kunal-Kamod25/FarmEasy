@@ -74,7 +74,7 @@ const Navbar = () => {
     <div className="bg-black text-white py-1">
       <nav className="container mx-auto flex flex-col gap-3 px-3 py-2 md:flex-row md:items-center md:px-6 md:py-0 md:gap-4">
         {/* Left Side */}
-        <div className="flex w-full items-center justify-between gap-3 md:flex-1 md:justify-start md:min-w-0 md:gap-4">
+        <div className="flex w-full items-center justify-between gap-3 md:w-auto md:flex-none md:justify-start md:gap-4">
           <div className="flex items-center h-12 md:h-15 md:pl-1 md:px-8">
             <Link to="/">
               <img
@@ -133,7 +133,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        <div className="w-full md:flex-1 md:min-w-0">
+        <div className="w-full md:w-[520px] md:max-w-[52vw] md:min-w-0 md:mr-auto">
           <Searchbar
             SearchTerm={SearchTerm}
             setSearchTerm={setSearchTerm}
