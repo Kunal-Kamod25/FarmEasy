@@ -28,6 +28,7 @@ require("dotenv").config();   // loads .env variables (DB credentials, JWT secre
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 
@@ -35,8 +36,10 @@ const app = express();
 app.use(cors());              // allows frontend (localhost:5173) to call our API
 app.use(express.json());      // parses JSON request bodies
 
-// serve uploaded images so frontend can access them via http://localhost:5000/uploads/filename.jpg
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// serve uploaded images from persistent path when configured in hosting env
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "uploads");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 // ================= ROUTES =================
 // each route file handles one area of the app

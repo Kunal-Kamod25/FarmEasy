@@ -20,11 +20,17 @@
 
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+
+// Use persistent storage path when provided by hosting (e.g., Render disk mounted at /var/data).
+// Falls back to local backend/uploads for local development.
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "..", "uploads");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
   // where to save files
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, UPLOAD_DIR);
   },
   // how to name files: timestamp + original extension to avoid conflicts
   filename: (req, file, cb) => {
