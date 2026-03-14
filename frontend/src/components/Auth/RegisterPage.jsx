@@ -390,7 +390,7 @@ const Register = () => {
           </h2>
 
           <p className="text-inter text-lg text-green-100 mb-8">
-            India's trusted agricultural marketplace for farmers and vendors.
+            India's trusted agricultural marketplace for customers and vendors.
           </p>
 
           <ul className="space-y-4 text-left">
@@ -420,7 +420,7 @@ const Register = () => {
             Start your journey with FarmEasy
           </p>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-5" onSubmit={handleSubmit} autoComplete="off">
 
             {/* Name & Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -434,6 +434,7 @@ const Register = () => {
                     value={formData.fullname}
                     onChange={handleChange}
                     placeholder="Enter full name"
+                    autoComplete="off"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
                     pattern="^[A-Za-z\s]+$"
@@ -452,6 +453,7 @@ const Register = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="farmer@email.com"
+                    autoComplete="off"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
                   />
@@ -468,6 +470,7 @@ const Register = () => {
                 placeholder="Enter your phone number"
                 value={formData.phone_number}
                 onChange={handleChange}
+                autoComplete="off"
                 required
                 pattern="[0-9]{10}"
                 title="Enter a 10-digit phone number"
@@ -487,6 +490,7 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Minimum 6 characters"
+                    autoComplete="new-password"
                     className={`w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500
                       ${passwordError ? "border-red-500" : ""}`}
                     required
@@ -508,6 +512,7 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Confirm password"
+                    autoComplete="new-password"
                     className="w-full h-12 pl-10 border rounded-md focus:ring-2 focus:ring-green-500"
                     required
                   />
@@ -530,7 +535,7 @@ const Register = () => {
                     checked={role === "customer"}
                     onChange={() => setRole("customer")}
                   />
-                  Farmer
+                  Customer
                 </label>
 
                 {/* Vendor Radio */}
@@ -556,6 +561,7 @@ const Register = () => {
                 value={formData.gst_number}
                 onChange={handleChange}
                 placeholder="Enter GST Number"
+                autoComplete="off"
                 className="w-full h-12 border rounded-md px-3 focus:ring-2 focus:ring-green-500"
               />
             )}
