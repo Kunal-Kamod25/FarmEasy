@@ -158,7 +158,7 @@ const Navbar = () => {
               </button>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
-                  {user?.role === "vendor" && (
+                  {["vendor", "seller"].includes(String(user?.role || "").toLowerCase()) && (
                     <Link
                       to="/vendor"
                       onClick={() => setProfileOpen(false)}

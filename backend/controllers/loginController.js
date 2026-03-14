@@ -4,9 +4,19 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const toRoleGroup = (role) => {
+  const normalized = String(role || "").trim().toLowerCase();
+
+  if (["vendor", "seller"].includes(normalized)) return "vendor";
+  if (["admin"].includes(normalized)) return "admin";
+  if (["customer", "user", "buyer", "farmer"].includes(normalized)) return "customer";
+
+  return normalized;
+};
+
 exports.login = async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    const { identifier, password, loginAs } = req.body;
 
     // ✅ Basic validation
     if (!identifier || !password) {
@@ -22,6 +32,22 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         message: "Invalid email/phone number or password.",
       });
+    }
+
+    // Optional role lock from login screen: customer tab accepts customer accounts,
+    // vendor tab accepts vendor/seller accounts.
+    if (loginAs) {
+      const requestedRoleGroup = toRoleGroup(loginAs);
+      const actualRoleGroup = toRoleGroup(user.role);
+
+      if (requestedRoleGroup !== actualRoleGroup) {
+        return res.status(403).json({
+          message:
+            requestedRoleGroup === "vendor"
+              ? "This account is not a vendor/seller account. Please use Customer login."
+              : "This account is not a customer account. Please use Vendor login.",
+        });
+      }
     }
 
     // ✅ Check if password exists in DB
@@ -72,7 +98,7 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         fullname: user.full_name,
-        role: user.role,
+        role: toRoleGroup(user.role),
       },
     });
 
