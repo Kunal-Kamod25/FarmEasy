@@ -177,7 +177,7 @@ const Navbar = () => {
                     </span>
                   )}
                 </Link>
-                <Link to="/profile">
+                <Link to="/my-orders">
                   <HiOutlineUser className="h-5 w-5 text-white hover:text-green-500 transition-colors" />
                 </Link>
               </>
@@ -236,6 +236,13 @@ const Navbar = () => {
                     </Link>
                   )}
                   <Link
+                    to="/my-orders"
+                    onClick={() => setProfileOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    My Orders
+                  </Link>
+                  <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
@@ -289,7 +296,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* 👤 Profile Icon */}
-                <Link to="/profile">
+                <Link to="/my-orders">
                   <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500 transition-colors" />
                 </Link>
               </>

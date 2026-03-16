@@ -3,7 +3,6 @@ import {
     Save, Shield,
     Map, Home, Bookmark, CheckCircle
 } from "lucide-react";
-import My_Orders from "./My_Orders";
 
 const ProfileContent = ({
     activeTab,
@@ -30,7 +29,6 @@ const ProfileContent = ({
                         </h2>
                         <p className="text-slate-500 text-sm mt-1 font-medium">
                             {activeTab === "profile" && "Personal information and contact details"}
-                            {activeTab === "orders" && "Tracking and history of your orders"}
                             {activeTab === "security" && "Manage your account security settings"}
                         </p>
                     </div>
@@ -207,9 +205,6 @@ const ProfileContent = ({
                             </form>
                         </div>
                     )}
-
-                    {/* ORDERS TAB */}
-                    {activeTab === "orders" && <My_Orders />}
 
                     {/* SECURITY TAB */}
                     {activeTab === "security" && (
