@@ -56,7 +56,7 @@ const VendorAddProduct = () => {
 
   // Fetch categories on mount
   useEffect(() => {
-    axios.get(`${API_URL}/api/category`)
+    axios.get(`${API_URL}/api/categories`)
       .then(res => setCategories(res.data))
       .catch(() => setCategories([]));
   }, []);
@@ -64,7 +64,7 @@ const VendorAddProduct = () => {
   // Fetch products when category changes
   useEffect(() => {
     if (formData.category_id) {
-      axios.get(`${API_URL}/api/product/all?category_id=${formData.category_id}&seller_id=me`)
+      axios.get(`${API_URL}/api/products/all?category_id=${formData.category_id}`)
         .then(res => setProductsByCategory(res.data))
         .catch(() => setProductsByCategory([]));
     } else {
