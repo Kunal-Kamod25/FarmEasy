@@ -18,7 +18,7 @@
 // - Backend multer saves it to /backend/uploads/ and we store the path in DB
 // ===========================================================================
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Upload, X, Plus, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -37,8 +37,28 @@ const VendorAddProduct = () => {
     product_quantity: "",
   });
 
+  const [categories, setCategories] = useState([]);
+  const [productsByCategory, setProductsByCategory] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    axios.get(`${API_URL}/api/category`)
+      .then(res => setCategories(res.data))
+      .catch(() => setCategories([]));
+  }, []);
+
+  // Fetch products when category changes
+  useEffect(() => {
+    if (formData.category_id) {
+      axios.get(`${API_URL}/api/product/all?category_id=${formData.category_id}&seller_id=me`)
+        .then(res => setProductsByCategory(res.data))
+        .catch(() => setProductsByCategory([]));
+    } else {
+      setProductsByCategory([]);
+    }
+  }, [formData.category_id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -155,6 +175,25 @@ const VendorAddProduct = () => {
                     placeholder="e.g. Organic Wheat Seeds"
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
                   />
+                </div>
+
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                  >
+                    <option value="">Select category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.product_cat_name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -314,6 +353,31 @@ const VendorAddProduct = () => {
           </div>
         </div>
       </form>
+
+      {/* Show products by selected category */}
+      {formData.category_id && (
+        <div className="mt-10">
+          <h2 className="text-lg font-bold mb-3">Products in this Category</h2>
+          {productsByCategory.length === 0 ? (
+            <div className="text-gray-500 text-sm">No products found in this category.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {productsByCategory.map(prod => (
+                <div key={prod.id} className="bg-white rounded-xl border p-4 shadow-sm">
+                  <div className="font-semibold text-gray-800">{prod.product_name}</div>
+                  <div className="text-xs text-gray-500 mb-1">Type: {prod.product_type}</div>
+                  <div className="text-xs text-gray-500 mb-1">Price: ₹{prod.price}</div>
+                  <div className="text-xs text-gray-500 mb-1">Stock: {prod.product_quantity}</div>
+                  {prod.product_image && (
+                    <img src={`${API_URL}${prod.product_image}`} alt="product" className="w-full h-24 object-cover rounded mt-2" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };
