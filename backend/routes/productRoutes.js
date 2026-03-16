@@ -26,7 +26,9 @@
         product_type,
         seller_id,
         search,
-        sort
+        sort,
+        limit,
+        page,
       } = req.query;
 
       // start building the query dynamically based on what filters came in
@@ -97,6 +99,18 @@
       } else {
         // default to newest first
         sql += " ORDER BY p.created_at DESC";
+      }
+
+      // Optional pagination to reduce response payload for lightweight consumers.
+      const parsedLimit = Number.parseInt(limit, 10);
+      if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+        const safeLimit = Math.min(parsedLimit, 200);
+        const parsedPage = Number.parseInt(page, 10);
+        const safePage = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const offset = (safePage - 1) * safeLimit;
+
+        sql += " LIMIT ? OFFSET ?";
+        params.push(safeLimit, offset);
       }
 
       const [products] = await db.query(sql, params);

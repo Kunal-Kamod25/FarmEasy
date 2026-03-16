@@ -168,18 +168,32 @@ const Thirdbar = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoryRes = await axios.get(`${API}/api/categories`);
-        const categoryData = categoryRes.data;
+        // Avoid N+1 requests: fetch categories + products once and group locally.
+        const [categoryRes, productRes] = await Promise.all([
+          axios.get(`${API}/api/categories`),
+          axios.get(`${API}/api/products/all`, {
+            params: {
+              sort: "newest",
+              limit: 500,
+            },
+          }),
+        ]);
 
-        // for each category, fetch its products to show in the dropdown
-        const updatedCategories = await Promise.all(
-          categoryData.map(async (category) => {
-            const productRes = await axios.get(
-              `${API}/api/products/category/${category.id}`
-            );
-            return { ...category, products: productRes.data };
-          })
-        );
+        const categoryData = categoryRes.data || [];
+        const allProducts = productRes.data || [];
+
+        const productsByCategory = allProducts.reduce((acc, product) => {
+          const key = product.category_id;
+          if (!key) return acc;
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(product);
+          return acc;
+        }, {});
+
+        const updatedCategories = categoryData.map((category) => ({
+          ...category,
+          products: productsByCategory[category.id] || [],
+        }));
 
         setCategories(updatedCategories);
       } catch (error) {
@@ -265,7 +279,7 @@ const Thirdbar = () => {
               useTapInteraction={navOpen || isTouchDevice}
               items={
                 category.products?.length > 0
-                  ? category.products.map((product) => ({
+                  ? category.products.slice(0, 20).map((product) => ({
                     name: product.product_name,
                     path: `/product/${product.id}`,
                   }))
