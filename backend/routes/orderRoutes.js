@@ -553,6 +553,7 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
          p.product_name,
          p.product_description,
          p.product_type,
+         p.product_image,
          COALESCE(s.shop_name, u2.full_name) as seller_shop,
          u2.full_name as seller_name
        FROM orders o
@@ -589,6 +590,7 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
         product_name: row.product_name,
         product_description: row.product_description,
         product_type: row.product_type,
+        product_image: row.product_image,
         quantity: row.quantity,
         price: Number(row.item_price || 0),
         seller_shop: row.seller_shop,

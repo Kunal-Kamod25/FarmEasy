@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 import {
     Package, Truck, CheckCircle, Clock, ChevronRight,
     MapPin, Calendar, AlertCircle, Store
@@ -119,8 +119,16 @@ const My_Orders = () => {
                             <div className="p-6">
                                 {(order.items || order.orderItems || []).map((item, idx) => (
                                     <div key={idx} className="flex items-center gap-4 py-3 border-b border-slate-50 last:border-0">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                                            <Package size={20} className="text-emerald-400" />
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-emerald-100">
+                                            {item.product_image ? (
+                                                <img
+                                                    src={getImageUrl(item.product_image)}
+                                                    alt={item.product_name || item.name || "Product"}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <Package size={20} className="text-emerald-400" />
+                                            )}
                                         </div>
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-sm">
