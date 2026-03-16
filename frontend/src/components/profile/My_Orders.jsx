@@ -16,6 +16,11 @@ const My_Orders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [expandedOrders, setExpandedOrders] = useState({});
+
+    const toggleDetails = (orderId) => {
+        setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+    };
 
     const token = localStorage.getItem("token");
 
@@ -168,11 +173,73 @@ const My_Orders = () => {
                                             ₹{Number(order.total_price || order.totalPrice).toLocaleString()}
                                         </p>
                                     </div>
-                                    <button className="flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
-                                        <span>View Details</span>
-                                        <ChevronRight size={16} />
+                                    <button
+                                        onClick={() => toggleDetails(order.id || order.order_id)}
+                                        className="flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                                    >
+                                        <span>{expandedOrders[order.id || order.order_id] ? "Hide Details" : "View Details"}</span>
+                                        <ChevronRight
+                                            size={16}
+                                            className={`transition-transform duration-200 ${expandedOrders[order.id || order.order_id] ? "rotate-90" : ""}`}
+                                        />
                                     </button>
                                 </div>
+
+                                {/* expanded details panel */}
+                                {expandedOrders[order.id || order.order_id] && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-4 animate-in fade-in duration-200">
+                                        {/* item descriptions */}
+                                        {(order.items || []).some(item => item.product_description || item.product_type) && (
+                                            <div>
+                                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mb-2">Product Details</p>
+                                                {(order.items || []).map((item, idx) => (
+                                                    <div key={idx} className="mb-3 pl-3 border-l-2 border-emerald-100">
+                                                        <p className="text-sm font-semibold text-slate-700">{item.product_name}</p>
+                                                        {item.product_type && (
+                                                            <p className="text-xs text-emerald-600 mt-0.5">Type: {item.product_type}</p>
+                                                        )}
+                                                        {item.product_description && (
+                                                            <p className="text-xs text-slate-500 mt-1">{item.product_description}</p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* payment details */}
+                                        <div className="bg-slate-50 rounded-2xl p-4">
+                                            <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mb-3">Payment Breakdown</p>
+                                            <div className="space-y-2">
+                                                {(order.items || []).map((item, idx) => (
+                                                    <div key={idx} className="flex justify-between text-sm text-slate-600">
+                                                        <span>{item.product_name} × {item.quantity}</span>
+                                                        <span className="font-medium">₹{(Number(item.price || 0) * item.quantity).toLocaleString()}</span>
+                                                    </div>
+                                                ))}
+                                                <div className="flex justify-between text-sm font-bold text-slate-800 pt-2 border-t border-slate-200">
+                                                    <span>Order Total</span>
+                                                    <span className="text-emerald-700">₹{Number(order.total_price || order.totalPrice).toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs text-slate-500 pt-1">
+                                                    <span>Payment Method</span>
+                                                    <span className="font-medium uppercase">{order.payment?.method || "N/A"}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs text-slate-500">
+                                                    <span>Payment Status</span>
+                                                    <span className={`font-semibold ${order.payment?.status === "completed" || order.payment?.status === "paid" ? "text-emerald-600" : "text-amber-600"}`}>
+                                                        {order.payment?.status || "N/A"}
+                                                    </span>
+                                                </div>
+                                                {order.payment?.paid_at && (
+                                                    <div className="flex justify-between text-xs text-slate-500">
+                                                        <span>Paid On</span>
+                                                        <span>{new Date(order.payment.paid_at).toLocaleString("en-IN")}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                         </div>
