@@ -37,6 +37,8 @@ CREATE TABLE `cart` (
   `quantity` int DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_cart_user_product` (`user_id`,`product_id`),
+  KEY `idx_cart_user_created` (`user_id`,`created_at`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,

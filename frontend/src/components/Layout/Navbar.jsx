@@ -42,12 +42,14 @@ const Navbar = () => {
         const res = await axios.get(`${API_URL}/api/products/all`, {
           params: {
             search: query,
-            sort: "price_asc"
+            sort: "price_asc",
+            limit: 5,
+            page: 1,
           }
         });
 
         if (!cancelled) {
-          setSearchSuggestions((res.data || []).slice(0, 5));
+          setSearchSuggestions(res.data || []);
         }
       } catch (error) {
         if (!cancelled) {
