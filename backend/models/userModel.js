@@ -22,7 +22,7 @@ const User = {
         return rows[0];
     },
 
-    // 🔥 Best method: Find user by email OR phone (used in login)
+    // Best method: Find user by email OR phone (used in login)
     findByEmailOrPhone: async (identifier) => {
         const [rows] = await db.execute(
             'SELECT * FROM users WHERE email = ? OR phone_number = ?',

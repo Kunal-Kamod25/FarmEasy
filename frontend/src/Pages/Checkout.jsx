@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { motion } from "framer-motion";
 import { API_URL } from '../config';
 
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -40,18 +40,26 @@ const Checkout = () => {
         try {
             const orderData = {
                 shippingDetails: formData,
-                items: cartItems,
-                totalPrice: cartTotal,
-                paymentMethod: formData.paymentMethod,
             };
 
-            const res = await axios.post(`${API_URL}/api/orders`, orderData, {
+            if (formData.paymentMethod === "COD") {
+                const res = await axios.post(`${API_URL}/api/orders/cod`, orderData, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (res.data.success) {
+                    clearCart();
+                    navigate("/order-success", { state: { orderId: res.data.orderId } });
+                }
+                return;
+            }
+
+            const stripeRes = await axios.post(`${API_URL}/api/orders/stripe/checkout-session`, orderData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (res.data.success) {
-                clearCart();
-                navigate("/order-success", { state: { orderId: res.data.orderId } });
+            if (stripeRes.data?.checkoutUrl) {
+                window.location.assign(stripeRes.data.checkoutUrl);
             }
         } catch (err) {
             setError(err.response?.data?.message || "Failed to place order. Please try again.");
@@ -81,11 +89,7 @@ const Checkout = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Shipping Form */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100"
-                    >
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                         <h2 className="text-xl font-bold text-gray-800 mb-6">Shipping Information</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,8 +197,29 @@ const Checkout = () => {
                                             <p className="text-xs text-gray-500">Pay when your order reaches you.</p>
                                         </div>
                                     </label>
+
+                                    <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="STRIPE"
+                                            checked={formData.paymentMethod === "STRIPE"}
+                                            onChange={handleChange}
+                                            className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                                        />
+                                        <div className="ml-3">
+                                            <p className="text-sm font-bold text-gray-900">Pay Online (Card / UPI via Stripe)</p>
+                                            <p className="text-xs text-gray-500">Secure payment, amount verified on server before order creation.</p>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
+
+                            {searchParams.get("payment") === "cancelled" && (
+                                <p className="text-amber-600 text-sm font-medium mt-2">
+                                    Payment was cancelled. You can retry checkout.
+                                </p>
+                            )}
 
                             {error && <p className="text-red-500 text-sm font-medium mt-4">{error}</p>}
 
@@ -203,17 +228,15 @@ const Checkout = () => {
                                 disabled={loading}
                                 className={`w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-emerald-700 transition-all active:scale-[0.98] mt-8 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                             >
-                                {loading ? "Processing Order..." : `Place Order • ₹${cartTotal.toLocaleString()}`}
+                                {loading
+                                    ? (formData.paymentMethod === "STRIPE" ? "Redirecting to secure payment..." : "Processing Order...")
+                                    : `Place Order • ₹${cartTotal.toLocaleString()}`}
                             </button>
                         </form>
-                    </motion.div>
+                    </div>
 
                     {/* Order Summary */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="lg:sticky lg:top-24 h-fit"
-                    >
+                    <div className="lg:sticky lg:top-24 h-fit">
                         <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -248,7 +271,7 @@ const Checkout = () => {
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </div>

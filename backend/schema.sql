@@ -99,7 +99,7 @@ CREATE TABLE `orders` (
   `user_id` int NOT NULL,
   `order_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `order_status` varchar(100) DEFAULT 'Pending',
-  `total_price` decimal(10,2) DEFAULT NULL,
+  `total_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -116,10 +116,10 @@ DROP TABLE IF EXISTS `payment`;
 CREATE TABLE `payment` (
   `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
-  `payment_method` varchar(100) DEFAULT NULL,
-  `amount` decimal(10,2) DEFAULT NULL,
+  `payment_method` varchar(100) NOT NULL DEFAULT 'COD',
+  `amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `payment_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(100) DEFAULT NULL,
+  `status` varchar(100) NOT NULL DEFAULT 'Pending',
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE

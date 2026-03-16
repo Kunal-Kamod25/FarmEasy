@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from '../config';
@@ -39,7 +40,9 @@ export const WishlistProvider = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        fetchWishlist();
+        if (getToken()) {
+            fetchWishlist();
+        }
     }, [fetchWishlist]);
 
     const toggleWishlist = async (product) => {

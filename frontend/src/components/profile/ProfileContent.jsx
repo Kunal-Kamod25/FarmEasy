@@ -8,6 +8,7 @@ import My_Orders from "./My_Orders";
 const ProfileContent = ({
     activeTab,
     user,
+    metrics,
     formData,
     isEditing,
     setIsEditing,
@@ -75,7 +76,7 @@ const ProfileContent = ({
                                     <p className="text-lg font-black text-slate-800">
                                         {user.created_at
                                             ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                                            : "Feb 2024"}
+                                            : "-"}
                                     </p>
                                 </div>
 
@@ -84,7 +85,7 @@ const ProfileContent = ({
                                         Total Orders
                                     </p>
                                     <p className="text-lg font-black text-slate-800">
-                                        12 Completed
+                                        {Number(metrics?.total_orders || 0)} Total
                                     </p>
                                 </div>
 
@@ -93,9 +94,20 @@ const ProfileContent = ({
                                         Verified Status
                                     </p>
                                     <div className="flex items-center gap-2">
-                                        <p className="text-lg font-black text-emerald-600">Verified</p>
-                                        <div className="bg-emerald-100 p-1 rounded-full">
-                                            <CheckCircle size={14} className="text-emerald-600" />
+                                        <p className={`text-lg font-black ${metrics?.verification?.profile_verified
+                                            ? "text-emerald-600"
+                                            : "text-amber-600"
+                                            }`}>
+                                            {metrics?.verification?.profile_verified ? "Verified" : "Incomplete"}
+                                        </p>
+                                        <div className={`p-1 rounded-full ${metrics?.verification?.profile_verified
+                                            ? "bg-emerald-100"
+                                            : "bg-amber-100"
+                                            }`}>
+                                            <CheckCircle size={14} className={metrics?.verification?.profile_verified
+                                                ? "text-emerald-600"
+                                                : "text-amber-600"
+                                            } />
                                         </div>
                                     </div>
                                 </div>

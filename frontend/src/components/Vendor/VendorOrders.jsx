@@ -1,54 +1,75 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Search, Eye, ShoppingCart, Clock, CheckCircle, XCircle } from "lucide-react";
 import { API_URL } from '../../config';
+import {
+  ORDER_STATUS_PRIORITY,
+  getDisplayOrderStatus,
+  getOrderStatusClass,
+} from "../../utils/orderStatus";
 
 const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [statusOptions, setStatusOptions] = useState([]);
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/api/vendor/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setOrders(res.data);
+      const [ordersRes, statusRes] = await Promise.all([
+        axios.get(`${API_URL}/api/vendor/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API_URL}/api/orders/meta/statuses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: {} }))
+      ]);
+
+      setOrders(ordersRes.data || []);
+
+      if (Array.isArray(statusRes.data?.orderStatuses) && statusRes.data.orderStatuses.length) {
+        setStatusOptions(statusRes.data.orderStatuses);
+      }
     } catch (error) {
       console.error("Orders fetch error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === "Pending").length;
-  const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
-  const cancelledOrders = orders.filter((o) => o.status === "Cancelled").length;
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
-  const filteredOrders = orders.filter((order) => {
+  const normalizedOrders = orders.map((o) => ({
+    ...o,
+    normalizedStatus: getDisplayOrderStatus(o.status),
+  }));
+
+  const totalOrders = normalizedOrders.length;
+  const pendingOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Pending").length;
+  const deliveredOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Delivered").length;
+  const cancelledOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Cancelled").length;
+
+  const canonicalStatuses = statusOptions.length ? statusOptions : ORDER_STATUS_PRIORITY;
+  const availableStatuses = canonicalStatuses.filter((status) =>
+    normalizedOrders.some((o) => o.normalizedStatus === status)
+  );
+
+  const filteredOrders = normalizedOrders.filter((order) => {
     const matchSearch = order.id.toString().includes(search) ||
       order.customer_name?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "All" || order.status === statusFilter;
+    const matchStatus = statusFilter === "All" || order.normalizedStatus === statusFilter;
     return matchSearch && matchStatus;
   });
 
   const statusBadge = (status) => {
-    const map = {
-      Delivered: "bg-emerald-50 text-emerald-700",
-      Pending: "bg-amber-50 text-amber-700",
-      Cancelled: "bg-red-50 text-red-600",
-      Processing: "bg-blue-50 text-blue-700",
-    };
-    return map[status] || "bg-gray-100 text-gray-600";
+    const cls = getOrderStatusClass(status);
+    return cls.replace("border-amber-200", "").replace("border-blue-200", "").replace("border-indigo-200", "").replace("border-emerald-200", "").replace("border-red-200", "").replace("border-slate-200", "").trim();
   };
 
   return (
@@ -111,7 +132,7 @@ const VendorOrders = () => {
             />
           </div>
           <div className="flex gap-2">
-            {["All", "Pending", "Delivered", "Cancelled"].map((status) => (
+            {["All", ...availableStatuses].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
@@ -173,8 +194,8 @@ const VendorOrders = () => {
                       ₹{Number(order.total_amount).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusBadge(order.status)}`}>
-                        {order.status}
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusBadge(order.normalizedStatus)}`}>
+                        {order.normalizedStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500 text-xs">

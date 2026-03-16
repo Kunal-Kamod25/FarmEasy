@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { API_URL } from "../../config";
 
@@ -15,8 +15,6 @@ const ResetPassword = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-
-    const isOTP = !urlToken;
 
     const handleVerifyOTP = async (e) => {
         e.preventDefault();
@@ -39,7 +37,7 @@ const ResetPassword = () => {
             } else {
                 setError(data.message || "Invalid or expired OTP");
             }
-        } catch (err) {
+        } catch {
             setError("Server error. Please try again later.");
         } finally {
             setLoading(false);
@@ -73,7 +71,7 @@ const ResetPassword = () => {
             } else {
                 setError(data.message || "Failed to reset password");
             }
-        } catch (err) {
+        } catch {
             setError("Server error. Please try again later.");
         } finally {
             setLoading(false);

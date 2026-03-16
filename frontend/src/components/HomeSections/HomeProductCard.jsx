@@ -10,14 +10,12 @@ const API = `${API_URL}`;
 
 export const ProductCard = ({
     product,
-    onAddToCart,
     onToggleWishlist,
     isWishlisted,
     onViewDetail,
     badge,
     badgeColor = "bg-emerald-500",
 }) => {
-    const pid = product.id || product.product_id;
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [loginMessage, setLoginMessage] = useState("");
 

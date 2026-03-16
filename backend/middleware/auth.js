@@ -1,7 +1,5 @@
-// ===========================================================================
+
 // Auth Middleware - JWT Token Verification
-// ===========================================================================
-//
 // HOW IT WORKS:
 // 1. Frontend sends every protected request with header:
 //    "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."

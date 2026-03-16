@@ -27,6 +27,7 @@ import VendorEditProduct from "../components/Vendor/vendorEditProduct";
 
 /* Protected Routes */
 import VendorRoute from "./VendorRoute";
+import AdminRoute from "./AdminRoute";
 
 /* Products */
 import Wishlist from "../components/Products/wishlist";
@@ -78,7 +79,14 @@ const AppRoutes = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* ── ADMIN ── */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<AdminHomePage />} />
         </Route>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ const VendorProducts = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API_URL}/api/vendor/products`, {
@@ -26,11 +26,11 @@ const VendorProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
@@ -39,7 +39,7 @@ const VendorProducts = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(products.filter((p) => p.id !== id));
-    } catch (error) {
+    } catch {
       alert("Failed to delete");
     }
   };
