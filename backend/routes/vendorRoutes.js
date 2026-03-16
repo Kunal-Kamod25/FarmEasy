@@ -29,6 +29,7 @@ const upload = require("../middleware/upload");
 // ========== PRODUCTS ==========
 router.get("/products", verifyToken, vendorController.getProducts);
 router.get("/products/:id", verifyToken, vendorController.getProduct);
+router.get("/orders", verifyToken, vendorController.getVendorOrders);
 router.post("/products", verifyToken, upload.single("product_image"), vendorController.addProduct);
 router.delete("/products/:id", verifyToken, vendorController.deleteProduct);
 router.put("/products/:id", verifyToken, upload.single("product_image"), vendorController.updateProduct);
@@ -36,6 +37,7 @@ router.put("/products/:id", verifyToken, upload.single("product_image"), vendorC
 // ========== DASHBOARD ==========
 // returns real stats: total products, orders, revenue, category breakdown
 router.get("/dashboard", verifyToken, vendorController.getDashboardStats);
+router.get("/sales-summary", verifyToken, vendorController.getSalesSummary);
 
 // ========== PROFILE ==========
 // vendor profile reads from users + seller table joined

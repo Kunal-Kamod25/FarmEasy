@@ -46,7 +46,7 @@ const ForgotPassword = () => {
             } else {
                 setError(data.message || "Something went wrong");
             }
-        } catch (err) {
+        } catch {
             setError("Server error. Please try again later.");
         } finally {
             setLoading(false);

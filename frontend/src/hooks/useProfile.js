@@ -20,18 +20,22 @@ const useProfile = () => {
     // Load user on mount
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
 
-        if (!storedUser) {
+        if (!storedUser || !token) {
             navigate("/login");
             return;
         }
 
-        const userData = JSON.parse(storedUser);
-
         const fetchProfile = async () => {
             try {
                 const res = await fetch(
-                    `${API_URL}/api/profile/${userData.id}`
+                    `${API_URL}/api/profile/me`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 if (res.ok) {
                     const data = await res.json();
@@ -50,15 +54,18 @@ const useProfile = () => {
     const updateProfile = async (formData) => {
         setLoading(true);
         setMessage("");
+        const token = localStorage.getItem("token");
 
         try {
             const res = await fetch(
                 `${API_URL}/api/profile/update`,
                 {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                     body: JSON.stringify({
-                        userId: user.id,
                         ...formData,
                     }),
                 }

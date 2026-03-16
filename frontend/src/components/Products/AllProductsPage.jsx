@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_URL } from '../../config';
 import {
     Search, SlidersHorizontal, X, ChevronDown, Package,
@@ -9,9 +9,51 @@ import {
 import { useWishlist } from "../../context/WishlistContext";
 import AllProductsProductCard from "./AllProductsProductCard";
 
+const DEFAULT_FILTERS = {
+    search: "",
+    category_id: "",
+    min_price: "",
+    max_price: "",
+    product_type: "",
+    seller_id: "",
+    sort: "newest"
+};
+
+const VALID_SORTS = new Set(["newest", "oldest", "price_asc", "price_desc"]);
+
+const getInitialFiltersFromQuery = (searchParams) => {
+    const getParam = (...keys) => {
+        for (const key of keys) {
+            const value = searchParams.get(key);
+            if (value !== null && value !== "") return value;
+        }
+        return "";
+    };
+
+    const parsed = {
+        ...DEFAULT_FILTERS,
+        search: getParam("search"),
+        // Support both `category_id` and existing legacy `category` links.
+        category_id: getParam("category_id", "category"),
+        min_price: getParam("min_price"),
+        max_price: getParam("max_price"),
+        // Support a shorter alias for type-based links.
+        product_type: getParam("product_type", "type"),
+        seller_id: getParam("seller_id")
+    };
+
+    const sort = getParam("sort");
+    if (sort && VALID_SORTS.has(sort)) {
+        parsed.sort = sort;
+    }
+
+    return parsed;
+};
+
 // this whole page shows all products from DB with real filters - no static data at all
 const AllProductsPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { toggleWishlist, isWishlisted } = useWishlist();
 
     const [products, setProducts] = useState([]);
@@ -22,15 +64,18 @@ const AllProductsPage = () => {
     const [filtersOpen, setFiltersOpen] = useState(false);
 
     // all filter state in one object - easy to reset
-    const [filters, setFilters] = useState({
-        search: "",
-        category_id: "",
-        min_price: "",
-        max_price: "",
-        product_type: "",
-        seller_id: "",
-        sort: "newest"
-    });
+    const [filters, setFilters] = useState(() => getInitialFiltersFromQuery(searchParams));
+
+    useEffect(() => {
+        const urlFilters = getInitialFiltersFromQuery(searchParams);
+
+        setFilters((prev) => {
+            const isSame = Object.keys(DEFAULT_FILTERS).every(
+                (key) => prev[key] === urlFilters[key]
+            );
+            return isSame ? prev : urlFilters;
+        });
+    }, [searchParams]);
 
     // fetch the dropdown data for filters - categories, types, sellers
     useEffect(() => {
@@ -81,15 +126,7 @@ const AllProductsPage = () => {
     };
 
     const clearAllFilters = () => {
-        setFilters({
-            search: "",
-            category_id: "",
-            min_price: "",
-            max_price: "",
-            product_type: "",
-            seller_id: "",
-            sort: "newest"
-        });
+        setFilters(DEFAULT_FILTERS);
     };
 
     // check if any filter is active so we can show the "clear" button

@@ -26,7 +26,7 @@
 // - multer middleware on backend only works with multipart/form-data
 // ===========================================================================
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL, getImageUrl } from '../../config';
 import {
@@ -53,6 +53,13 @@ const VendorProfile = () => {
     ifsc_code: "",
     profile_image: "",
     bio: "",
+    joined_at: "",
+    total_orders: 0,
+    account_status: {
+      profile_verified: false,
+      email_verified: false,
+      gst_submitted: false,
+    },
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -61,14 +68,10 @@ const VendorProfile = () => {
   const [fetching, setFetching] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   // ── FETCH PROFILE ──
   // calls GET /api/vendor/profile which reads from users + seller table using the JWT token
   // the token has the user id inside it, so backend knows who we are
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setFetching(true);
 
@@ -92,6 +95,13 @@ const VendorProfile = () => {
         email: res.data.email || "",
         gst_number: res.data.gst_number || "",
         profile_image: res.data.profile_image || "",
+        joined_at: res.data.created_at || "",
+        total_orders: Number(res.data.total_orders || 0),
+        account_status: res.data.account_status || {
+          profile_verified: false,
+          email_verified: false,
+          gst_submitted: false,
+        },
         website: "",
         bank_account: "",
         ifsc_code: "",
@@ -107,7 +117,11 @@ const VendorProfile = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -243,6 +257,11 @@ const VendorProfile = () => {
               <p className="text-gray-400 text-xs mt-1">
                 {profile.city && profile.state ? `${profile.city}, ${profile.state}` : "Location"}
               </p>
+              {profile.joined_at && (
+                <p className="text-gray-400 text-[11px] mt-1">
+                  Joined {new Date(profile.joined_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                </p>
+              )}
 
               <div className="mt-4 w-full pt-4 border-t border-gray-100 space-y-2 text-left">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -252,6 +271,10 @@ const VendorProfile = () => {
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Phone size={13} className="text-emerald-500" />
                   <span>{profile.phone || "—"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Store size={13} className="text-emerald-500" />
+                  <span>{Number(profile.total_orders || 0)} orders as customer</span>
                 </div>
               </div>
             </div>
@@ -265,19 +288,29 @@ const VendorProfile = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-500">Profile</span>
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Verified</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Email</span>
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Verified</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">GST</span>
-                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.gst_number
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.profile_verified
                     ? "bg-emerald-50 text-emerald-700"
                     : "bg-amber-50 text-amber-700"
                     }`}>
-                    {profile.gst_number ? "Submitted" : "Pending"}
+                    {profile.account_status?.profile_verified ? "Verified" : "Incomplete"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Email</span>
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.email_verified
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
+                    }`}>
+                    {profile.account_status?.email_verified ? "Verified" : "Pending"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">GST</span>
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.gst_submitted
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
+                    }`}>
+                    {profile.account_status?.gst_submitted ? "Submitted" : "Pending"}
                   </span>
                 </div>
               </div>

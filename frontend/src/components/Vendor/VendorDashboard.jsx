@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from '../../config';
 import {
@@ -12,20 +12,7 @@ import {
   LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
-// months for the revenue chart labels
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-// generate some basic revenue trend from total revenue
-// in the future this should come from a real monthly breakdown API - but that needs the orders table to have monthly data
-const generateMonthlyData = (totalRevenue) => {
-  const base = totalRevenue / 6 || 3000;
-  return MONTHS.slice(0, 6).map((m, i) => ({
-    month: m,
-    revenue: Math.floor(base * (0.5 + (i * 0.1) + Math.random() * 0.4)),
-    orders: Math.floor(Math.random() * 15 + 3),
-  }));
-};
+import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";
 
 const PIE_COLORS = ["#16a34a", "#f59e0b", "#6366f1", "#ef4444", "#06b6d4", "#8b5cf6"];
 
@@ -42,7 +29,12 @@ export default function VendorDashboard() {
 
   // dashboard stats from API
   const [stats, setStats] = useState({
-    totalProducts: 0, totalOrders: 0, totalRevenue: 0, activeOffers: 0, categoryBreakdown: []
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    activeOffers: 0,
+    categoryBreakdown: [],
+    monthlyBreakdown: []
   });
 
   // vendor's own products
@@ -57,21 +49,9 @@ export default function VendorDashboard() {
   const [ordersLoaded, setOrdersLoaded] = useState(false);
 
   // fetch real vendor name from profile
-  const [vendorName, setVendorName] = useState(user?.full_name || user?.fullname || "Vendor");
+  const [vendorName] = useState(user?.full_name || user?.fullname || "Vendor");
 
-  useEffect(() => {
-    fetchStats();
-    fetchRecentProducts();
-  }, []);
-
-  // lazy load orders only when tab is clicked - no need to load on mount
-  useEffect(() => {
-    if (activeTab === "my-orders" && !ordersLoaded) {
-      fetchMyOrders();
-    }
-  }, [activeTab]);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/vendor/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -82,9 +62,9 @@ export default function VendorDashboard() {
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, [token]);
 
-  const fetchRecentProducts = async () => {
+  const fetchRecentProducts = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -95,9 +75,9 @@ export default function VendorDashboard() {
     } finally {
       setProductsLoading(false);
     }
-  };
+  }, [token]);
 
-  const fetchMyOrders = async () => {
+  const fetchMyOrders = useCallback(async () => {
     try {
       setOrdersLoading(true);
       const res = await axios.get(`${API_URL}/api/vendor/my-purchases`, {
@@ -110,9 +90,23 @@ export default function VendorDashboard() {
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, [token]);
 
-  const monthlyData = generateMonthlyData(stats.totalRevenue);
+  useEffect(() => {
+    fetchStats();
+    fetchRecentProducts();
+  }, [fetchRecentProducts, fetchStats]);
+
+  // lazy load orders only when tab is clicked - no need to load on mount
+  useEffect(() => {
+    if (activeTab === "my-orders" && !ordersLoaded) {
+      fetchMyOrders();
+    }
+  }, [activeTab, fetchMyOrders, ordersLoaded]);
+
+  const monthlyData = stats.monthlyBreakdown?.length
+    ? stats.monthlyBreakdown
+    : [];
 
   // build pie chart data from real category breakdown
   const pieData = stats.categoryBreakdown?.length > 0
@@ -527,18 +521,23 @@ export default function VendorDashboard() {
 
 // tiny helper component for order status badge
 const OrderStatusBadge = ({ status }) => {
-  const styles = {
-    Pending: { cls: "bg-amber-50 text-amber-700 border-amber-200", icon: <Clock size={12} /> },
-    Processing: { cls: "bg-blue-50 text-blue-700 border-blue-200", icon: <Package size={12} /> },
-    Shipped: { cls: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: <Truck size={12} /> },
-    Delivered: { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle size={12} /> },
-    Cancelled: { cls: "bg-red-50 text-red-700 border-red-200", icon: <AlertCircle size={12} /> },
+  const normalizedStatus = getDisplayOrderStatus(status);
+  const cls = getOrderStatusClass(normalizedStatus);
+
+  const icons = {
+    Pending: <Clock size={12} />,
+    Processing: <Package size={12} />,
+    Shipped: <Truck size={12} />,
+    Delivered: <CheckCircle size={12} />,
+    Cancelled: <AlertCircle size={12} />,
   };
-  const s = styles[status] || styles["Pending"];
+
+  const icon = icons[normalizedStatus] || icons.Pending;
+
   return (
-    <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${s.cls}`}>
-      {s.icon}
-      {status || "Pending"}
+    <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${cls}`}>
+      {icon}
+      {normalizedStatus}
     </span>
   );
 };

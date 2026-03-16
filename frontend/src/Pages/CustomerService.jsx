@@ -31,7 +31,7 @@ const CustomerService = () => {
             <li className="flex items-center gap-2">
               <FiPhoneCall className="text-green-600" /> Call us: {' '}
               <a href="tel:+917767859953" className="text-green-600 hover:underline">
-                +91 77678 59953
+                +91 77678 59953
               </a>
             </li>
           </ul>

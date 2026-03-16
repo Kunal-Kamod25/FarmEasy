@@ -20,7 +20,7 @@
 // - Both require login (checks token in localStorage)
 // ===========================================================================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { API_URL, getImageUrl } from '../config';
@@ -51,13 +51,7 @@ const ProductDetailPage = () => {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    // scroll to top when navigating to a new product
-    window.scrollTo(0, 0);
-    fetchProduct();
-  }, [id]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -69,7 +63,13 @@ const ProductDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    // scroll to top when navigating to a new product
+    window.scrollTo(0, 0);
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleAddToCart = async () => {
     if (!token) {

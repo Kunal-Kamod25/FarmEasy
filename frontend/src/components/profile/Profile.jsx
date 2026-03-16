@@ -10,6 +10,15 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
+    const [metrics, setMetrics] = useState({
+        total_orders: 0,
+        total_spent: 0,
+        verification: {
+            profile_verified: false,
+            email_verified: false,
+            phone_verified: false
+        }
+    });
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -26,8 +35,9 @@ const Profile = () => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
 
-        if (!storedUser) {
+        if (!storedUser || !token) {
             navigate("/login");
         } else {
             const userData = JSON.parse(storedUser);
@@ -35,7 +45,10 @@ const Profile = () => {
 
             const fetchLatestData = async () => {
                 try {
-                    const response = await fetch(`${API_URL}/api/profile/${userData.id || userData.user_id}`);
+                    const response = await fetch(`${API_URL}/api/profile/me`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
                     if (response.ok) {
                         const latestUser = await response.json();
                         const formattedUser = {
@@ -45,6 +58,15 @@ const Profile = () => {
                         };
 
                         setUser(formattedUser);
+                        setMetrics({
+                            total_orders: latestUser.total_orders || 0,
+                            total_spent: latestUser.total_spent || 0,
+                            verification: latestUser.verification || {
+                                profile_verified: false,
+                                email_verified: false,
+                                phone_verified: false
+                            }
+                        });
                         localStorage.setItem("user", JSON.stringify(formattedUser));
 
                         setFormData({
@@ -77,25 +99,51 @@ const Profile = () => {
         e.preventDefault();
         setLoading(true);
         setMessage({ type: "", text: "" });
+        const token = localStorage.getItem("token");
 
         try {
             const response = await fetch(`${API_URL}/api/profile/update`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify({
-                    userId: user.id,
                     ...formData
                 }),
             });
 
             if (response.ok) {
-                const updatedUser = { ...user, ...formData };
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-                setUser(updatedUser);
+                const profileRes = await fetch(`${API_URL}/api/profile/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (profileRes.ok) {
+                    const refreshed = await profileRes.json();
+                    const updatedUser = {
+                        ...refreshed,
+                        fullname: refreshed.full_name,
+                        phone: refreshed.phone_number
+                    };
+
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
+                    setUser(updatedUser);
+                    setMetrics({
+                        total_orders: refreshed.total_orders || 0,
+                        total_spent: refreshed.total_spent || 0,
+                        verification: refreshed.verification || {
+                            profile_verified: false,
+                            email_verified: false,
+                            phone_verified: false
+                        }
+                    });
+                }
+
                 setIsEditing(false);
                 setMessage({ type: "success", text: "Profile updated successfully!" });
             } else {
-                setMessage({ type: "error", text: "Failed to update profile." });
+                const data = await response.json().catch(() => ({}));
+                setMessage({ type: "error", text: data.message || "Failed to update profile." });
             }
         } catch {
             setMessage({ type: "error", text: "Something went wrong. Please try again." });
@@ -121,6 +169,7 @@ const Profile = () => {
                     <ProfileContent
                         activeTab={activeTab}
                         user={user}
+                        metrics={metrics}
                         formData={formData}
                         isEditing={isEditing}
                         setIsEditing={setIsEditing}

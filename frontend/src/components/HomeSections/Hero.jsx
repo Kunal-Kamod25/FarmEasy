@@ -60,6 +60,9 @@ const slides = [
 ];
 
 const HeroCarousel = () => {
+  const MotionDiv = motion.div;
+  const MotionH1 = motion.h1;
+  const MotionP = motion.p;
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = prev
 
@@ -94,7 +97,7 @@ const HeroCarousel = () => {
   return (
     <div className="relative w-full h-[500px] md:h-[450px] overflow-hidden bg-gray-900">
       <AnimatePresence custom={direction}>
-        <motion.div
+        <MotionDiv
           key={index}
           custom={direction}
           className="absolute inset-0"
@@ -118,31 +121,31 @@ const HeroCarousel = () => {
           {/* Content */}
           <div className="relative z-10 h-full flex items-center px-6 md:px-16 lg:px-24">
             <div className="max-w-3xl">
-              <motion.h1
+              <MotionH1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-white leading-tight drop-shadow-2xl"
               >
                 {slides[index].title}
-              </motion.h1>
-              <motion.p
+              </MotionH1>
+              <MotionP
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="text-xl md:text-2xl mb-4 text-emerald-400 font-semibold tracking-wide uppercase drop-shadow-md"
               >
                 {slides[index].subtitle}
-              </motion.p>
-              <motion.p
+              </MotionP>
+              <MotionP
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="text-lg md:text-xl mb-10 text-gray-200 max-w-xl leading-relaxed opacity-90 drop-shadow-sm"
               >
                 {slides[index].description}
-              </motion.p>
-              <motion.div
+              </MotionP>
+              <MotionDiv
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
@@ -154,10 +157,10 @@ const HeroCarousel = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </button>
-              </motion.div>
+              </MotionDiv>
             </div>
           </div>
-        </motion.div>
+        </MotionDiv>
       </AnimatePresence>
 
       {/* NAVIGATION CONTROLS */}

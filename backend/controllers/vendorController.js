@@ -1,5 +1,19 @@
 const db = require("../config/db");
 
+const getRecentMonthKeys = (months = 6) => {
+  const keys = [];
+  const now = new Date();
+
+  for (let i = months - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const monthLabel = d.toLocaleString("en-IN", { month: "short" });
+    keys.push({ monthKey, monthLabel });
+  }
+
+  return keys;
+};
+
 // Converts nullable form values to integers for MySQL INT columns.
 // Handles values coming from multipart FormData where null-like values are sent as strings.
 const toNullableInt = (value) => {
@@ -253,7 +267,8 @@ exports.getDashboardStats = async (req, res) => {
         totalOrders: 0,
         totalRevenue: 0,
         activeOffers: 0,
-        categoryBreakdown: []
+        categoryBreakdown: [],
+        monthlyBreakdown: []
       });
     }
 
@@ -281,6 +296,11 @@ exports.getDashboardStats = async (req, res) => {
       WHERE p.seller_id = ?
     `, [sellerId]);
 
+    const [[{ activeOffers }]] = await db.query(
+      "SELECT COUNT(*) as activeOffers FROM product WHERE seller_id = ? AND product_quantity > 0",
+      [sellerId]
+    );
+
     // real category breakdown from DB (no more hardcoded "Seeds: 12")
     const [categoryBreakdown] = await db.query(`
       SELECT 
@@ -293,12 +313,43 @@ exports.getDashboardStats = async (req, res) => {
       ORDER BY count DESC
     `, [sellerId]);
 
+    const [monthlyRows] = await db.query(`
+      SELECT
+        DATE_FORMAT(o.order_date, '%Y-%m') as month_key,
+        DATE_FORMAT(o.order_date, '%b') as month_label,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
+        COUNT(DISTINCT oi.order_id) as orders
+      FROM order_items oi
+      JOIN product p ON oi.product_id = p.id
+      JOIN orders o ON oi.order_id = o.id
+      WHERE p.seller_id = ?
+        AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH)
+      GROUP BY month_key, month_label
+      ORDER BY month_key ASC
+    `, [sellerId]);
+
+    const monthMap = new Map(
+      monthlyRows.map((row) => [
+        row.month_key,
+        {
+          month: row.month_label,
+          revenue: Number(row.revenue || 0),
+          orders: Number(row.orders || 0)
+        }
+      ])
+    );
+
+    const monthlyBreakdown = getRecentMonthKeys().map(({ monthKey, monthLabel }) => {
+      return monthMap.get(monthKey) || { month: monthLabel, revenue: 0, orders: 0 };
+    });
+
     res.json({
       totalProducts,
       totalOrders,
       totalRevenue,
-      activeOffers: 0, // can add offers table later
-      categoryBreakdown
+      activeOffers,
+      categoryBreakdown,
+      monthlyBreakdown
     });
 
   } catch (error) {
@@ -327,6 +378,7 @@ exports.getProfile = async (req, res) => {
         u.city,
         u.state,
         u.pincode,
+        u.created_at,
         u.bio,
         u.profile_pic as profile_image,
         s.shop_name as store_name,
@@ -341,7 +393,37 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(rows[0]);
+    const profile = rows[0];
+
+    const [[orderStats]] = await db.query(
+      `SELECT 
+         COUNT(*) as total_orders,
+         COALESCE(SUM(total_price), 0) as total_spent
+       FROM orders
+       WHERE user_id = ?`,
+      [userId]
+    );
+
+    const profileVerified = Boolean(
+      profile.vendor_name &&
+      profile.phone &&
+      profile.address &&
+      profile.city &&
+      profile.state &&
+      profile.pincode &&
+      profile.store_name
+    );
+
+    res.json({
+      ...profile,
+      total_orders: Number(orderStats.total_orders || 0),
+      total_spent: Number(orderStats.total_spent || 0),
+      account_status: {
+        profile_verified: profileVerified,
+        email_verified: Boolean(profile.email),
+        gst_submitted: Boolean(profile.gst_number)
+      }
+    });
 
   } catch (error) {
     console.error("getProfile error:", error);
@@ -486,5 +568,149 @@ exports.getMyPurchases = async (req, res) => {
   } catch (error) {
     console.error("getMyPurchases error:", error);
     res.status(500).json({ message: "Server error fetching your orders" });
+  }
+};
+
+
+// =====================================================
+// GET ORDERS RECEIVED BY VENDOR (sales orders)
+// =====================================================
+exports.getVendorOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [seller] = await db.query(
+      "SELECT id FROM seller WHERE user_id = ?",
+      [userId]
+    );
+
+    if (!seller.length) {
+      return res.json([]);
+    }
+
+    const sellerId = seller[0].id;
+
+    const [rows] = await db.query(`
+      SELECT
+        o.id,
+        o.order_status as status,
+        o.order_date as created_at,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as total_amount,
+        u.full_name as customer_name
+      FROM order_items oi
+      JOIN product p ON oi.product_id = p.id
+      JOIN orders o ON oi.order_id = o.id
+      JOIN users u ON o.user_id = u.id
+      WHERE p.seller_id = ?
+      GROUP BY o.id, o.order_status, o.order_date, u.full_name
+      ORDER BY o.order_date DESC
+    `, [sellerId]);
+
+    res.json(rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      created_at: row.created_at,
+      total_amount: Number(row.total_amount || 0),
+      customer_name: row.customer_name
+    })));
+  } catch (error) {
+    console.error("getVendorOrders error:", error);
+    res.status(500).json({ message: "Server error fetching vendor orders" });
+  }
+};
+
+
+// =====================================================
+// VENDOR SALES SUMMARY
+// real monthly sales + transaction list from DB
+// =====================================================
+exports.getSalesSummary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [seller] = await db.query(
+      "SELECT id FROM seller WHERE user_id = ?",
+      [userId]
+    );
+
+    if (!seller.length) {
+      return res.json({
+        totalRevenue: 0,
+        totalOrders: 0,
+        avgOrderValue: 0,
+        monthlySales: [],
+        transactions: []
+      });
+    }
+
+    const sellerId = seller[0].id;
+
+    const [monthlyRows] = await db.query(`
+      SELECT
+        DATE_FORMAT(o.order_date, '%Y-%m') as month_key,
+        DATE_FORMAT(o.order_date, '%b') as month_label,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
+        COUNT(DISTINCT oi.order_id) as orders
+      FROM order_items oi
+      JOIN product p ON oi.product_id = p.id
+      JOIN orders o ON oi.order_id = o.id
+      WHERE p.seller_id = ?
+        AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH)
+      GROUP BY month_key, month_label
+      ORDER BY month_key ASC
+    `, [sellerId]);
+
+    const monthMap = new Map(
+      monthlyRows.map((row) => [
+        row.month_key,
+        {
+          month: row.month_label,
+          revenue: Number(row.revenue || 0),
+          orders: Number(row.orders || 0)
+        }
+      ])
+    );
+
+    const monthlySales = getRecentMonthKeys().map(({ monthKey, monthLabel }) => {
+      return monthMap.get(monthKey) || { month: monthLabel, revenue: 0, orders: 0 };
+    });
+
+    const totalRevenue = monthlySales.reduce((sum, m) => sum + m.revenue, 0);
+    const totalOrders = monthlySales.reduce((sum, m) => sum + m.orders, 0);
+    const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+    const [transactions] = await db.query(`
+      SELECT
+        o.id as order_id,
+        u.full_name as customer_name,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as amount,
+        o.order_status as status,
+        o.order_date as date
+      FROM order_items oi
+      JOIN product p ON oi.product_id = p.id
+      JOIN orders o ON oi.order_id = o.id
+      JOIN users u ON o.user_id = u.id
+      WHERE p.seller_id = ?
+      GROUP BY o.id, u.full_name, o.order_status, o.order_date
+      ORDER BY o.order_date DESC
+      LIMIT 10
+    `, [sellerId]);
+
+    res.json({
+      totalRevenue,
+      totalOrders,
+      avgOrderValue,
+      monthlySales,
+      transactions: transactions.map((t) => ({
+        id: `#${t.order_id}`,
+        customer: t.customer_name,
+        amount: Number(t.amount || 0),
+        status: t.status,
+        date: t.date
+      }))
+    });
+  } catch (error) {
+    console.error("getSalesSummary error:", error);
+    res.status(500).json({ message: "Server error fetching sales summary" });
   }
 };

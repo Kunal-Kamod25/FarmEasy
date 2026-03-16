@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import logo from "../../assets/Logo.png";
 import {
   HiOutlineUser,
@@ -10,6 +11,7 @@ import Searchbar from "../Common/SearchBar";
 import CartDrawer from "../Cart/CartDrawer";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { API_URL } from "../../config";
 
 const Navbar = () => {
   const truncateText = (text = "", maxLength = 10) => {
@@ -18,16 +20,83 @@ const Navbar = () => {
     return text.slice(0, maxLength) + "...";
   };
 
-  const [SearchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [searchSuggestionsLoading, setSearchSuggestionsLoading] = useState(false);
+
+  useEffect(() => {
+    const query = searchTerm.trim();
+
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      setSearchSuggestionsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const timer = setTimeout(async () => {
+      try {
+        setSearchSuggestionsLoading(true);
+
+        const res = await axios.get(`${API_URL}/api/products/all`, {
+          params: {
+            search: query,
+            sort: "price_asc"
+          }
+        });
+
+        if (!cancelled) {
+          setSearchSuggestions((res.data || []).slice(0, 5));
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Search suggestion fetch failed:", error);
+          setSearchSuggestions([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setSearchSuggestionsLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", SearchTerm);
+    const query = searchTerm.trim();
+    if (!query) return;
+
+    setSearchSuggestions([]);
+    navigate(`/products?search=${encodeURIComponent(query)}&sort=price_asc`);
+  };
+
+  const handleSuggestionSelect = (product) => {
+    setSearchTerm(product.product_name || "");
+    setSearchSuggestions([]);
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleViewAllMatches = () => {
+    const query = searchTerm.trim();
+    if (!query) return;
+
+    setSearchSuggestions([]);
+    navigate(`/products?search=${encodeURIComponent(query)}&sort=price_asc`);
   };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   /* 🔐 AUTH STATE */
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -50,13 +119,6 @@ const Navbar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
   }, []);
 
   const handleLogout = () => {
@@ -135,9 +197,13 @@ const Navbar = () => {
 
         <div className="w-full md:w-[520px] md:max-w-[52vw] md:min-w-0 md:mr-auto">
           <Searchbar
-            SearchTerm={SearchTerm}
+            searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             handleSearch={handleSearch}
+            suggestions={searchSuggestions}
+            suggestionsLoading={searchSuggestionsLoading}
+            onSuggestionSelect={handleSuggestionSelect}
+            onViewAllMatches={handleViewAllMatches}
           />
         </div>
 

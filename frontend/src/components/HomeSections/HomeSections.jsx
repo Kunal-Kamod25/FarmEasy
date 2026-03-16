@@ -7,8 +7,7 @@ import { API_URL, getImageUrl } from '../../config';
 export default function HomeSections({
     fertilizerProducts = [],
     products = [],
-    onNavigate = () => { },
-    onViewDetails = () => { }
+    onNavigate = () => { }
 }) {
     const { addToCart } = useCart();
 

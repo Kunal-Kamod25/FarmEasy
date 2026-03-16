@@ -18,8 +18,6 @@
 
 import React, { useState } from 'react';
 import { BadgeCheck, Star, Heart, ArrowRight } from 'lucide-react';
-import { brands } from './ProductData';
-import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
@@ -47,8 +45,6 @@ const ProductCard = ({ product }) => {
     }
     await toggleWishlist(product);
   };
-
-  const brandData = brands.find(b => b.name === product.brand);
 
   return (
     <>

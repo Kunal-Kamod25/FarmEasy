@@ -314,7 +314,13 @@ const Login = () => {
 
   // submit login form
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
 
     const identifier =
       loginType === "email" ? email.trim() : phone.trim();
@@ -356,10 +362,10 @@ const Login = () => {
         alert(data.message || "Login failed");
       }
 
-  } catch (err) {
-    alert("Server not responding");
-  }
-};
+    } catch {
+      alert("Server not responding");
+    }
+  };
   return (
     <div className="min-h-screen grid grid-cols-2 font-Lora">
       {/* LEFT SIDE */}

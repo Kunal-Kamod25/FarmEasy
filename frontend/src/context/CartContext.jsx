@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from '../config';
@@ -11,13 +12,6 @@ export const CartProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
 
     const getToken = () => localStorage.getItem("token");
-    const getUser = () => {
-        try {
-            return JSON.parse(localStorage.getItem("user"));
-        } catch {
-            return null;
-        }
-    };
 
     // ─── Fetch cart from backend (if logged in) ───────────────────────────────
     const fetchCart = useCallback(async () => {

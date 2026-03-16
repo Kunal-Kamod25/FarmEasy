@@ -278,7 +278,6 @@
 // export default Register;
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Sprout, Mail, Lock, User, Store } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
