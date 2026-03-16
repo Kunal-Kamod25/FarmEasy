@@ -93,6 +93,31 @@ const Checkout = () => {
                 order_id: order.id,
                 prefill,
                 theme: { color: "#059669" },
+                config: {
+                    display: {
+                        blocks: {
+                            upi: {
+                                name: "Pay via UPI",
+                                instruments: [
+                                    { method: "upi" }
+                                ]
+                            },
+                            other: {
+                                name: "Other payment methods",
+                                instruments: [
+                                    { method: "card" },
+                                    { method: "netbanking" },
+                                    { method: "wallet" },
+                                    { method: "paylater" }
+                                ]
+                            }
+                        },
+                        sequence: ["block.upi", "block.other"],
+                        preferences: {
+                            show_default_blocks: false
+                        }
+                    }
+                },
                 modal: {
                     ondismiss: () => {
                         setLoading(false);
