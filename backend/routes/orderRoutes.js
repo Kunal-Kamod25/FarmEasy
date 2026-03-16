@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 const verifyToken = require("../middleware/auth");
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
 const {
   ORDER_STATUS,
   ORDER_STATUS_LIST,
@@ -12,6 +14,13 @@ const {
 
 const stripe = process.env.STRIPE_SECRET_KEY
   ? require("stripe")(process.env.STRIPE_SECRET_KEY)
+  : null;
+
+const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
+  ? new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+    })
   : null;
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -197,13 +206,159 @@ router.post("/cod", verifyToken, placeCodOrder);
 router.post("/", verifyToken, async (req, res) => {
   const method = String(req.body?.paymentMethod || "COD").toUpperCase();
 
-  if (method === "STRIPE" || method === "CARD") {
+  if (method === "RAZORPAY" || method === "ONLINE" || method === "CARD") {
+    return res.status(400).json({
+      message: "Use /api/orders/razorpay/order for online payments."
+    });
+  }
+
+  if (method === "STRIPE") {
     return res.status(400).json({
       message: "Use /api/orders/stripe/checkout-session for card payments."
     });
   }
 
   return placeCodOrder(req, res);
+});
+
+router.post("/razorpay/order", verifyToken, async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(503).json({
+        message: "Razorpay is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in backend env."
+      });
+    }
+
+    const userId = req.user.id;
+    const { shippingDetails } = req.body;
+
+    const { shipping, missing } = normalizeShippingDetails(shippingDetails);
+    if (missing.length > 0) {
+      return res.status(400).json({
+        message: `Missing shipping fields: ${missing.join(", ")}`
+      });
+    }
+
+    const cartItems = await fetchCartItems(db.query.bind(db), userId, false);
+    const totalPrice = calculateTotal(cartItems);
+    const amountPaise = Math.round(totalPrice * 100);
+
+    const order = await razorpay.orders.create({
+      amount: amountPaise,
+      currency: "INR",
+      receipt: `fe_${userId}_${Date.now()}`,
+      notes: {
+        userId: String(userId),
+        expectedTotal: String(amountPaise)
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency
+      },
+      prefill: {
+        name: shipping.fullName,
+        email: shipping.email,
+        contact: shipping.phone
+      }
+    });
+  } catch (error) {
+    console.error("Razorpay order creation error:", error);
+    return res.status(500).json({ message: "Failed to create Razorpay order" });
+  }
+});
+
+router.post("/razorpay/finalize", verifyToken, async (req, res) => {
+  const connection = await db.getConnection();
+
+  try {
+    if (!razorpay || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({
+        message: "Razorpay is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in backend env."
+      });
+    }
+
+    const userId = req.user.id;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      shippingDetails
+    } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        message: "razorpay_order_id, razorpay_payment_id and razorpay_signature are required"
+      });
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ message: "Invalid payment signature" });
+    }
+
+    const { shipping, missing } = normalizeShippingDetails(shippingDetails);
+    if (missing.length > 0) {
+      return res.status(400).json({
+        message: `Missing shipping fields: ${missing.join(", ")}`
+      });
+    }
+
+    const payment = await razorpay.payments.fetch(razorpay_payment_id);
+
+    if (payment.order_id !== razorpay_order_id) {
+      return res.status(400).json({ message: "Payment does not match the order" });
+    }
+
+    if (!["captured", "authorized"].includes(payment.status)) {
+      return res.status(400).json({ message: "Payment is not completed" });
+    }
+
+    await connection.beginTransaction();
+
+    const cartItems = await fetchCartItems(connection.query.bind(connection), userId, true);
+    const calculatedTotalPaise = Math.round(calculateTotal(cartItems) * 100);
+
+    if (Number(payment.amount || 0) !== calculatedTotalPaise) {
+      throw new Error("Cart total changed. Please try checkout again.");
+    }
+
+    const { orderId } = await createOrderFromCart({
+      connection,
+      userId,
+      shipping,
+      cartItems,
+      paymentMethod: "RAZORPAY",
+      paymentStatus: PAYMENT_STATUS.PAID
+    });
+
+    await connection.commit();
+
+    return res.status(201).json({
+      success: true,
+      message: "Razorpay payment verified and order created",
+      orderId
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Razorpay finalize error:", error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to finalize Razorpay order"
+    });
+  } finally {
+    connection.release();
+  }
 });
 
 router.post("/stripe/checkout-session", verifyToken, async (req, res) => {

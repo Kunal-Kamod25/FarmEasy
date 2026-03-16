@@ -4,6 +4,19 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from '../config';
 
+const loadRazorpayScript = () => {
+    if (window.Razorpay) return Promise.resolve(true);
+
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
     const navigate = useNavigate();
@@ -34,6 +47,7 @@ const Checkout = () => {
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/login");
+            setLoading(false);
             return;
         }
 
@@ -51,19 +65,67 @@ const Checkout = () => {
                     clearCart();
                     navigate("/order-success", { state: { orderId: res.data.orderId } });
                 }
+                setLoading(false);
                 return;
             }
 
-            const stripeRes = await axios.post(`${API_URL}/api/orders/stripe/checkout-session`, orderData, {
+            const isRazorpayLoaded = await loadRazorpayScript();
+            if (!isRazorpayLoaded) {
+                throw new Error("Failed to load Razorpay checkout. Please check your internet and retry.");
+            }
+
+            const razorpayRes = await axios.post(`${API_URL}/api/orders/razorpay/order`, orderData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (stripeRes.data?.checkoutUrl) {
-                window.location.assign(stripeRes.data.checkoutUrl);
+            const { keyId, order, prefill } = razorpayRes.data || {};
+
+            if (!keyId || !order?.id) {
+                throw new Error("Unable to initialize online payment. Please try again.");
             }
+
+            const razorpay = new window.Razorpay({
+                key: keyId,
+                amount: order.amount,
+                currency: order.currency || "INR",
+                name: "FarmEasy",
+                description: "Order payment",
+                order_id: order.id,
+                prefill,
+                theme: { color: "#059669" },
+                modal: {
+                    ondismiss: () => {
+                        setLoading(false);
+                        setError("Payment was cancelled. You can retry checkout.");
+                    }
+                },
+                handler: async (response) => {
+                    try {
+                        setLoading(true);
+                        const finalizeRes = await axios.post(
+                            `${API_URL}/api/orders/razorpay/finalize`,
+                            {
+                                ...response,
+                                shippingDetails: formData,
+                            },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+
+                        if (finalizeRes.data?.success) {
+                            clearCart();
+                            navigate("/order-success", { state: { orderId: finalizeRes.data.orderId } });
+                        }
+                    } catch (finalizeError) {
+                        setError(finalizeError.response?.data?.message || "Payment was received, but order finalization failed. Please contact support.");
+                    } finally {
+                        setLoading(false);
+                    }
+                },
+            });
+
+            razorpay.open();
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to place order. Please try again.");
-        } finally {
+            setError(err.response?.data?.message || err.message || "Failed to place order. Please try again.");
             setLoading(false);
         }
     };
@@ -202,13 +264,13 @@ const Checkout = () => {
                                         <input
                                             type="radio"
                                             name="paymentMethod"
-                                            value="STRIPE"
-                                            checked={formData.paymentMethod === "STRIPE"}
+                                            value="RAZORPAY"
+                                            checked={formData.paymentMethod === "RAZORPAY"}
                                             onChange={handleChange}
                                             className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <div className="ml-3">
-                                            <p className="text-sm font-bold text-gray-900">Pay Online (Card / UPI via Stripe)</p>
+                                            <p className="text-sm font-bold text-gray-900">Pay Online (Card / UPI via Razorpay)</p>
                                             <p className="text-xs text-gray-500">Secure payment, amount verified on server before order creation.</p>
                                         </div>
                                     </label>
@@ -229,7 +291,7 @@ const Checkout = () => {
                                 className={`w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-emerald-700 transition-all active:scale-[0.98] mt-8 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                             >
                                 {loading
-                                    ? (formData.paymentMethod === "STRIPE" ? "Redirecting to secure payment..." : "Processing Order...")
+                                    ? (formData.paymentMethod === "RAZORPAY" ? "Opening secure payment..." : "Processing Order...")
                                     : `Place Order • ₹${cartTotal.toLocaleString()}`}
                             </button>
                         </form>
