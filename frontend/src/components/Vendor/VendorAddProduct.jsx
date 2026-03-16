@@ -41,6 +41,18 @@ const VendorAddProduct = () => {
   const [productsByCategory, setProductsByCategory] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [productTypes, setProductTypes] = useState([
+    "Seeds",
+    "Fertilizer",
+    "Equipment"
+  ]);
+  // Optionally, update productTypes from products in selected category
+  useEffect(() => {
+    if (productsByCategory.length > 0) {
+      const types = Array.from(new Set(productsByCategory.map(p => p.product_type && p.product_type.trim()).filter(Boolean)));
+      if (types.length > 0) setProductTypes(types);
+    }
+  }, [productsByCategory]);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -200,14 +212,18 @@ const VendorAddProduct = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                     Product Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="product_type"
                     value={formData.product_type}
                     onChange={handleChange}
-                    placeholder="e.g. Seeds, Fertilizer, Equipment"
+                    required
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
-                  />
+                  >
+                    <option value="">Select type</option>
+                    {productTypes.map((type, idx) => (
+                      <option key={idx} value={type}>{type}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
