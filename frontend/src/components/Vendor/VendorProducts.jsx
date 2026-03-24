@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
+import { API_URL, getImageUrl } from '../../config';
 
 const VendorProducts = () => {
   const navigate = useNavigate();
@@ -12,10 +13,10 @@ const VendorProducts = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/products", {
+      const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(res.data);
@@ -25,20 +26,20 @@ const VendorProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/vendor/products/${id}`, {
+      await axios.delete(`${API_URL}/api/vendor/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(products.filter((p) => p.id !== id));
-    } catch (error) {
+    } catch {
       alert("Failed to delete");
     }
   };
@@ -122,7 +123,7 @@ const VendorProducts = () => {
             </p>
             {!search && (
               <Link
-                onClick={() => navigate("/vendor/products/add-product")}
+                onClick={() => navigate("/vendor/add-product")}
                 className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2 rounded-xl hover:bg-emerald-700 transition font-semibold"
               >
                 + Add Product
@@ -147,8 +148,13 @@ const VendorProducts = () => {
                   <tr key={product.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <Package size={16} className="text-emerald-600" />
+                        {/* show real product image thumbnail if uploaded */}
+                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {product.product_image ? (
+                            <img src={getImageUrl(product.product_image)} alt={product.product_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Package size={16} className="text-emerald-600" />
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800 leading-tight line-clamp-1 max-w-[180px]">
@@ -254,7 +260,7 @@ export default VendorProducts;
 //       setLoading(true);
 
 //       const res = await axios.get(
-//         "http://localhost:5000/api/vendor/products",
+//         `${API_URL}/api/vendor/products`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
@@ -280,7 +286,7 @@ export default VendorProducts;
 
 //     try {
 //       await axios.delete(
-//         `http://localhost:5000/api/vendor/products/${id}`,
+//         `${API_URL}/api/vendor/products/${id}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${token}`,

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Upload, X, ArrowLeft, Save } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_URL } from '../../config';
 
 const VendorEditProduct = () => {
   const { id } = useParams();
@@ -18,17 +19,33 @@ const VendorEditProduct = () => {
   });
 
   const [images, setImages] = useState([]);
+  const [currentImagePath, setCurrentImagePath] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  const resolveImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    return `${API_URL}${imagePath}`;
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/vendor/products/${id}`,
+          `${API_URL}/api/vendor/products/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setFormData(res.data);
+        const product = res.data || {};
+        setFormData({
+          product_name: product.product_name ?? "",
+          product_description: product.product_description ?? "",
+          product_type: product.product_type ?? "",
+          price: product.price ?? "",
+          category_id: product.category_id ?? "",
+          product_quantity: product.product_quantity ?? "",
+        });
+        setCurrentImagePath(product.product_image || "");
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -62,12 +79,17 @@ const VendorEditProduct = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      const toFormValue = (value) => (value === null || value === undefined ? "" : value);
       const data = new FormData();
-      Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-      images.forEach((img) => data.append("images", img.file));
+      Object.keys(formData).forEach((key) => data.append(key, toFormValue(formData[key])));
+
+      if (images.length > 0) {
+        data.append("product_image", images[0].file);
+      }
 
       await axios.put(
-        `http://localhost:5000/api/vendor/products/${id}`,
+        `${API_URL}/api/vendor/products/${id}`,
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -221,12 +243,39 @@ const VendorEditProduct = () => {
                 Product Images
               </h2>
 
+              {currentImagePath && images.length === 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Current Image
+                  </p>
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img
+                      src={resolveImageUrl(currentImagePath)}
+                      alt="current product"
+                      className="object-cover w-full h-36"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextSibling.style.display = "flex";
+                      }}
+                    />
+                    <div
+                      className="hidden h-36 items-center justify-center text-xs text-gray-500"
+                    >
+                      Current image not found on server
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-2">
+                    Keep this image by saving without selecting a new file.
+                  </p>
+                </div>
+              )}
+
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition group">
                 <div className="bg-emerald-50 group-hover:bg-emerald-100 p-3 rounded-xl mb-3 transition">
                   <Upload className="text-emerald-600" size={20} />
                 </div>
                 <span className="text-sm font-semibold text-gray-700">Upload New Images</span>
-                <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</span>
+                <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 10MB</span>
                 <input
                   type="file"
                   multiple

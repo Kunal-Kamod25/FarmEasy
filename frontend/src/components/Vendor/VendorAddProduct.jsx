@@ -1,7 +1,28 @@
-import React, { useState } from "react";
+// ===========================================================================
+// VendorAddProduct.jsx - Add New Product Page
+// ===========================================================================
+//
+// FLOW:
+// 1. Vendor fills in product name, description, type, price, quantity
+// 2. Vendor optionally uploads a product image (click the upload area)
+// 3. On submit, we build a FormData with all text fields + the image file
+// 4. POST /api/vendor/products with Bearer token + FormData
+// 5. Backend: verifyToken -> multer saves image -> controller inserts into
+//    product table with product_image path like "/uploads/1712345678.jpg"
+// 6. After success, navigate to the products list page
+//
+// IMAGE HANDLING:
+// - Images are stored in local state as { file, preview } objects
+// - Preview URLs are created with URL.createObjectURL for instant display
+// - On submit, the first image's file object is appended to FormData
+// - Backend multer saves it to /backend/uploads/ and we store the path in DB
+// ===========================================================================
+
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Upload, X, Plus, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../../config';
 
 const VendorAddProduct = () => {
   const navigate = useNavigate();
@@ -16,8 +37,40 @@ const VendorAddProduct = () => {
     product_quantity: "",
   });
 
+  const [categories, setCategories] = useState([]);
+  const [productsByCategory, setProductsByCategory] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [productTypes, setProductTypes] = useState([
+    "Seeds",
+    "Fertilizer",
+    "Equipment"
+  ]);
+  // Optionally, update productTypes from products in selected category
+  useEffect(() => {
+    if (productsByCategory.length > 0) {
+      const types = Array.from(new Set(productsByCategory.map(p => p.product_type && p.product_type.trim()).filter(Boolean)));
+      if (types.length > 0) setProductTypes(types);
+    }
+  }, [productsByCategory]);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    axios.get(`${API_URL}/api/categories`)
+      .then(res => setCategories(res.data))
+      .catch(() => setCategories([]));
+  }, []);
+
+  // Fetch products when category changes
+  useEffect(() => {
+    if (formData.category_id) {
+      axios.get(`${API_URL}/api/products/all?category_id=${formData.category_id}`)
+        .then(res => setProductsByCategory(res.data))
+        .catch(() => setProductsByCategory([]));
+    } else {
+      setProductsByCategory([]);
+    }
+  }, [formData.category_id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,20 +99,28 @@ const VendorAddProduct = () => {
     try {
       setLoading(true);
 
+      // use FormData so we can send both text fields and the product image file
+      // multer on the backend expects a field called "product_image"
+      const submitData = new FormData();
+      submitData.append("product_name", formData.product_name);
+      submitData.append("product_description", formData.product_description);
+      submitData.append("product_type", formData.product_type);
+      submitData.append("price", formData.price);
+      submitData.append("category_id", formData.category_id);
+      submitData.append("product_quantity", formData.product_quantity);
+
+      // attach the first selected image as the product thumbnail
+      if (images.length > 0) {
+        submitData.append("product_image", images[0].file);
+      }
+
       await axios.post(
-        "http://localhost:5000/api/vendor/products",
-        {
-          product_name: formData.product_name,
-          product_description: formData.product_description,
-          product_type: formData.product_type,
-          price: formData.price,
-          category_id: formData.category_id,
-          product_quantity: formData.product_quantity,
-        },
+        `${API_URL}/api/vendor/products`,
+        submitData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            // don't set Content-Type manually — browser sets multipart boundary automatically
           },
         }
       );
@@ -128,18 +189,41 @@ const VendorAddProduct = () => {
                   />
                 </div>
 
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                  >
+                    <option value="">Select category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.product_cat_name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                     Product Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="product_type"
                     value={formData.product_type}
                     onChange={handleChange}
-                    placeholder="e.g. Seeds, Fertilizer, Equipment"
+                    required
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
-                  />
+                  >
+                    <option value="">Select type</option>
+                    {productTypes.map((type, idx) => (
+                      <option key={idx} value={type}>{type}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -216,9 +300,6 @@ const VendorAddProduct = () => {
                 </div>
                 <span className="text-sm font-semibold text-gray-700">Click to upload</span>
                 <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</span>
-                <span className="text-xs text-amber-600 mt-2 font-medium bg-amber-50 px-2 py-0.5 rounded-full">
-                  Coming Soon
-                </span>
                 <input
                   type="file"
                   multiple
@@ -288,6 +369,31 @@ const VendorAddProduct = () => {
           </div>
         </div>
       </form>
+
+      {/* Show products by selected category */}
+      {formData.category_id && (
+        <div className="mt-10">
+          <h2 className="text-lg font-bold mb-3">Products in this Category</h2>
+          {productsByCategory.length === 0 ? (
+            <div className="text-gray-500 text-sm">No products found in this category.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {productsByCategory.map(prod => (
+                <div key={prod.id} className="bg-white rounded-xl border p-4 shadow-sm">
+                  <div className="font-semibold text-gray-800">{prod.product_name}</div>
+                  <div className="text-xs text-gray-500 mb-1">Type: {prod.product_type}</div>
+                  <div className="text-xs text-gray-500 mb-1">Price: ₹{prod.price}</div>
+                  <div className="text-xs text-gray-500 mb-1">Stock: {prod.product_quantity}</div>
+                  {prod.product_image && (
+                    <img src={`${API_URL}${prod.product_image}`} alt="product" className="w-full h-24 object-cover rounded mt-2" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };
@@ -356,7 +462,7 @@ export default VendorAddProduct;
 //       setLoading(true);
 
 //       await axios.post(
-//         "http://localhost:5000/api/vendor/products",
+//         `${API_URL}/api/vendor/products`,
 //         {
 //           product_name: formData.product_name,
 //           product_description: formData.product_description,

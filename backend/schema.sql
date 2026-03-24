@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'f537538c-05a8-11f1-84d7-28d04335faf0:1-59';
+-- SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'f537538c-05a8-11f1-84d7-28d04335faf0:1-59';
 
 --
 -- Table structure for table `cart`
@@ -37,6 +37,8 @@ CREATE TABLE `cart` (
   `quantity` int DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_cart_user_product` (`user_id`,`product_id`),
+  KEY `idx_cart_user_created` (`user_id`,`created_at`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
@@ -99,7 +101,7 @@ CREATE TABLE `orders` (
   `user_id` int NOT NULL,
   `order_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `order_status` varchar(100) DEFAULT 'Pending',
-  `total_price` decimal(10,2) DEFAULT NULL,
+  `total_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -116,10 +118,10 @@ DROP TABLE IF EXISTS `payment`;
 CREATE TABLE `payment` (
   `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
-  `payment_method` varchar(100) DEFAULT NULL,
-  `amount` decimal(10,2) DEFAULT NULL,
+  `payment_method` varchar(100) NOT NULL DEFAULT 'COD',
+  `amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `payment_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(100) DEFAULT NULL,
+  `status` varchar(100) NOT NULL DEFAULT 'Pending',
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE

@@ -295,6 +295,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileContent from "./ProfileContent";
+import { API_URL } from '../../config';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");

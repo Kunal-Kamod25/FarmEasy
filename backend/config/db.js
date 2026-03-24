@@ -9,15 +9,18 @@ const pool = mysql.createPool({
     port: process.env.DB_PORT,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
-// Test the connection
+// Test connection
 pool.getConnection((err, connection) => {
     if (err) {
         console.error('Database connection failed:', err.message);
     } else {
-        console.log('Connected to Railway MySQL successfully!');
+        console.log('Connected to Aiven MySQL successfully!');
         connection.release();
     }
 });

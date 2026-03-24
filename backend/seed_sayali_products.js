@@ -9,7 +9,7 @@ const seedProducts = async () => {
     try {
         console.log("🌱 Starting seed for Sayali's products...\n");
 
-        // step 1 - find sayali's user account (checking by name, email contains sayali)
+        // step 1 - find roshan's user account (checking by name, email contains roshan)
         const [users] = await db.query(`
       SELECT id, full_name, email FROM users 
       WHERE LOWER(full_name) LIKE '%sayali%' 

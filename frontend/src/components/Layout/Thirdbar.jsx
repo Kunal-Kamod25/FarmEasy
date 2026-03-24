@@ -1,54 +1,111 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import axios from "axios";
+import { API_URL } from '../../config';
+
+const API = `${API_URL}`;
+
+// ═══════════════════════════════════════════════════════════
+// BRANDS LIST — real Indian agricultural brands farmers recognize
+// clicking a brand navigates to products page filtered by that brand name
+// ═══════════════════════════════════════════════════════════
+const BRAND_LIST = [
+  "Bayer", "Syngenta", "UPL", "Tata Rallis", "Dhanuka",
+  "IFFCO", "Godrej Agrovet", "PI Industries", "Jain Irrigation",
+  "Coromandel", "Chambal", "Kaveri Seeds", "Mahyco", "Netafim",
+];
 
 
-// This component is for single nav item with dropdown
-const NavItem = ({ title, items, categoryId }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// single nav item with hover/click dropdown
+const NavItem = ({
+  title,
+  items,
+  onClick,
+  isOpen,
+  onMouseEnter,
+  onToggle,
+  onItemSelect,
+  isMobileLayout,
+  useTapInteraction,
+}) => {
   const navigate = useNavigate();
-
-  // When clicking category title
-  const handleCategoryClick = (e) => {
-    if (categoryId) {
-      e.stopPropagation();
-      navigate(`/?category=${categoryId}`);
-    }
-  };
 
   return (
     <div
-      className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      className={`relative ${isMobileLayout ? "w-full border-b border-emerald-500/35 last:border-b-0" : ""}`}
+      onMouseEnter={useTapInteraction ? undefined : onMouseEnter}
     >
-      {/* Main Title */}
+      {/* Title — click goes to category page, hover opens dropdown */}
       <div
-        className="flex items-center gap-1 cursor-pointer py-3 md:py-0.5 text-white"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`cursor-pointer text-white ${
+          isMobileLayout
+            ? "flex w-full items-center justify-between py-2.5"
+            : "flex items-center gap-1 py-3 md:py-0.5"
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (useTapInteraction && items && items.length > 0) {
+            if (onToggle) onToggle();
+            return;
+          }
+          if (onClick) {
+            onClick();
+            if (onItemSelect) onItemSelect();
+          }
+        }}
       >
-        <span
-          className="text-sm font-medium uppercase hover:text-emerald-200"
-          onClick={handleCategoryClick}
-        >
+        <span className={`hover:text-emerald-200 transition-colors text-nowrap ${
+          isMobileLayout
+            ? "text-[14px] font-semibold uppercase tracking-[0.03em]"
+            : "text-[13px] font-semibold uppercase tracking-wide"
+        }`}>
           {title}
         </span>
-        <RiArrowDownSLine
-          size={20}
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
+        {items && items.length > 0 && (
+          <RiArrowDownSLine
+            size={isMobileLayout ? 20 : 18}
+            className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          />
+        )}
       </div>
 
-      {/* Dropdown */}
-      {isOpen && items && (
-        <div className="absolute left-0 top-full w-48 bg-white text-gray-800 shadow-xl z-50 max-h-60 overflow-y-auto">
-          <ul className="py-2">
+      {/* Dropdown — shows products under this category */}
+      {isOpen && items && items.length > 0 && (
+        <div
+          className={`${
+            isMobileLayout
+              ? "mt-1 mb-2 w-full bg-white/95 text-slate-800 rounded-lg shadow-lg max-h-52 overflow-y-auto border border-slate-200"
+              : "absolute left-0 top-full w-56 bg-white text-slate-800 rounded-b-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-slate-100"
+          }`}
+        >
+          {/* first item: "View All" link for this category */}
+          {onClick && (
+            <button
+              onClick={() => {
+                onClick();
+                if (onItemSelect) onItemSelect();
+              }}
+              className={`w-full text-left py-2.5 text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-50 border-b border-slate-100 transition-colors ${
+                isMobileLayout ? "px-3" : "px-4"
+              }`}
+            >
+              View All {title} →
+            </button>
+          )}
+          <ul className="py-1">
             {items.map((item, index) => (
               <li key={index}>
                 <button
-                  onClick={() => navigate(item.path)}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                  onClick={() => {
+                    navigate(item.path);
+                    if (onItemSelect) onItemSelect();
+                  }}
+                  className={`w-full text-left hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors ${
+                    isMobileLayout
+                      ? "px-3 py-2 text-[13px] leading-snug font-semibold normal-case"
+                      : "px-4 py-2.5 text-xs font-bold uppercase"
+                  }`}
                 >
                   {item.name}
                 </button>
@@ -62,104 +119,180 @@ const NavItem = ({ title, items, categoryId }) => {
 };
 
 
-
 const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
-  const [categories, setCategories] = useState([]); // store categories from backend
+  const [categories, setCategories] = useState([]);
+  const [openIndex, setOpenIndex] = useState(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const navigate = useNavigate();
+  const navRef = useRef(null);
 
-  // fetch categories when component loads
+  const closeMenu = () => {
+    setNavOpen(false);
+    setOpenIndex(null);
+  };
+
+  const toggleDropdown = (key) => {
+    setOpenIndex((prev) => (prev === key ? null : key));
+  };
+
   useEffect(() => {
+    const detectTouch = () => {
+      if (typeof window === "undefined") return;
+      const touch = window.matchMedia && window.matchMedia("(hover: none)").matches;
+      setIsTouchDevice(!!touch);
+    };
 
+    detectTouch();
+    window.addEventListener("resize", detectTouch);
+    return () => window.removeEventListener("resize", detectTouch);
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, []);
+
+  // fetch categories + their products from backend on mount
+  useEffect(() => {
     const fetchData = async () => {
       try {
+        // Avoid N+1 requests: fetch categories + products once and group locally.
+        const [categoryRes, productRes] = await Promise.all([
+          axios.get(`${API}/api/categories`),
+          axios.get(`${API}/api/products/all`, {
+            params: {
+              sort: "newest",
+              limit: 500,
+            },
+          }),
+        ]);
 
-        // get categories
-        const categoryRes = await axios.get("http://localhost:5000/api/categories");
-        const categoryData = categoryRes.data;
+        const categoryData = categoryRes.data || [];
+        const allProducts = productRes.data || [];
 
-        // get products for each category
-        const updatedCategories = await Promise.all(
-          categoryData.map(async (category) => {
+        const productsByCategory = allProducts.reduce((acc, product) => {
+          const key = product.category_id;
+          if (!key) return acc;
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(product);
+          return acc;
+        }, {});
 
-            const productRes = await axios.get(
-              `http://localhost:5000/api/products/category/${category.id}`
-            );
-
-            return {
-              ...category,
-              products: productRes.data
-            };
-          })
-        );
+        const updatedCategories = categoryData.map((category) => ({
+          ...category,
+          products: productsByCategory[category.id] || [],
+        }));
 
         setCategories(updatedCategories);
-
       } catch (error) {
         console.log("Error fetching data:", error);
       }
     };
 
     fetchData();
-
   }, []);
 
+  // build brand dropdown items — each brand searches by name in /products
+  const brandItems = useMemo(() => BRAND_LIST.map((name) => ({
+    name,
+    path: `/products?search=${encodeURIComponent(name)}`,
+  })), []);
+
   return (
-    <div className="bg-[#0b6e4f] text-white">
-      <nav className="container mx-auto flex items-center justify-between py-2 px-6">
+    <div className="bg-gradient-to-r from-[#0a5e43] via-[#0b6e4f] to-[#0a5e43] text-white shadow-md">
+      {navOpen && (
+        <button
+          type="button"
+          aria-label="Close mobile menu"
+          onClick={closeMenu}
+          className="md:hidden fixed inset-0 bg-black/35 z-40"
+        />
+      )}
+
+      <nav ref={navRef} className="relative container mx-auto flex items-center justify-between py-2 px-4 md:px-6">
 
         {/* Mobile menu button */}
-        <div className="md:hidden flex items-center" onClick={() => setNavOpen(!navOpen)}>
-          {navOpen ? <RiCloseLine size={30} /> : <RiMenuLine size={30} />}
+        <div
+          className="md:hidden flex items-center cursor-pointer"
+          onClick={() => setNavOpen(!navOpen)}
+        >
+          {navOpen ? <RiCloseLine size={28} /> : <RiMenuLine size={28} />}
           <span className="ml-2 font-bold uppercase text-sm">Menu</span>
         </div>
 
-        {/* Menu Links */}
-        <div className={`
-          absolute md:static top-[45px] left-0 w-full md:w-auto bg-[#0b6e4f]
-          flex flex-col md:flex-row md:space-x-6 px-6 md:px-0
-          ${navOpen ? "block" : "hidden md:flex"}
-        `}>
-
-          {/* Static Nav Items */}
+        {/* Menu Links — dynamic from DB */}
+        <div
+          onMouseLeave={() => setOpenIndex(null)}
+          className={`
+            absolute md:static top-full left-0 w-full md:w-auto
+            bg-[#0b6e4f] md:bg-transparent
+            rounded-b-2xl md:rounded-none border-t border-emerald-400/30 md:border-0
+            flex-col md:flex-row md:items-center md:space-x-5 px-4 md:px-0 py-2 md:py-0
+            max-h-[62vh] overflow-y-auto md:overflow-visible
+            ${navOpen ? "flex z-50 shadow-xl" : "hidden md:flex"}
+          `}
+        >
+          {/* All Products — goes to /products page */}
           <NavItem
             title="All Products"
-            categoryId="main"
-            items={[{ name: "View All", path: "/?category=main" }]}
+            onClick={() => navigate("/products")}
+            onItemSelect={closeMenu}
+            isMobileLayout={navOpen}
+            useTapInteraction={navOpen || isTouchDevice}
           />
 
+          {/* Brands — dropdown of real brand names */}
           <NavItem
             title="Brands"
-            items={[
-              { name: "Bayer", path: "/bayer" },
-              { name: "Syngenta", path: "/syngenta" },
-            ]}
+            items={brandItems}
+            isOpen={openIndex === "brands"}
+            onMouseEnter={() => setOpenIndex("brands")}
+            onToggle={() => toggleDropdown("brands")}
+            onItemSelect={closeMenu}
+            isMobileLayout={navOpen}
+            useTapInteraction={navOpen || isTouchDevice}
           />
 
-          {/* Dynamic Categories from Database */}
+          {/* Dynamic Categories from Database — products inside each dropdown */}
           {categories.map((category) => (
             <NavItem
               key={category.id}
               title={category.product_cat_name}
-              categoryId={category.id}
+              isOpen={openIndex === category.id}
+              onMouseEnter={() => setOpenIndex(category.id)}
+              onClick={() => navigate(`/products?category=${category.id}`)}
+              onToggle={() => toggleDropdown(category.id)}
+              onItemSelect={closeMenu}
+              isMobileLayout={navOpen}
+              useTapInteraction={navOpen || isTouchDevice}
               items={
-                category.products
-                  ? category.products.map((product) => ({
+                category.products?.length > 0
+                  ? category.products.slice(0, 20).map((product) => ({
                     name: product.product_name,
-                    path: `/product/${product.id}`
+                    path: `/product/${product.id}`,
                   }))
-                  : []
+                  : null
               }
             />
           ))}
-
         </div>
 
-        {/* Delivery Info */}
-        <div className="hidden md:block text-xs font-bold uppercase text-emerald-100">
-          Free Delivery on orders over ₹3,000
+        {/* Delivery info banner */}
+        <div className="hidden md:flex items-center gap-2 text-xs font-bold uppercase text-emerald-200">
+          <span>🚚</span> Free Delivery on orders over ₹3,000
         </div>
-
       </nav>
     </div>
   );

@@ -81,14 +81,11 @@
 
 // export default UserLayout;
 
-import React, { useState } from 'react'; // Added useState for page logic
+import React from 'react';
 import Topbar from "./Topbar";
 import Navbar from "./Navbar";
 import Thirdbar from "./Thirdbar";
-import Hero from "../HomeSections/Hero";
 import Footer from "../Common/Footer";
-import ProductCard from '../Products/ProductCard';
-import { products } from '../Products/ProductData';
 import { Outlet } from "react-router-dom";
 
 const UserLayout = () => {

@@ -2,6 +2,7 @@ import { RiDeleteBin3Line } from "react-icons/ri";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { API_URL } from '../../config';
 
 const CartContents = () => {
     const { cartItems, cartTotal, removeFromCart, updateQuantity, loading } = useCart();
@@ -59,14 +60,23 @@ const CartContents = () => {
                                 onClick={() => toggleExpand(pid)}
                             >
                                 <img
-                                    src={product.image || product.img || `https://picsum.photos/80?random=${pid}`}
-                                    alt={product.name}
+                                    src={
+                                        product.image
+                                            ? (product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`)
+                                            : (product.img || `https://picsum.photos/80?random=${pid}`)
+                                    }
+                                    alt={product.name || product.product_name}
                                     className="w-20 h-24 object-cover rounded-lg border border-gray-100"
                                 />
                                 <div>
                                     <h3 className="font-semibold text-gray-800 leading-snug">
-                                        {truncateText(product.name, 30)}
+                                        {truncateText(product.name || product.product_name, 30)}
                                     </h3>
+                                    {product.shop_name && (
+                                        <p className="text-[10px] text-gray-400 font-medium">
+                                            Seller: {product.shop_name}
+                                        </p>
+                                    )}
                                     <p className="text-xs text-emerald-600 font-bold mt-1">
                                         ₹{Number(product.price).toLocaleString()}
                                     </p>
@@ -75,18 +85,24 @@ const CartContents = () => {
                                     </p>
 
                                     {/* Quantity Controls */}
-                                    <div className="flex items-center mt-2 gap-2">
+                                    <div className="flex items-center mt-2 gap-2" onClick={(e) => e.stopPropagation()}>
                                         <button
-                                            onClick={() => updateQuantity(product.id, (product.quantity || 1) - 1)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateQuantity(pid, (product.quantity || 1) - 1);
+                                            }}
                                             className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-lg text-lg font-medium text-gray-600 hover:bg-gray-100 active:scale-95 transition-all"
                                         >
                                             −
                                         </button>
-                                        <span className="min-w-[1.5rem] text-center font-semibold text-gray-800">
+                                        <span className="min-w-[1.5rem] text-center font-semibold text-gray-800" onClick={(e) => e.stopPropagation()}>
                                             {product.quantity || 1}
                                         </span>
                                         <button
-                                            onClick={() => updateQuantity(product.id, (product.quantity || 1) + 1)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateQuantity(pid, (product.quantity || 1) + 1);
+                                            }}
                                             className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-lg text-lg font-medium text-gray-600 hover:bg-gray-100 active:scale-95 transition-all"
                                         >
                                             +
@@ -97,7 +113,10 @@ const CartContents = () => {
 
                             {/* Delete Button */}
                             <button
-                                onClick={() => removeFromCart(product.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeFromCart(pid);
+                                }}
                                 className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 flex-shrink-0"
                                 title="Remove item"
                             >

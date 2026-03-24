@@ -1,46 +1,60 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 /* User Layout + Pages */
-import UserLayout from "../components/Layout/UserLayout";
-import Home from "../components/HomeSections/Home";
-import Profile from "../components/profile/Profile";
+const UserLayout = lazy(() => import("../components/Layout/UserLayout"));
+const Home = lazy(() => import("../components/HomeSections/Home"));
+const Profile = lazy(() => import("../components/profile/Profile"));
 
 /* Auth */
-import Login from "../components/Auth/Login";
-import Register from "../components/Auth/RegisterPage";
+const Login = lazy(() => import("../components/Auth/Login"));
+const Register = lazy(() => import("../components/Auth/RegisterPage"));
+const ForgotPassword = lazy(() => import("../components/Auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("../components/Auth/ResetPassword"));
 
 /* Admin */
-import AdminLayout from "../components/Admin/AdminLayout";
-import AdminHomePage from "../Pages/AdminHomePage";
+const AdminLayout = lazy(() => import("../components/Admin/AdminLayout"));
+const AdminHomePage = lazy(() => import("../Pages/AdminHomePage"));
 
 /* Vendor */
-import VendorLayout from "../components/Vendor/VendorLayout";
-import VendorDashboard from "../components/Vendor/VendorDashboard";
-import VendorProducts from "../components/Vendor/VendorProducts";
-import VendorAddProduct from "../components/Vendor/VendorAddProduct";
-import VendorOrders from "../components/Vendor/VendorOrders";
-import VendorSales from "../components/Vendor/VendorSales";
-import VendorProfile from "../components/Vendor/VendorProfile";
-import VendorEditProduct from "../components/Vendor/vendorEditProduct";
+const VendorLayout = lazy(() => import("../components/Vendor/VendorLayout"));
+const VendorDashboard = lazy(() => import("../components/Vendor/VendorDashboard"));
+const VendorProducts = lazy(() => import("../components/Vendor/VendorProducts"));
+const VendorAddProduct = lazy(() => import("../components/Vendor/VendorAddProduct"));
+const VendorOrders = lazy(() => import("../components/Vendor/VendorOrders"));
+const VendorSales = lazy(() => import("../components/Vendor/VendorSales"));
+const VendorProfile = lazy(() => import("../components/Vendor/VendorProfile"));
+const VendorEditProduct = lazy(() => import("../components/Vendor/vendorEditProduct"));
 
 /* Protected Routes */
-import VendorRoute from "./VendorRoute";
+const VendorRoute = lazy(() => import("./VendorRoute"));
+const AdminRoute = lazy(() => import("./AdminRoute"));
 
 /* Products */
-import Wishlist from "../components/Products/wishlist";
-import AllProductsPage from "../components/Products/AllProductsPage";
+const Wishlist = lazy(() => import("../components/Products/wishlist"));
+const AllProductsPage = lazy(() => import("../components/Products/AllProductsPage"));
 
 /* Pages */
-import ProductDetailPage from "../Pages/ProductDetails";
-import CustomerService from "../Pages/CustomerService";
-import Support from "../Pages/Support";
-import ContactUs from "../Pages/ContactUs";
-import AboutUs from "../Pages/AboutUs";
+const ProductDetailPage = lazy(() => import("../Pages/ProductDetails"));
+const CheckoutPage = lazy(() => import("../Pages/Checkout"));
+const OrderSuccessPage = lazy(() => import("../Pages/OrderSuccess"));
+const MyOrdersPage = lazy(() => import("../Pages/MyOrdersPage"));
+const CustomerService = lazy(() => import("../Pages/CustomerService"));
+const Support = lazy(() => import("../Pages/Support"));
+const ContactUs = lazy(() => import("../Pages/ContactUs"));
+const AboutUs = lazy(() => import("../Pages/AboutUs"));
+
+const RouteFallback = (
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 text-sm font-semibold">
+    Loading page...
+  </div>
+);
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={RouteFallback}>
+        <Routes>
 
         {/* ── USER / MAIN ROUTES ── */}
         <Route element={<UserLayout />}>
@@ -57,15 +71,31 @@ const AppRoutes = () => {
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/wishlist" element={<Wishlist />} />
+
+          {/* Checkout & Success */}
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
         </Route>
+
 
         {/* ── AUTH ── */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* ── ADMIN ── */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<AdminHomePage />} />
         </Route>
 
@@ -92,7 +122,8 @@ const AppRoutes = () => {
           <Route path="profile" element={<VendorProfile />} />
         </Route>
 
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

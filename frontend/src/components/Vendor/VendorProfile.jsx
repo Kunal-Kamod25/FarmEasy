@@ -1,11 +1,41 @@
-import React, { useEffect, useState } from "react";
+// ===========================================================================
+// VendorProfile.jsx - Vendor Profile Management Page
+// ===========================================================================
+//
+// WHAT THIS DOES:
+// - Lets the vendor view and edit their personal info, shop details, and profile pic
+// - On load, fetches vendor data from GET /api/vendor/profile using JWT token
+// - On save, sends FormData to PUT /api/vendor/profile (supports image upload)
+//
+// HOW IT WORKS:
+// 1. Component mounts -> fetchProfile() fires
+// 2. fetchProfile sends GET request with Bearer token in headers
+//    Backend decodes token to find user ID, queries users + seller tables
+// 3. Response comes back with vendor_name, email, phone, store_name, etc.
+//    We map these into local state so form fields show the current values
+// 4. User edits fields + optionally picks a new profile picture
+// 5. handleSubmit builds a FormData object (text fields + optional image file)
+//    and sends PUT request to the same endpoint
+// 6. Backend updates users table (personal info) and seller table (shop info)
+//    If a new profile image was uploaded, multer saves it and we store the path
+// 7. After save, we re-fetch to show the latest data including new image URL
+//
+// WHY FORMDATA INSTEAD OF JSON:
+// - JSON can't carry binary files (images)
+// - FormData lets us send both text fields and files in one HTTP request
+// - multer middleware on backend only works with multipart/form-data
+// ===========================================================================
+
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL, getImageUrl } from '../../config';
 import {
   User, MapPin, Phone, Mail, Camera, Store,
   Globe, CreditCard, Shield, CheckCircle, Edit3, Save, X
 } from "lucide-react";
 
 const VendorProfile = () => {
+  // grab the JWT token that was stored after login — every API call needs this
   const token = localStorage.getItem("token");
 
   const [profile, setProfile] = useState({
@@ -23,6 +53,13 @@ const VendorProfile = () => {
     ifsc_code: "",
     profile_image: "",
     bio: "",
+    joined_at: "",
+    total_orders: 0,
+    account_status: {
+      profile_verified: false,
+      email_verified: false,
+      gst_submitted: false,
+    },
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -31,23 +68,60 @@ const VendorProfile = () => {
   const [fetching, setFetching] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  // ── FETCH PROFILE ──
+  // calls GET /api/vendor/profile which reads from users + seller table using the JWT token
+  // the token has the user id inside it, so backend knows who we are
+  const fetchProfile = useCallback(async () => {
     try {
       setFetching(true);
-      const res = await axios.get("http://localhost:5000/api/vendor/profile", {
-        headers: { Authorization: `Bearer ${token}` },
+
+      const res = await axios.get(
+        `${API_URL}/api/vendor/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // map backend field names to our local state shape
+      setProfile({
+        vendor_name: res.data.vendor_name || "",
+        store_name: res.data.store_name || "",
+        phone: res.data.phone || "",
+        address: res.data.address || "",
+        city: res.data.city || "",
+        state: res.data.state || "",
+        pincode: res.data.pincode || "",
+        bio: res.data.bio || "",
+        email: res.data.email || "",
+        gst_number: res.data.gst_number || "",
+        profile_image: res.data.profile_image || "",
+        joined_at: res.data.created_at || "",
+        total_orders: Number(res.data.total_orders || 0),
+        account_status: res.data.account_status || {
+          profile_verified: false,
+          email_verified: false,
+          gst_submitted: false,
+        },
+        website: "",
+        bank_account: "",
+        ifsc_code: "",
       });
-      setProfile(res.data);
+
+      // if they already have a profile pic saved in DB, show it
+      if (res.data.profile_image) {
+        setImagePreview(getImageUrl(res.data.profile_image));
+      }
+
     } catch (error) {
       console.error("Profile fetch error:", error);
     } finally {
       setFetching(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,25 +136,51 @@ const VendorProfile = () => {
     }
   };
 
+  // ── SAVE PROFILE ──
+  // sends PUT /api/vendor/profile with all form data + optional profile image file
+  // uses FormData so multer on backend can handle the image upload
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       setLoading(true);
-      const data = new FormData();
-      Object.keys(profile).forEach((key) => data.append(key, profile[key]));
-      if (imageFile) data.append("profile_image", imageFile);
 
-      await axios.put("http://localhost:5000/api/vendor/profile", data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // FormData lets us send both text fields and file in one request
+      const formData = new FormData();
+      formData.append("vendor_name", profile.vendor_name);
+      formData.append("phone", profile.phone);
+      formData.append("address", profile.address);
+      formData.append("city", profile.city);
+      formData.append("state", profile.state);
+      formData.append("pincode", profile.pincode);
+      formData.append("bio", profile.bio);
+      formData.append("store_name", profile.store_name);
+      formData.append("gst_number", profile.gst_number);
+
+      // only attach image if vendor picked a new one
+      if (imageFile) {
+        formData.append("profile_image", imageFile);
+      }
+
+      await axios.put(
+        `${API_URL}/api/vendor/profile`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // let browser set Content-Type with boundary for multipart
+          }
+        }
+      );
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+
+      // re-fetch to get the updated profile_image URL from server
+      await fetchProfile();
+
     } catch (error) {
-      console.error("Profile update error:", error);
+      console.error("Profile update error:", error.response?.data || error);
       alert("Failed to update profile");
     } finally {
       setLoading(false);
@@ -126,9 +226,15 @@ const VendorProfile = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
               <div className="relative mb-4">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-emerald-50 flex items-center justify-center shadow-md">
-                  {imagePreview || profile.profile_image ? (
+                  {imagePreview ? (
                     <img
-                      src={imagePreview || profile.profile_image}
+                      src={imagePreview}
+                      alt="profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : profile.profile_image ? (
+                    <img
+                      src={getImageUrl(profile.profile_image)}
                       alt="profile"
                       className="w-full h-full object-cover"
                     />
@@ -151,6 +257,11 @@ const VendorProfile = () => {
               <p className="text-gray-400 text-xs mt-1">
                 {profile.city && profile.state ? `${profile.city}, ${profile.state}` : "Location"}
               </p>
+              {profile.joined_at && (
+                <p className="text-gray-400 text-[11px] mt-1">
+                  Joined {new Date(profile.joined_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                </p>
+              )}
 
               <div className="mt-4 w-full pt-4 border-t border-gray-100 space-y-2 text-left">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -160,6 +271,10 @@ const VendorProfile = () => {
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Phone size={13} className="text-emerald-500" />
                   <span>{profile.phone || "—"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Store size={13} className="text-emerald-500" />
+                  <span>{Number(profile.total_orders || 0)} orders as customer</span>
                 </div>
               </div>
             </div>
@@ -173,19 +288,29 @@ const VendorProfile = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-500">Profile</span>
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Verified</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Email</span>
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Verified</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">GST</span>
-                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.gst_number
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.profile_verified
                     ? "bg-emerald-50 text-emerald-700"
                     : "bg-amber-50 text-amber-700"
                     }`}>
-                    {profile.gst_number ? "Submitted" : "Pending"}
+                    {profile.account_status?.profile_verified ? "Verified" : "Incomplete"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Email</span>
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.email_verified
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
+                    }`}>
+                    {profile.account_status?.email_verified ? "Verified" : "Pending"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">GST</span>
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.gst_submitted
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
+                    }`}>
+                    {profile.account_status?.gst_submitted ? "Submitted" : "Pending"}
                   </span>
                 </div>
               </div>
@@ -414,7 +539,7 @@ export default VendorProfile;
 //   const fetchProfile = async () => {
 //     try {
 //       const res = await axios.get(
-//         "http://localhost:5000/api/vendor/profile",
+//         `${API_URL}/api/vendor/profile`,
 //         {
 //           headers: { Authorization: `Bearer ${token}` },
 //         }
@@ -456,7 +581,7 @@ export default VendorProfile;
 //       }
 
 //       await axios.put(
-//         "http://localhost:5000/api/vendor/profile",
+//         `${API_URL}/api/vendor/profile`,
 //         data,
 //         {
 //           headers: {

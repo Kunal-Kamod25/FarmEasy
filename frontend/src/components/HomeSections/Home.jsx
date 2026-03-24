@@ -2,13 +2,18 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Hero from "./Hero";
-import HomeSections from "./HomeSections";
 import BrandSection from "./BrandSection";
-import { Package, ShoppingCart, Heart, Store } from "lucide-react";
+import { API_URL } from '../../config';
+import {
+  Sparkles, TrendingUp, ArrowRight,
+  Truck, ShieldCheck, Headphones, Sprout, Star
+} from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { ProductCard, LoadingSkeleton, EmptyState } from "./HomeProductCard";
+import CategorySection from "./CategorySection";
 
-const API = "http://localhost:5000";
+const API = `${API_URL}`;
 
 const Home = () => {
   const [searchParams] = useSearchParams();
@@ -18,7 +23,6 @@ const Home = () => {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
-  // all products fetched from DB (no more ProductData.js)
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -34,7 +38,7 @@ const Home = () => {
       const res = await axios.get(`${API}/api/products/all?sort=newest`);
       setAllProducts(res.data || []);
     } catch (err) {
-      console.error("Failed to load products from API:", err);
+      console.error("Failed to load products:", err);
       setAllProducts([]);
     } finally {
       setLoading(false);
@@ -50,83 +54,169 @@ const Home = () => {
     }
   };
 
-  // filter by category if a category tab is selected on home
-  const filteredProducts = useMemo(() => {
-    if (categoryParam === "main") return allProducts;
-
-    // match by category name (case insensitive partial match)
-    return allProducts.filter(p =>
-      p.category_name?.toLowerCase().includes(categoryParam.toLowerCase())
-    );
-  }, [allProducts, categoryParam]);
-
-  // fertilizer products for the featured section in HomeSections
-  const fertilizerProducts = useMemo(() => {
-    return allProducts.filter(p =>
-      p.category_name?.toLowerCase().includes("fertilizer")
-    );
+  const productsByCategory = useMemo(() => {
+    const grouped = {};
+    allProducts.forEach((p) => {
+      const cat = p.category_name || "Other";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(p);
+    });
+    return grouped;
   }, [allProducts]);
 
-  const handleNavigate = (page) => {
-    if (page === "fertilizers") {
-      navigate("/products");
-    } else {
-      navigate("/products");
-    }
-  };
+  const newArrivals = useMemo(() => {
+    return [...allProducts]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 8);
+  }, [allProducts]);
 
-  const handleViewDetails = (product) => {
-    navigate(`/product/${product.id}`);
-  };
+  // Generic Recommendations logic: 
+  // Pick some products that are well-stocked and maybe a mix of categories
+  const recommendations = useMemo(() => {
+    return [...allProducts]
+      .filter(p => p.product_quantity > 0)
+      .sort(() => 0.5 - Math.random()) // generic random mix
+      .slice(0, 4);
+  }, [allProducts]);
+
+  const activeCategories = useMemo(() => {
+    return categories.filter(
+      (cat) => productsByCategory[cat.product_cat_name]?.length > 0
+    );
+  }, [categories, productsByCategory]);
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-amber-50/30 to-green-50">
 
-      {/* Hero - full width, only on main tab */}
       {categoryParam === "main" && <Hero />}
 
-      {/* Page title + View All */}
-      <div className="w-full max-w-7xl mx-auto px-6 py-8">
+      {/* ═══════════════ NEW ARRIVALS SECTION ═══════════════ */}
+      <section className="w-full max-w-7xl mx-auto px-6 pt-10 pb-4">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 uppercase tracking-tight">
-              {categoryParam === "main" ? "Our Products" : categoryParam.replace("-", " ")}
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm font-medium">
-              {loading ? "Loading..." : `${filteredProducts.length} products available`}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-purple-200">
+              <Sparkles size={20} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-800">
+                New Arrivals
+              </h2>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Fresh products just added by vendors
+              </p>
+            </div>
           </div>
           <button
             onClick={() => navigate("/products")}
-            className="text-sm font-bold text-emerald-700 hover:text-emerald-800 hover:underline transition"
+            className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition"
           >
-            View All Products →
+            View All <ArrowRight size={14} />
           </button>
         </div>
 
-        {/* Product Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse border border-slate-100">
-                <div className="h-40 bg-slate-100" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3 bg-slate-100 rounded w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded w-1/2" />
-                </div>
-              </div>
+          <LoadingSkeleton count={4} />
+        ) : newArrivals.length === 0 ? (
+          <EmptyState message="No products yet. Products will appear once vendors add them." />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {newArrivals.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addToCart}
+                onToggleWishlist={toggleWishlist}
+                isWishlisted={isWishlisted(product.id)}
+                onViewDetail={() => navigate(`/product/${product.id}`)}
+                badge="NEW"
+                badgeColor="bg-violet-500"
+              />
             ))}
           </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-            <Package size={36} className="text-slate-200 mx-auto mb-3" />
-            <p className="text-slate-500 font-semibold">No products yet</p>
-            <p className="text-slate-400 text-sm mt-1">Products will appear here once vendors add them</p>
+        )}
+      </section>
+
+      {categoryParam === "main" && <BrandSection />}
+
+      {/* ═══════════════ RECOMMENDED FOR YOU ═══════════════ */}
+      {!loading && recommendations.length > 0 && (
+        <section className="w-full max-w-7xl mx-auto px-6 py-12">
+          <div className="bg-white rounded-3xl p-8 shadow-xl shadow-emerald-100/20 border border-emerald-100/50">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2.5 rounded-xl shadow-lg shadow-amber-200">
+                <Star size={20} className="text-white fill-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-800">
+                  Recommended for You
+                </h2>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  Handpicked quality products for your farm
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+              {recommendations.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                  onToggleWishlist={toggleWishlist}
+                  isWishlisted={isWishlisted(product.id)}
+                  onViewDetail={() => navigate(`/product/${product.id}`)}
+                  badge="TOP"
+                  badgeColor="bg-amber-500"
+                />
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {filteredProducts.slice(0, 10).map((product) => (
-              <HomeProductCard
+        </section>
+      )}
+
+      {/* ═══════════════ DYNAMIC CATEGORY SECTIONS ═══════════════ */}
+      {!loading &&
+        activeCategories.map((cat, idx) => (
+          <CategorySection
+            key={cat.id}
+            cat={cat}
+            products={productsByCategory[cat.product_cat_name] || []}
+            navigate={navigate}
+            addToCart={addToCart}
+            toggleWishlist={toggleWishlist}
+            isWishlisted={isWishlisted}
+            idx={idx}
+          />
+        ))}
+
+      {/* ═══════════════ ALL PRODUCTS ═══════════════ */}
+      {!loading && allProducts.length > 0 && (
+        <section className="w-full max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2.5 rounded-xl shadow-lg shadow-emerald-200">
+                <TrendingUp size={20} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-800">
+                  All Products
+                </h2>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  {allProducts.length} products from verified vendors
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/products")}
+              className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition"
+            >
+              Browse All <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {allProducts.slice(0, 12).map((product) => (
+              <ProductCard
                 key={product.id}
                 product={product}
                 onAddToCart={addToCart}
@@ -136,132 +226,43 @@ const Home = () => {
               />
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Brand Section */}
-      {categoryParam === "main" && <BrandSection />}
-
-      {/* Home Sections (featured fertilizers + recommended) */}
-      {categoryParam === "main" && (
-        <HomeSections
-          fertilizerProducts={fertilizerProducts}
-          products={allProducts}
-          onNavigate={handleNavigate}
-          onViewDetails={handleViewDetails}
-        />
+        </section>
       )}
-    </div>
-  );
-};
 
+      {/* ═══════════════ WHY FARMEASY ═══════════════ */}
+      {categoryParam === "main" && (
+        <section className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 py-14 mt-8">
+          <div className="w-full max-w-7xl mx-auto px-6">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-extrabold text-white mb-2">
+                Why Farmers Trust FarmEasy
+              </h2>
+              <p className="text-emerald-100 text-sm max-w-xl mx-auto">
+                We are built for farmers, by people who understand farming.
+                Quality products, honest prices, delivered to your doorstep.
+              </p>
+            </div>
 
-// compact product card specifically for the home page grid
-const HomeProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onViewDetail }) => {
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = async (e) => {
-    e.stopPropagation();
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Please login to add to cart");
-      return;
-    }
-    await onAddToCart(product);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
-  };
-
-  const handleWishlist = (e) => {
-    e.stopPropagation();
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Please login to save to wishlist");
-      return;
-    }
-    onToggleWishlist(product);
-  };
-
-  const inStock = product.product_quantity > 0;
-
-  return (
-    <div
-      onClick={onViewDetail}
-      className="group cursor-pointer bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
-    >
-
-      {/* image area */}
-      <div className="relative h-40 bg-slate-50 flex items-center justify-center overflow-hidden">
-
-        {/* wishlist button */}
-        <button
-          onClick={handleWishlist}
-          className="absolute top-2 right-2 bg-white/90 rounded-full p-1.5 shadow-sm border border-slate-100 hover:scale-110 transition z-10"
-        >
-          <Heart
-            size={13}
-            className={isWishlisted ? "text-red-500 fill-red-500" : "text-slate-400"}
-          />
-        </button>
-
-        {/* category badge for hover */}
-        {product.category_name && (
-          <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-            {product.category_name}
-          </span>
-        )}
-
-        {/* product icon placeholder */}
-        <div className="group-hover:scale-105 transition-transform duration-500">
-          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto">
-            <Package size={28} className="text-emerald-300" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              {[
+                { icon: <Truck size={28} />, title: "Free Delivery", desc: "On orders above ₹3,000 across India", color: "bg-white/20" },
+                { icon: <ShieldCheck size={28} />, title: "Genuine Products", desc: "100% authentic from verified vendors", color: "bg-white/20" },
+                { icon: <Sprout size={28} />, title: "Farmer First", desc: "Best prices for seeds, fertilizers & tools", color: "bg-white/20" },
+                { icon: <Headphones size={28} />, title: "Kisan Support", desc: "Expert help in Hindi, Marathi & English", color: "bg-white/20" },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className={`${item.color} backdrop-blur-sm rounded-2xl p-6 text-center border border-white/10 hover:bg-white/30 transition-colors`}
+                >
+                  <div className="text-white mb-3 flex justify-center">{item.icon}</div>
+                  <h3 className="text-white font-bold text-sm mb-1">{item.title}</h3>
+                  <p className="text-emerald-100 text-[11px] leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* out of stock overlay */}
-        {!inStock && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full border border-red-200">
-              Out of Stock
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* content */}
-      <div className="p-3 flex flex-col flex-grow">
-
-        <h3 className="font-semibold text-slate-800 text-xs leading-snug line-clamp-2 mb-1 group-hover:text-emerald-700 transition-colors">
-          {product.product_name}
-        </h3>
-
-        {/* seller name - multi-vendor support */}
-        <div className="flex items-center gap-1 mb-2">
-          <Store size={9} className="text-emerald-500 flex-shrink-0" />
-          <span className="text-[10px] text-slate-500 truncate">
-            {product.shop_name || product.seller_name || "FarmEasy"}
-          </span>
-        </div>
-
-        {/* price + add button */}
-        <div className="flex items-center justify-between mt-auto">
-          <p className="text-sm font-black text-slate-900">
-            ₹{Number(product.price).toLocaleString()}
-          </p>
-          <button
-            onClick={handleAdd}
-            disabled={!inStock}
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition ${added
-                ? "bg-green-500 text-white"
-                : !inStock
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  : "bg-emerald-600 text-white hover:bg-emerald-700"
-              }`}
-          >
-            {added ? "✓" : <><ShoppingCart size={10} /> Add</>}
-          </button>
-        </div>
-      </div>
+        </section>
+      )}
     </div>
   );
 };

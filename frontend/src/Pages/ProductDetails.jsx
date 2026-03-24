@@ -1,6 +1,29 @@
-import React, { useState, useEffect } from "react";
+// ===========================================================================
+// ProductDetails.jsx - Single Product Detail Page
+// ===========================================================================
+//
+// ROUTE: /product/:id
+//
+// FLOW:
+// 1. Gets product ID from URL params (useParams)
+// 2. Calls GET /api/products/:id which returns:
+//    - All product fields (name, desc, price, quantity, product_image, etc.)
+//    - Seller info (shop_name, seller_name, city, state)
+//    - moreFromSeller array (up to 4 other products from same vendor)
+// 3. Displays the product image if uploaded, or a placeholder icon
+// 4. Shows price, stock status, quantity picker, add-to-cart button
+// 5. Shows seller info card at the bottom
+// 6. Shows "More from this seller" grid with thumbnails linking to those products
+//
+// CART & WISHLIST:
+// - Uses CartContext and WishlistContext for add-to-cart and wishlist toggle
+// - Both require login (checks token in localStorage)
+// ===========================================================================
+
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { API_URL, getImageUrl } from '../config';
 import {
   ArrowLeft, ShoppingCart, Heart, Store, Package,
   MapPin, Star, CheckCircle, AlertCircle, Truck,
@@ -8,6 +31,7 @@ import {
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import LoginModal from "../components/Common/LoginModal";
 
 // single product detail page - shows everything about one product
 // also shows other products from the same seller at the bottom
@@ -20,22 +44,18 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    // scroll to top when navigating to a new product
-    window.scrollTo(0, 0);
-    fetchProduct();
-  }, [id]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`http://localhost:5000/api/products/${id}`);
+      const res = await axios.get(`${API_URL}/api/products/${id}`);
       setProduct(res.data);
     } catch (err) {
       console.error("Failed to load product:", err);
@@ -43,25 +63,31 @@ const ProductDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    // scroll to top when navigating to a new product
+    window.scrollTo(0, 0);
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleAddToCart = async () => {
     if (!token) {
-      alert("Please login to add items to cart");
-      navigate("/login");
+      setLoginMessage("Please login to add items to your cart.");
+      setShowLoginModal(true);
       return;
     }
 
-    // we pass quantity info along with the product
-    await addToCart({ ...product, quantity });
+    // we pass product and quantity separately
+    await addToCart(product, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const handleWishlist = () => {
     if (!token) {
-      alert("Please login to save to wishlist");
-      navigate("/login");
+      setLoginMessage("Please login to save products to your wishlist.");
+      setShowLoginModal(true);
       return;
     }
     toggleWishlist(product);
@@ -78,7 +104,7 @@ const ProductDetailPage = () => {
   // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50 p-6">
         <div className="max-w-5xl mx-auto animate-pulse">
           <div className="h-8 w-32 bg-slate-200 rounded-xl mb-6" />
           <div className="bg-white rounded-2xl p-8 flex gap-8">
@@ -99,7 +125,7 @@ const ProductDetailPage = () => {
   // ── ERROR STATE ──
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl p-12 shadow-sm border border-slate-100">
           <AlertCircle size={48} className="text-red-300 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-700 mb-2">Product Not Found</h2>
@@ -119,7 +145,9 @@ const ProductDetailPage = () => {
   const wishlisted = isWishlisted(product.id);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <>
+    {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50">
 
       {/* ── BREADCRUMB / BACK NAV ── */}
       <div className="bg-white border-b border-slate-100 px-6 py-4">
@@ -161,12 +189,24 @@ const ProductDetailPage = () => {
                 </span>
               )}
 
-              {/* placeholder since we don't store images yet */}
-              <div className="text-center p-8">
+              {/* show real product image if it exists, otherwise show a styled placeholder */}
+              {product.product_image ? (
+                <img
+                  src={getImageUrl(product.product_image)}
+                  alt={product.product_name}
+                  className="max-w-full max-h-full object-contain p-4"
+                  onError={(e) => {
+                    // fallback if the saved image file is missing
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className="text-center p-8" style={{ display: product.product_image ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="w-32 h-32 mx-auto bg-emerald-50 rounded-3xl flex items-center justify-center mb-4">
                   <Package size={56} className="text-emerald-300" />
                 </div>
-                <p className="text-slate-400 text-xs">Product image coming soon</p>
+                <p className="text-slate-400 text-xs">No product image uploaded</p>
               </div>
             </div>
 
@@ -332,8 +372,13 @@ const ProductDetailPage = () => {
                   to={`/product/${p.id}`}
                   className="bg-slate-50 hover:bg-emerald-50 rounded-xl p-4 transition group border border-transparent hover:border-emerald-200"
                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                    <Package size={20} className="text-emerald-400" />
+                  {/* show product thumbnail if uploaded, else placeholder icon */}
+                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
+                    {p.product_image ? (
+                      <img src={getImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package size={20} className="text-emerald-400" />
+                    )}
                   </div>
                   <p className="text-xs font-semibold text-slate-700 text-center line-clamp-2 group-hover:text-emerald-700">
                     {p.product_name}
@@ -348,6 +393,7 @@ const ProductDetailPage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

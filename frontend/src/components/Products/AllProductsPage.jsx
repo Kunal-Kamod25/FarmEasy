@@ -1,18 +1,59 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { API_URL } from '../../config';
 import {
-    Search, SlidersHorizontal, X, ShoppingCart,
-    Star, Heart, Store, ChevronDown, Package,
+    Search, SlidersHorizontal, X, ChevronDown, Package,
     ArrowUpDown, Filter
 } from "lucide-react";
-import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import AllProductsProductCard from "./AllProductsProductCard";
+
+const DEFAULT_FILTERS = {
+    search: "",
+    category_id: "",
+    min_price: "",
+    max_price: "",
+    product_type: "",
+    seller_id: "",
+    sort: "newest"
+};
+
+const VALID_SORTS = new Set(["newest", "oldest", "price_asc", "price_desc"]);
+
+const getInitialFiltersFromQuery = (searchParams) => {
+    const getParam = (...keys) => {
+        for (const key of keys) {
+            const value = searchParams.get(key);
+            if (value !== null && value !== "") return value;
+        }
+        return "";
+    };
+
+    const parsed = {
+        ...DEFAULT_FILTERS,
+        search: getParam("search"),
+        // Support both `category_id` and existing legacy `category` links.
+        category_id: getParam("category_id", "category"),
+        min_price: getParam("min_price"),
+        max_price: getParam("max_price"),
+        // Support a shorter alias for type-based links.
+        product_type: getParam("product_type", "type"),
+        seller_id: getParam("seller_id")
+    };
+
+    const sort = getParam("sort");
+    if (sort && VALID_SORTS.has(sort)) {
+        parsed.sort = sort;
+    }
+
+    return parsed;
+};
 
 // this whole page shows all products from DB with real filters - no static data at all
 const AllProductsPage = () => {
     const navigate = useNavigate();
-    const { addToCart } = useCart();
+    const [searchParams] = useSearchParams();
     const { toggleWishlist, isWishlisted } = useWishlist();
 
     const [products, setProducts] = useState([]);
@@ -23,24 +64,27 @@ const AllProductsPage = () => {
     const [filtersOpen, setFiltersOpen] = useState(false);
 
     // all filter state in one object - easy to reset
-    const [filters, setFilters] = useState({
-        search: "",
-        category_id: "",
-        min_price: "",
-        max_price: "",
-        product_type: "",
-        seller_id: "",
-        sort: "newest"
-    });
+    const [filters, setFilters] = useState(() => getInitialFiltersFromQuery(searchParams));
+
+    useEffect(() => {
+        const urlFilters = getInitialFiltersFromQuery(searchParams);
+
+        setFilters((prev) => {
+            const isSame = Object.keys(DEFAULT_FILTERS).every(
+                (key) => prev[key] === urlFilters[key]
+            );
+            return isSame ? prev : urlFilters;
+        });
+    }, [searchParams]);
 
     // fetch the dropdown data for filters - categories, types, sellers
     useEffect(() => {
         const fetchFilterMeta = async () => {
             try {
                 const [catRes, typeRes, sellerRes] = await Promise.all([
-                    axios.get("http://localhost:5000/api/categories"),
-                    axios.get("http://localhost:5000/api/products/meta/types"),
-                    axios.get("http://localhost:5000/api/products/meta/sellers")
+                    axios.get(`${API_URL}/api/categories`),
+                    axios.get(`${API_URL}/api/products/meta/types`),
+                    axios.get(`${API_URL}/api/products/meta/sellers`)
                 ]);
                 setCategories(catRes.data);
                 setProductTypes(typeRes.data);
@@ -64,7 +108,7 @@ const AllProductsPage = () => {
                 if (val !== "") params[key] = val;
             });
 
-            const res = await axios.get("http://localhost:5000/api/products/all", { params });
+            const res = await axios.get(`${API_URL}/api/products/all`, { params });
             setProducts(res.data);
         } catch (err) {
             console.error("Failed to load products:", err);
@@ -82,15 +126,7 @@ const AllProductsPage = () => {
     };
 
     const clearAllFilters = () => {
-        setFilters({
-            search: "",
-            category_id: "",
-            min_price: "",
-            max_price: "",
-            product_type: "",
-            seller_id: "",
-            sort: "newest"
-        });
+        setFilters(DEFAULT_FILTERS);
     };
 
     // check if any filter is active so we can show the "clear" button
@@ -99,7 +135,7 @@ const AllProductsPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-amber-50/20 to-teal-50">
 
             {/* ── PAGE HEADER ── */}
             <div className="bg-white border-b border-slate-100 px-6 py-5">
@@ -297,10 +333,9 @@ const AllProductsPage = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                                 {products.map(product => (
-                                    <ProductCard
+                                    <AllProductsProductCard
                                         key={product.id}
                                         product={product}
-                                        onAddToCart={addToCart}
                                         onToggleWishlist={toggleWishlist}
                                         isWishlisted={isWishlisted(product.id)}
                                         onViewDetail={() => navigate(`/product/${product.id}`)}
@@ -308,125 +343,6 @@ const AllProductsPage = () => {
                                 ))}
                             </div>
                         )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-// ── PRODUCT CARD (local to this page, shows vendor name + price) ──
-const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onViewDetail }) => {
-    const [added, setAdded] = useState(false);
-    const token = localStorage.getItem("token");
-
-    const handleAdd = async () => {
-        await onAddToCart(product);
-        setAdded(true);
-        setTimeout(() => setAdded(false), 1500);
-    };
-
-    const handleWishlist = () => {
-        if (!token) {
-            alert("Please login to save to wishlist");
-            return;
-        }
-        onToggleWishlist(product);
-    };
-
-    return (
-        <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
-
-            {/* image area */}
-            <div className="relative h-48 bg-slate-50 flex items-center justify-center overflow-hidden">
-                {/* wishlist heart */}
-                <button
-                    onClick={handleWishlist}
-                    className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm border border-slate-100 hover:scale-110 transition z-10"
-                >
-                    <Heart
-                        size={15}
-                        className={isWishlisted ? "text-red-500 fill-red-500" : "text-slate-400"}
-                    />
-                </button>
-
-                {/* category badge */}
-                {product.category_name && (
-                    <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
-                        {product.category_name}
-                    </span>
-                )}
-
-                {/* product placeholder image since we don't have real images yet */}
-                <div className="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                    <div className="text-center">
-                        <div className="w-20 h-20 mx-auto bg-emerald-50 rounded-2xl flex items-center justify-center mb-2">
-                            <Package size={32} className="text-emerald-400" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* out of stock overlay */}
-                {product.product_quantity === 0 && (
-                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                        <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full border border-red-200">
-                            Out of Stock
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* content */}
-            <div className="p-4 flex flex-col flex-grow">
-
-                {/* product name */}
-                <h3
-                    onClick={onViewDetail}
-                    className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 mb-1 cursor-pointer hover:text-emerald-700 transition-colors"
-                >
-                    {product.product_name}
-                </h3>
-
-                {/* description snippet */}
-                <p className="text-slate-500 text-xs line-clamp-2 mb-3 flex-grow leading-relaxed">
-                    {product.product_description || "No description available"}
-                </p>
-
-                {/* seller info - this is the key part for multi-vendor */}
-                <div className="flex items-center gap-1.5 mb-3 bg-slate-50 rounded-lg px-2.5 py-1.5">
-                    <Store size={11} className="text-emerald-600 flex-shrink-0" />
-                    <span className="text-[11px] text-slate-600 truncate font-medium">
-                        {product.shop_name || product.seller_name || "Unknown Seller"}
-                    </span>
-                </div>
-
-                {/* price + actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                    <div>
-                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Price</p>
-                        <p className="text-lg font-black text-slate-900">₹{Number(product.price).toLocaleString()}</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onViewDetail}
-                            className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:border-emerald-400 hover:text-emerald-600 transition"
-                        >
-                            Details
-                        </button>
-                        <button
-                            onClick={handleAdd}
-                            disabled={product.product_quantity === 0}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold transition ${added
-                                ? "bg-green-500 text-white"
-                                : product.product_quantity === 0
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                                }`}
-                        >
-                            {added ? "✓ Added" : "Add"}
-                        </button>
                     </div>
                 </div>
             </div>

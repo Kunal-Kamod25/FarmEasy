@@ -1,34 +1,54 @@
+// ===========================================================================
+// ProductCard.jsx - Reusable Product Card Component
+// ===========================================================================
+//
+// Used on AllProductsPage.jsx to display each product in a grid
+//
+// WHAT IT SHOWS:
+// - Product image (from backend /uploads/ path, or fallback placeholder)
+// - Product name, brand/type, description, rating, price
+// - Wishlist heart button and "Add to Cart" button
+//
+// IMAGE LOGIC:
+// - First tries product.product_image (uploaded by vendor, stored in DB)
+//   Prefixes with API_URL since we store just "/uploads/file.jpg"
+// - Falls back to product.img or product.image (for any static/mock data)
+// - If all fail, shows a generated placeholder with the product name
+// ===========================================================================
+
 import React, { useState } from 'react';
-import { ShoppingCart, BadgeCheck, Star, Heart, Check } from 'lucide-react';
-import { brands } from './ProductData';
-import { useCart } from '../../context/CartContext';
+import { BadgeCheck, Star, Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
+import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../../config';
+import LoginModal from '../Common/LoginModal';
 
 const ProductCard = ({ product }) => {
-  const [added, setAdded] = useState(false);
-  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const token = localStorage.getItem("token");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState("");
 
-  const wishlisted = isWishlisted(product.id);
+  const pid = product.id || product.product_id;
+  const wishlisted = isWishlisted(pid);
 
-  const handleAddToCart = async () => {
-    await addToCart(product);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+  const handleViewDetails = () => {
+    navigate(`/product/${product.id}`);
   };
 
   const handleToggleWishlist = async () => {
     if (!token) {
-      alert("Please login to add to wishlist");
+      setLoginMessage("Please login to save products to your wishlist.");
+      setShowLoginModal(true);
       return;
     }
     await toggleWishlist(product);
   };
 
-  const brandData = brands.find(b => b.name === product.brand);
-
   return (
+    <>
+    {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
     <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-100 transition-all duration-500 border border-slate-100 overflow-hidden w-full flex flex-col h-full">
 
       {/* Image Container */}
@@ -51,10 +71,14 @@ const ProductCard = ({ product }) => {
         </button>
 
         <img
-          src={product.img || product.image}
-          alt={product.name}
+          src={
+            product.product_image
+              ? `${API_URL}${product.product_image}`
+              : product.img || product.image || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.product_name || product.name || 'Product')}`
+          }
+          alt={product.name || product.product_name}
           onError={(e) => {
-            e.target.src = `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.name?.slice(0, 8) || 'Product')}`;
+            e.target.src = `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.name?.slice(0, 8) || product.product_name?.slice(0, 8) || 'Product')}`;
           }}
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
@@ -125,27 +149,16 @@ const ProductCard = ({ product }) => {
           </div>
 
           <button
-            onClick={handleAddToCart}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 text-white text-[9px] font-bold uppercase tracking-widest py-2.5 px-5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 ${added
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-emerald-600 hover:bg-emerald-700"
-              }`}
+            onClick={handleViewDetails}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 text-white text-[9px] font-bold uppercase tracking-widest py-2.5 px-5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 bg-emerald-600 hover:bg-emerald-700"
           >
-            {added ? (
-              <>
-                <Check size={14} />
-                <span>Added!</span>
-              </>
-            ) : (
-              <>
-                <ShoppingCart size={14} />
-                <span>Add</span>
-              </>
-            )}
+            <ArrowRight size={14} />
+            <span>View Details</span>
           </button>
         </div>
       </div>
     </div>
+    </>
   );
 };
 

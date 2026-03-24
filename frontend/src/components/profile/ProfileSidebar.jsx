@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // import { User, Package, Shield, ChevronRight, LogOut } from "lucide-react";
+=======
+import { User, Shield, ChevronRight, LogOut } from "lucide-react";
+>>>>>>> 6b65c54bb876fe1b0a8a3c7c294c11b2184ef0eb
 
 // const ProfileSidebar = ({ activeTab, setActiveTab, navigate }) => {
 //     return (
@@ -18,6 +22,7 @@
 //                         {activeTab === "profile" && <ChevronRight size={16} className="ml-auto" />}
 //                     </button>
 
+<<<<<<< HEAD
 //                     <button
 //                         onClick={() => setActiveTab("orders")}
 //                         className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${activeTab === "orders"
@@ -41,6 +46,19 @@
 //                         <span>Security</span>
 //                         {activeTab === "security" && <ChevronRight size={16} className="ml-auto" />}
 //                     </button>
+=======
+                    <button
+                        onClick={() => setActiveTab("security")}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 ${activeTab === "security"
+                            ? "bg-emerald-50 text-emerald-700 font-bold"
+                            : "text-slate-600 hover:bg-slate-50"
+                            }`}
+                    >
+                        <Shield size={20} />
+                        <span>Security</span>
+                        {activeTab === "security" && <ChevronRight size={16} className="ml-auto" />}
+                    </button>
+>>>>>>> 6b65c54bb876fe1b0a8a3c7c294c11b2184ef0eb
 
 //                 </nav>
 //             </div>
