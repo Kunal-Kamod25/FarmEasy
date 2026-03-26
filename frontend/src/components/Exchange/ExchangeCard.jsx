@@ -13,7 +13,7 @@ import { useLanguage } from "../../context/language/LanguageContext";
 
 const ExchangeCard = ({ listing }) => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
 
   // ===== HANDLE PROPOSAL CLICK =====
   const handlePropose = () => {

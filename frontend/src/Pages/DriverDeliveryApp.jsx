@@ -34,7 +34,6 @@ const DriverDeliveryApp = () => {
   const [lastLocation, setLastLocation] = useState(null);
   const [updating, setUpdating] = useState(false);
   const locationWatchRef = useRef(null);
-  const gpsIntervalRef = useRef(null);
 
   // Initialize driver
   useEffect(() => {
@@ -155,7 +154,8 @@ const DriverDeliveryApp = () => {
       if (newStatus === "offline") {
         stopGPS();
       }
-    } catch (err) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_err) {
       setError("Failed to update status");
     } finally {
       setUpdating(false);
@@ -178,7 +178,8 @@ const DriverDeliveryApp = () => {
 
       setCurrentDelivery(assignments.find(a => a.id === deliveryId));
       fetchAssignments(driverId);
-    } catch (err) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_err) {
       setError("Failed to accept delivery");
     } finally {
       setUpdating(false);
@@ -205,7 +206,8 @@ const DriverDeliveryApp = () => {
       }
 
       fetchAssignments(driverId);
-    } catch (err) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_err) {
       setError("Failed to update delivery status");
     } finally {
       setUpdating(false);

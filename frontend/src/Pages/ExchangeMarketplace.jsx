@@ -6,7 +6,7 @@
 // Filter by crop type, sort by distance
 // =====================================================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
@@ -16,7 +16,7 @@ import { useLanguage } from "../context/language/LanguageContext";
 
 const ExchangeMarketplace = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
 
   // ===== STATE =====
   const [listings, setListings] = useState([]);
@@ -25,10 +25,9 @@ const ExchangeMarketplace = () => {
   const [cropFilter, setCropFilter] = useState("");
   const [radiusFilter, setRadiusFilter] = useState(50);
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   // ===== FETCH NEARBY LISTINGS =====
-  const fetchListings = async (lat, lon) => {
+  const fetchListings = useCallback(async (lat, lon) => {
     try {
       setLoading(true);
       const params = {
@@ -52,7 +51,7 @@ const ExchangeMarketplace = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cropFilter, radiusFilter]);
 
   // ===== GET USER LOCATION ON MOUNT =====
   useEffect(() => {
@@ -74,14 +73,14 @@ const ExchangeMarketplace = () => {
         alert("Could not access your location. Please enable GPS.");
       }
     );
-  }, []);
+  }, [fetchListings]);
 
   // ===== REFETCH WHEN FILTERS CHANGE =====
   useEffect(() => {
-    if (location) {
+    if (location && fetchListings) {
       fetchListings(location.latitude, location.longitude);
     }
-  }, [radiusFilter, cropFilter]);
+  }, [radiusFilter, cropFilter, location, fetchListings]);
 
   // ===== REDIRECT TO LOGIN IF NOT AUTHENTICATED =====
   useEffect(() => {

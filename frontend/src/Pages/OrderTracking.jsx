@@ -6,7 +6,7 @@
 // Updates via polling every 5 seconds
 // =====================================================
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapPin, Phone, Clock, AlertCircle, CheckCircle } from "lucide-react";
@@ -21,7 +21,7 @@ const OrderTracking = () => {
   const pollingIntervalRef = useRef(null);
 
   // Get tracking data from API
-  const fetchTracking = async () => {
+  const fetchTracking = useCallback(async () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -46,7 +46,7 @@ const OrderTracking = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId, navigate]);
 
   // Fetch on mount and set up polling
   useEffect(() => {
@@ -60,7 +60,7 @@ const OrderTracking = () => {
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [orderId]);
+  }, [orderId, fetchTracking]);
 
   // Calculate ETA from now
   const calculateTimeRemaining = () => {
