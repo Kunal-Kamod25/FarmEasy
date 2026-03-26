@@ -12,8 +12,12 @@ import CartDrawer from "../Cart/CartDrawer";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { API_URL } from "../../config";
+import { useLanguage } from "../../context/language/LanguageContext";
+import LanguageSwitcher from "../Common/LanguageSwitcher";
 
 const Navbar = () => {
+  const { t } = useLanguage();
+
   const truncateText = (text = "", maxLength = 10) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
@@ -150,19 +154,21 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-3 md:hidden">
+            <LanguageSwitcher className="mr-1" />
+
             {!user && (
               <>
                 <Link
                   to="/register"
                   className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
                 >
-                  Signup
+                  {t("nav.signup")}
                 </Link>
                 <Link
                   to="/login"
                   className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
                 >
-                  Login
+                  {t("nav.login")}
                 </Link>
               </>
             )}
@@ -211,6 +217,7 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher />
 
           {/* 🔐 AUTH SECTION */}
           {user ? (
@@ -222,7 +229,9 @@ const Navbar = () => {
                 }}
                 className="text-white font-normal hover:underline px-2"
               >
-                Hi, {truncateText(user?.fullname || user?.full_name, 10)}
+                {t("nav.greeting", {
+                  name: truncateText(user?.fullname || user?.full_name, 10),
+                })}
               </button>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
@@ -232,7 +241,7 @@ const Navbar = () => {
                       onClick={() => setProfileOpen(false)}
                       className="block px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 border-b border-slate-100"
                     >
-                      Vendor Dashboard
+                      {t("nav.vendorDashboard")}
                     </Link>
                   )}
                   <Link
@@ -240,14 +249,14 @@ const Navbar = () => {
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
                   >
-                    My Orders
+                    {t("nav.myOrders")}
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
                   >
-                    Update Profile
+                    {t("nav.updateProfile")}
                   </Link>
                   <button
                     onClick={() => {
@@ -256,7 +265,7 @@ const Navbar = () => {
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
-                    Logout
+                    {t("nav.logout")}
                   </button>
                 </div>
               )}
@@ -267,13 +276,13 @@ const Navbar = () => {
                 to="/register"
                 className="text-white font-lora hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
               >
-                Signup
+                {t("nav.signup")}
               </Link>
               <Link
                 to="/login"
                 className="text-white hover:text-green-500 uppercase hover:underline text-sm font-medium px-2"
               >
-                Login
+                {t("nav.login")}
               </Link>
             </>
           )}
