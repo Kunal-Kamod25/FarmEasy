@@ -51,11 +51,15 @@ const cartRoutes = require("./routes/cartRoutes");        // add/remove/update c
 const orderRoutes = require("./routes/orderRoutes");      // place orders, order history
 const passwordRoutes = require("./routes/passwordRoutes"); // forgot/reset password (link & otp)
 const adminRoutes = require("./routes/adminRoutes");
+const translationRoutes = require("./routes/translationRoutes"); // Google Translate API
+const exchangeRoutes = require("./routes/exchangeRoutes"); // crop exchange between farmers
+const deliveryRoutes = require("./routes/deliveryRoutes");  // GPS delivery tracking system
 
 
 // Use routes
 app.use("/seller", sellerRoutes);
 app.use("/api/authentication", authRoutes);
+app.use("/api/translations", translationRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -65,6 +69,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/exchange", exchangeRoutes); // Crop exchange marketplace
+app.use("/api/delivery", deliveryRoutes); // GPS-based home delivery tracking
 
 
 // ================= TEST ROUTE =================
