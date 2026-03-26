@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useLanguage } from "../context/language/LanguageContext";
 
 /* User Layout + Pages */
 const UserLayout = lazy(() => import("../components/Layout/UserLayout"));
@@ -44,13 +45,15 @@ const Support = lazy(() => import("../Pages/Support"));
 const ContactUs = lazy(() => import("../Pages/ContactUs"));
 const AboutUs = lazy(() => import("../Pages/AboutUs"));
 
-const RouteFallback = (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 text-sm font-semibold">
-    Loading page...
-  </div>
-);
-
 const AppRoutes = () => {
+  const { t } = useLanguage();
+
+  const RouteFallback = (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 text-sm font-semibold">
+      {t("common.loading")}
+    </div>
+  );
+
   return (
     <BrowserRouter>
       <Suspense fallback={RouteFallback}>

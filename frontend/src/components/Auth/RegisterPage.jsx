@@ -278,6 +278,7 @@
 // export default Register;
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Sprout, Mail, Lock, User, Store } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
@@ -361,7 +362,7 @@ const Register = () => {
 
       if (response.ok) {
         alert("Registration Successful!");
-        navigate("/Login");
+        navigate("/login");
       } else {
         alert(data.message || "Registration failed");
       }
@@ -575,7 +576,7 @@ const Register = () => {
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
-            <Link to="/Login" className="text-green-600 font-medium hover:underline">
+            <Link to="/login" className="text-green-600 font-medium hover:underline">
               Sign In
             </Link>
           </p>
