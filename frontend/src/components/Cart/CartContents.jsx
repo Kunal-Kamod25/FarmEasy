@@ -3,11 +3,13 @@ import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_URL } from '../../config';
+import { useLanguage } from "../../context/language/LanguageContext";
 
 const CartContents = () => {
     const { cartItems, cartTotal, removeFromCart, updateQuantity, loading } = useCart();
     const [expandedIds, setExpandedIds] = useState({});
     const navigate = useNavigate();
+    const { t, td, language } = useLanguage();
 
     const toggleExpand = (id) => {
         setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -35,8 +37,8 @@ const CartContents = () => {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
                 <span className="text-5xl mb-4">🛒</span>
-                <p className="text-gray-500 font-medium">Your cart is empty</p>
-                <p className="text-gray-400 text-sm mt-1">Add some products to get started!</p>
+                <p className="text-gray-500 font-medium">{t("cart.empty")}</p>
+                <p className="text-gray-400 text-sm mt-1">{t("cart.emptySub")}</p>
             </div>
         );
     }
@@ -70,18 +72,18 @@ const CartContents = () => {
                                 />
                                 <div>
                                     <h3 className="font-semibold text-gray-800 leading-snug">
-                                        {truncateText(product.name || product.product_name, 30)}
+                                        {truncateText(product[`product_name_${language}`] || product.name || td(product.product_name || ""), 30)}
                                     </h3>
                                     {product.shop_name && (
                                         <p className="text-[10px] text-gray-400 font-medium">
-                                            Seller: {product.shop_name}
+                                            {t("cart.seller")}: {product.shop_name}
                                         </p>
                                     )}
                                     <p className="text-xs text-emerald-600 font-bold mt-1">
                                         ₹{Number(product.price).toLocaleString()}
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5">
-                                        Subtotal: ₹{(Number(product.price) * (product.quantity || 1)).toLocaleString()}
+                                        {t("cart.subtotal")}: ₹{(Number(product.price) * (product.quantity || 1)).toLocaleString()}
                                     </p>
 
                                     {/* Quantity Controls */}
@@ -118,27 +120,27 @@ const CartContents = () => {
                                     removeFromCart(pid);
                                 }}
                                 className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 flex-shrink-0"
-                                title="Remove item"
+                                title={t("cart.removeItem")}
                             >
                                 <RiDeleteBin3Line size={18} />
                             </button>
                         </div>
                         {isExpanded && (
                             <div className="px-6 pb-4 text-sm text-gray-600">
-                                <p className="font-semibold">Details:</p>
-                                <p>{product.description || product.product_description || "No additional information available."}</p>
+                                <p className="font-semibold">{t("cart.details")}</p>
+                                <p>{product[`product_description_${language}`] || product.description || td(product.product_description || "") || t("cart.noInfo")}</p>
                                 <div className="flex items-center gap-4 mt-1">
                                     <button
                                         onClick={() => toggleExpand(pid)}
                                         className="text-blue-600 text-xs underline"
                                     >
-                                        Minimize
+                                        {t("cart.minimize")}
                                     </button>
                                     <button
                                         onClick={() => navigate(`/product/${pid}`)}
                                         className="text-green-600 text-xs underline"
                                     >
-                                        View full page
+                                        {t("cart.viewFullPage")}
                                     </button>
                                 </div>
                             </div>
@@ -150,7 +152,7 @@ const CartContents = () => {
             {/* Total */}
             <div className="sticky bottom-0 bg-white pt-4 mt-2 border-t border-gray-100">
                 <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-gray-500">Total</span>
+                    <span className="text-sm font-semibold text-gray-500">{t("cart.total")}</span>
                     <span className="text-lg font-bold text-gray-900">
                         ₹{cartTotal.toLocaleString()}
                     </span>

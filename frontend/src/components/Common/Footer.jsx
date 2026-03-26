@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 import { FiMail, FiPhoneCall } from "react-icons/fi";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 const Footer = () => {
-    const subject = "Order Inquiry";
-    const body =
-        "Hello FarmEasy,\r\n\r\n" +
-        "I want to place an order.\r\n" +
-        "Please contact me.\r\n\r\n" +
-        "Thanks";
+    const { t } = useLanguage();
+    const subject = t("topbar.orderInquirySubject");
+    const body = t("topbar.orderInquiryBody");
 
     const mailtoLink = `mailto:farmeasy003@gmail.com?subject=${encodeURIComponent(
         subject
@@ -35,20 +33,21 @@ const Footer = () => {
                     {/* Newsletter */}
                     <div>
                         <h3 className="text-lg font-semibold text-gray-100 mb-4">
-                            Newsletter
+                            {t("footer.newsletter")}
                         </h3>
                         <p className="text-gray-400 text-sm mb-3">
-                            Browse thousands of products from trusted vendors.
-                            Quality equipment, seeds, fertilizers, and irrigation systems.
+                            {t("footer.newsletter.line1")}
+                            {" "}
+                            {t("footer.newsletter.line2")}
                         </p>
                         <p className="text-gray-400 text-sm mb-5">
-                            Sign up and get free delivery on your first order.
+                            {t("footer.newsletter.line3")}
                         </p>
 
                         <form className="flex">
                             <input
                                 type="email"
-                                placeholder="Enter Your Email"
+                                placeholder={t("footer.newsletter.placeholder")}
                                 required
                                 className="p-3 w-full text-sm bg-gray-900 text-white border border-gray-700 rounded-l-md 
                 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
@@ -58,7 +57,7 @@ const Footer = () => {
                                 className="bg-green-600 text-white font-semibold px-6 py-3 text-sm rounded-r-md 
                 hover:bg-green-500 transition-all"
                             >
-                                Subscribe
+                                {t("footer.newsletter.subscribe")}
                             </button>
                         </form>
                     </div>
@@ -66,27 +65,27 @@ const Footer = () => {
                     {/* Shop Links */}
                     <div>
                         <h3 className="text-lg font-semibold text-gray-100 mb-4">
-                            Shop
+                            {t("footer.shop")}
                         </h3>
                         <ul className="space-y-3 text-gray-400 text-sm">
                             <li>
                                 <Link to="#" className="hover:text-green-400 transition-colors">
-                                    Fertilizers
+                                    {t("footer.shop.fertilizers")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="#" className="hover:text-green-400 transition-colors">
-                                    Seeds
+                                    {t("footer.shop.seeds")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="#" className="hover:text-green-400 transition-colors">
-                                    Equipment
+                                    {t("footer.shop.equipment")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="#" className="hover:text-green-400 transition-colors">
-                                    Irrigation
+                                    {t("footer.shop.irrigation")}
                                 </Link>
                             </li>
                         </ul>
@@ -95,27 +94,27 @@ const Footer = () => {
                     {/* Customer Services */}
                     <div>
                         <h3 className="text-lg font-semibold text-gray-100 mb-4">
-                            Customer Services
+                            {t("footer.customerServices")}
                         </h3>
                         <ul className="space-y-3 text-gray-400 text-sm">
                             <li>
                                 <Link to="/support" className="hover:text-green-400 transition-colors">
-                                    Support
+                                    {t("footer.support")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="/contact" className="hover:text-green-400 transition-colors">
-                                    Contact Us
+                                    {t("footer.contactUs")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="/about" className="hover:text-green-400 transition-colors">
-                                    About Us
+                                    {t("footer.aboutUs")}
                                 </Link>
                             </li>
                             <li>
                                 <Link to="/support" className="hover:text-green-400 transition-colors">
-                                    Features
+                                    {t("footer.features")}
                                 </Link>
                             </li>
                         </ul>
@@ -124,7 +123,7 @@ const Footer = () => {
                     {/* Contact Info */}
                     <div>
                         <h3 className="text-lg font-semibold text-gray-100 mb-4">
-                            Contact Us
+                            {t("footer.contactUs")}
                         </h3>
                         <ul className="space-y-4 text-gray-400 text-sm">
                             <li>
@@ -165,18 +164,18 @@ const Footer = () => {
                     {/* Policy Links */}
                     <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
                         <a href="#" className="hover:text-green-400 transition-colors">
-                            Privacy Policy
+                            {t("footer.privacy")}
                         </a>
                         <a href="#" className="hover:text-green-400 transition-colors">
-                            Terms of Service
+                            {t("footer.terms")}
                         </a>
                         <a href="#" className="hover:text-green-400 transition-colors">
-                            Shipping Policy
+                            {t("footer.shipping")}
                         </a>
                     </div>
 
                     <p className="text-gray-500 text-sm">
-                        © 2026 FarmEasy Agro Private Limited. All rights reserved.
+                        © 2026 FarmEasy Agro Private Limited. {t("footer.rights")}
                     </p>
                 </div>
             </footer>

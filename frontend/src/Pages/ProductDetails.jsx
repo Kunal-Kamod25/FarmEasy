@@ -32,6 +32,7 @@ import {
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import LoginModal from "../components/Common/LoginModal";
+import { useLanguage } from "../context/language/LanguageContext";
 
 // single product detail page - shows everything about one product
 // also shows other products from the same seller at the bottom
@@ -40,6 +41,7 @@ const ProductDetailPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { t, td, language } = useLanguage();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,11 +61,11 @@ const ProductDetailPage = () => {
       setProduct(res.data);
     } catch (err) {
       console.error("Failed to load product:", err);
-      setError("Product not found or something went wrong");
+      setError(t("product.notFoundDesc"));
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     // scroll to top when navigating to a new product
@@ -73,7 +75,7 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = async () => {
     if (!token) {
-      setLoginMessage("Please login to add items to your cart.");
+      setLoginMessage(t("common.loginForCart"));
       setShowLoginModal(true);
       return;
     }
@@ -86,7 +88,7 @@ const ProductDetailPage = () => {
 
   const handleWishlist = () => {
     if (!token) {
-      setLoginMessage("Please login to save products to your wishlist.");
+      setLoginMessage(t("common.loginForWishlist"));
       setShowLoginModal(true);
       return;
     }
@@ -128,13 +130,13 @@ const ProductDetailPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50/20 to-green-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl p-12 shadow-sm border border-slate-100">
           <AlertCircle size={48} className="text-red-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-700 mb-2">Product Not Found</h2>
-          <p className="text-slate-500 text-sm mb-6">{error || "This product doesn't exist"}</p>
+          <h2 className="text-xl font-bold text-slate-700 mb-2">{t("product.notFound")}</h2>
+          <p className="text-slate-500 text-sm mb-6">{error || t("product.notFoundDesc")}</p>
           <button
             onClick={() => navigate(-1)}
             className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition"
           >
-            Go Back
+            {t("product.goBack")}
           </button>
         </div>
       </div>
@@ -143,6 +145,11 @@ const ProductDetailPage = () => {
 
   const inStock = product.product_quantity > 0;
   const wishlisted = isWishlisted(product.id);
+  const productName = product[`product_name_${language}`] || td(product.product_name || "");
+  const productDescription = product[`product_description_${language}`] || td(product.product_description || "");
+  const productType = td(product.product_type || "");
+  const categoryName = td(product.category_name || "");
+  const sellerName = product.shop_name || product.seller_name || t("product.unknownSeller");
 
   return (
     <>
@@ -152,11 +159,11 @@ const ProductDetailPage = () => {
       {/* ── BREADCRUMB / BACK NAV ── */}
       <div className="bg-white border-b border-slate-100 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-2 text-sm text-slate-500">
-          <button onClick={() => navigate("/")} className="hover:text-emerald-600 transition">Home</button>
+          <button onClick={() => navigate("/")} className="hover:text-emerald-600 transition">{t("product.home")}</button>
           <span>/</span>
-          <button onClick={() => navigate("/products")} className="hover:text-emerald-600 transition">Products</button>
+          <button onClick={() => navigate("/products")} className="hover:text-emerald-600 transition">{t("product.products")}</button>
           <span>/</span>
-          <span className="text-slate-800 font-medium line-clamp-1">{product.product_name}</span>
+          <span className="text-slate-800 font-medium line-clamp-1">{productName}</span>
         </div>
       </div>
 
@@ -185,7 +192,7 @@ const ProductDetailPage = () => {
               {/* category badge */}
               {product.category_name && (
                 <span className="absolute top-4 left-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  {product.category_name}
+                  {categoryName}
                 </span>
               )}
 
@@ -193,7 +200,7 @@ const ProductDetailPage = () => {
               {product.product_image ? (
                 <img
                   src={getImageUrl(product.product_image)}
-                  alt={product.product_name}
+                  alt={productName}
                   className="max-w-full max-h-full object-contain p-4"
                   onError={(e) => {
                     // fallback if the saved image file is missing
@@ -206,7 +213,7 @@ const ProductDetailPage = () => {
                 <div className="w-32 h-32 mx-auto bg-emerald-50 rounded-3xl flex items-center justify-center mb-4">
                   <Package size={56} className="text-emerald-300" />
                 </div>
-                <p className="text-slate-400 text-xs">No product image uploaded</p>
+                <p className="text-slate-400 text-xs">{t("product.noImage")}</p>
               </div>
             </div>
 
@@ -216,12 +223,12 @@ const ProductDetailPage = () => {
               {/* product type badge */}
               {product.product_type && (
                 <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-lg mb-3">
-                  {product.product_type}
+                  {productType}
                 </span>
               )}
 
               <h1 className="text-2xl font-bold text-slate-900 leading-snug mb-3">
-                {product.product_name}
+                {productName}
               </h1>
 
               {/* rating placeholder (can add real reviews later) */}
@@ -230,20 +237,20 @@ const ProductDetailPage = () => {
                   <Star size={14} className="text-amber-500 fill-amber-500" />
                   <span className="text-amber-700 font-bold text-sm">4.5</span>
                 </div>
-                <span className="text-slate-400 text-sm">No reviews yet</span>
+                <span className="text-slate-400 text-sm">{t("product.noReviews")}</span>
               </div>
 
               {/* description */}
               <p className="text-slate-600 text-sm leading-relaxed mb-6 bg-slate-50 p-4 rounded-xl">
-                {product.product_description || "No description provided for this product."}
+                {productDescription || t("product.noDescription")}
               </p>
 
               {/* price */}
               <div className="mb-6">
-                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Price</p>
+                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">{t("product.price")}</p>
                 <p className="text-3xl font-black text-slate-900">
                   ₹{Number(product.price).toLocaleString()}
-                  <span className="text-sm font-normal text-slate-500 ml-2">per unit</span>
+                  <span className="text-sm font-normal text-slate-500 ml-2">{t("product.perUnit")}</span>
                 </p>
               </div>
 
@@ -253,13 +260,13 @@ const ProductDetailPage = () => {
                   <>
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-emerald-700 font-semibold text-sm">
-                      In Stock ({product.product_quantity} units available)
+                      {t("product.inStock", { count: product.product_quantity })}
                     </span>
                   </>
                 ) : (
                   <>
                     <div className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="text-red-600 font-semibold text-sm">Out of Stock</span>
+                    <span className="text-red-600 font-semibold text-sm">{t("product.outOfStock")}</span>
                   </>
                 )}
               </div>
@@ -267,7 +274,7 @@ const ProductDetailPage = () => {
               {/* quantity picker - only show if in stock */}
               {inStock && (
                 <div className="flex items-center gap-3 mb-6">
-                  <p className="text-sm font-semibold text-slate-600">Quantity:</p>
+                  <p className="text-sm font-semibold text-slate-600">{t("product.quantity")}</p>
                   <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden">
                     <button
                       onClick={decrementQty}
@@ -287,7 +294,7 @@ const ProductDetailPage = () => {
                       <Plus size={14} />
                     </button>
                   </div>
-                  <span className="text-xs text-slate-400">max {product.product_quantity}</span>
+                  <span className="text-xs text-slate-400">{t("product.max", { count: product.product_quantity })}</span>
                 </div>
               )}
 
@@ -306,12 +313,12 @@ const ProductDetailPage = () => {
                   {addedToCart ? (
                     <>
                       <CheckCircle size={16} />
-                      Added to Cart!
+                      {t("product.addedToCart")}
                     </>
                   ) : (
                     <>
                       <ShoppingCart size={16} />
-                      Add to Cart
+                      {t("product.addToCart")}
                     </>
                   )}
                 </button>
@@ -321,11 +328,11 @@ const ProductDetailPage = () => {
               <div className="flex items-center gap-4 mt-5 pt-5 border-t border-slate-100">
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
                   <Truck size={13} className="text-emerald-500" />
-                  Fast Delivery
+                  {t("product.fastDelivery")}
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
                   <Shield size={13} className="text-emerald-500" />
-                  Secure Payment
+                  {t("product.securePayment")}
                 </div>
               </div>
             </div>
@@ -336,7 +343,7 @@ const ProductDetailPage = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
           <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Store size={16} className="text-emerald-600" />
-            About the Seller
+            {t("product.aboutSeller")}
           </h2>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -344,10 +351,10 @@ const ProductDetailPage = () => {
             </div>
             <div>
               <p className="font-bold text-slate-800">
-                {product.shop_name || product.seller_name || "Unknown Seller"}
+                {sellerName}
               </p>
               {product.seller_name && product.shop_name && (
-                <p className="text-sm text-slate-500">by {product.seller_name}</p>
+                <p className="text-sm text-slate-500">{t("product.bySeller", { name: product.seller_name })}</p>
               )}
               {(product.seller_city || product.seller_state) && (
                 <div className="flex items-center gap-1 text-xs text-slate-400 mt-1">
@@ -363,7 +370,7 @@ const ProductDetailPage = () => {
         {product.moreFromSeller && product.moreFromSeller.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="font-bold text-slate-800 mb-4">
-              More from {product.shop_name || product.seller_name}
+              {t("product.moreFrom", { name: sellerName })}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {product.moreFromSeller.map(p => (
@@ -375,13 +382,13 @@ const ProductDetailPage = () => {
                   {/* show product thumbnail if uploaded, else placeholder icon */}
                   <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
                     {p.product_image ? (
-                      <img src={getImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(p.product_image)} alt={p[`product_name_${language}`] || td(p.product_name || "")} className="w-full h-full object-cover" />
                     ) : (
                       <Package size={20} className="text-emerald-400" />
                     )}
                   </div>
                   <p className="text-xs font-semibold text-slate-700 text-center line-clamp-2 group-hover:text-emerald-700">
-                    {p.product_name}
+                    {p[`product_name_${language}`] || td(p.product_name || "")}
                   </p>
                   <p className="text-emerald-700 font-bold text-sm text-center mt-2">
                     ₹{Number(p.price).toLocaleString()}

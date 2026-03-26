@@ -3,12 +3,14 @@ import { IoMdClose } from "react-icons/io";
 import CartContents from "./CartContents";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 
 const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
   const drawerRef = useRef(null);
   const { cartCount } = useCart();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
 
   useEffect(() => {
@@ -48,10 +50,10 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-gray-900">Your Cart</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t("cart.yourCart")}</h2>
             {cartCount > 0 && (
               <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {cartCount} item{cartCount !== 1 ? "s" : ""}
+                {t("cart.itemsCount", { count: cartCount })}
               </span>
             )}
           </div>
@@ -77,11 +79,11 @@ const CartDrawer = ({ drawerOpen, toggleCartDrawer }) => {
             }}
             className="w-full bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 font-semibold transition-all active:scale-95 shadow-md hover:shadow-lg"
           >
-            Proceed to Checkout
+            {t("cart.proceedToCheckout")}
           </button>
 
           <p className="text-xs text-gray-400 text-center mt-2">
-            Shipping, taxes, and discounts calculated at checkout.
+            {t("cart.checkoutNote")}
           </p>
         </div>
       </div>
