@@ -35,6 +35,15 @@ const AdminRoute = lazy(() => import("./AdminRoute"));
 const Wishlist = lazy(() => import("../components/Products/wishlist"));
 const AllProductsPage = lazy(() => import("../components/Products/AllProductsPage"));
 
+/* Crop Exchange */
+const ExchangeMarketplace = lazy(() => import("../Pages/ExchangeMarketplace"));
+const CreateExchange = lazy(() => import("../Pages/CreateExchange"));
+const ExchangeDetail = lazy(() => import("../Pages/ExchangeDetail"));
+
+/* Delivery Tracking */
+const OrderTracking = lazy(() => import("../Pages/OrderTracking"));
+const DriverDeliveryApp = lazy(() => import("../Pages/DriverDeliveryApp"));
+
 /* Pages */
 const ProductDetailPage = lazy(() => import("../Pages/ProductDetails"));
 const CheckoutPage = lazy(() => import("../Pages/Checkout"));
@@ -77,6 +86,14 @@ const AppRoutes = () => {
           <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/wishlist" element={<Wishlist />} />
 
+          {/* Crop Exchange */}
+          <Route path="/exchange" element={<ExchangeMarketplace />} />
+          <Route path="/exchange/create" element={<CreateExchange />} />
+          <Route path="/exchange/:id" element={<ExchangeDetail />} />
+
+          {/* Delivery Tracking */}
+          <Route path="/track-order/:orderId" element={<OrderTracking />} />
+
           {/* Checkout & Success */}
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
@@ -89,6 +106,9 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* ── DRIVER DELIVERY APP ── */}
+        <Route path="/driver-app" element={<DriverDeliveryApp />} />
 
         {/* ── ADMIN ── */}
         <Route
