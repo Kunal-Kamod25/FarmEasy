@@ -14,6 +14,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { API_URL } from "../../config";
 import { useLanguage } from "../../context/language/LanguageContext";
 import LanguageSwitcher from "../Common/LanguageSwitcher";
+import LoginModal from "../Common/LoginModal";
 
 const Navbar = () => {
   const { t } = useLanguage();
@@ -97,6 +98,8 @@ const Navbar = () => {
   };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMessage, setAuthModalMessage] = useState("");
 
   /* 🔐 AUTH STATE */
   const [user, setUser] = useState(() => {
@@ -121,9 +124,17 @@ const Navbar = () => {
         setProfileOpen(false);
       }
     };
+
+    const handleAuthRequired = (e) => {
+      setAuthModalMessage(e.detail?.message || "Please login to continue.");
+      setShowAuthModal(true);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("farmeasy:auth-required", handleAuthRequired);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("farmeasy:auth-required", handleAuthRequired);
     };
   }, []);
 
@@ -135,6 +146,11 @@ const Navbar = () => {
   };
 
   const toggleCartDrawer = () => {
+    if (!localStorage.getItem("token")) {
+      setAuthModalMessage("Please login to view and manage your cart.");
+      setShowAuthModal(true);
+      return;
+    }
     setDrawerOpen(!drawerOpen);
   };
 
@@ -252,6 +268,13 @@ const Navbar = () => {
                     {t("nav.myOrders")}
                   </Link>
                   <Link
+                    to="/exchange"
+                    onClick={() => setProfileOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-gray-100 font-semibold text-emerald-600 border-b border-slate-100"
+                  >
+                    🌾 Crop Exchange
+                  </Link>
+                  <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
@@ -331,6 +354,13 @@ const Navbar = () => {
         drawerOpen={drawerOpen}
         toggleCartDrawer={toggleCartDrawer}
       />
+
+      {showAuthModal && (
+        <LoginModal
+          message={authModalMessage}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
     </div>
   );
 };

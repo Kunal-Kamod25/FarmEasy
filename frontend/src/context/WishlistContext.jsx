@@ -12,6 +12,11 @@ export const WishlistProvider = ({ children }) => {
 
     const getToken = () => localStorage.getItem("token");
     const toPidKey = (id) => (id === undefined || id === null ? null : String(id));
+    const notifyAuthRequired = (message) => {
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("farmeasy:auth-required", { detail: { message } }));
+        }
+    };
 
     // ─── PID HELPER ──────────────────────────────────────────────────────────
     // normalize product id across different shapes (e.g. from DB or partial objects)
@@ -50,7 +55,10 @@ export const WishlistProvider = ({ children }) => {
 
     const toggleWishlist = useCallback(async (product) => {
         const token = getToken();
-        if (!token) return;
+        if (!token) {
+            notifyAuthRequired("Please login to save products to your wishlist.");
+            return false;
+        }
         try {
             const pid = getPid(product);
             if (!pid) return console.warn("toggleWishlist: product lacks ID", product);

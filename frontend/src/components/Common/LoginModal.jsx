@@ -2,9 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { X, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 import { createPortal } from "react-dom";
 import logo from "../../assets/Logo.png";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 const LoginModal = ({ message = "Login required", onClose }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleLogin = () => {
     onClose();
@@ -48,9 +50,9 @@ const LoginModal = ({ message = "Login required", onClose }) => {
 
         {/* Text */}
         <h2 className="text-center text-lg font-bold text-slate-800 mb-1">
-          Sign up first to continue
+          {t("modal.signupToContinue")}
         </h2>
-        <p className="text-center text-sm text-slate-500 mb-6">{message}</p>
+        <p className="text-center text-sm text-slate-500 mb-6">{message || t("modal.loginRequired")}</p>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
@@ -59,14 +61,14 @@ const LoginModal = ({ message = "Login required", onClose }) => {
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all"
           >
             <UserPlus size={16} />
-            Sign Up First
+            {t("modal.signUpFirst")}
           </button>
           <button
             onClick={handleLogin}
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-sm transition-all"
           >
             <LogIn size={16} />
-            Login Instead
+            {t("modal.loginInstead")}
           </button>
         </div>
       </div>

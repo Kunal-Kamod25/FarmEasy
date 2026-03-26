@@ -1,4 +1,5 @@
 import { HiMagnifyingGlass } from "react-icons/hi2";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 const SearchBar = ({
     searchTerm,
@@ -9,6 +10,7 @@ const SearchBar = ({
     onSuggestionSelect = () => { },
     onViewAllMatches = () => { }
 }) => {
+    const { t, td, language } = useLanguage();
     const showDropdown = searchTerm.trim().length >= 2 && (suggestionsLoading || suggestions.length > 0);
 
     return (
@@ -19,7 +21,7 @@ const SearchBar = ({
             >
                 <input
                     type="text"
-                    placeholder="Search for equipment, seeds, fertilizers..."
+                    placeholder={t("search.placeholder")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="min-w-0 flex-1 bg-transparent px-3 sm:px-4 py-2 text-sm text-black placeholder:text-gray-400 placeholder:text-xs sm:placeholder:text-sm focus:outline-none"
@@ -36,7 +38,7 @@ const SearchBar = ({
             {showDropdown && (
                 <div className="absolute top-[105%] left-0 right-0 z-[70] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden">
                     {suggestionsLoading ? (
-                        <p className="px-4 py-3 text-sm text-slate-500">Searching best-price matches...</p>
+                        <p className="px-4 py-3 text-sm text-slate-500">{t("search.loading")}</p>
                     ) : (
                         <>
                             {suggestions.map((product) => (
@@ -46,9 +48,11 @@ const SearchBar = ({
                                     onClick={() => onSuggestionSelect(product)}
                                     className="w-full px-4 py-3 text-left hover:bg-emerald-50 transition border-b border-slate-100 last:border-b-0"
                                 >
-                                    <p className="text-sm font-semibold text-slate-800 line-clamp-1">{product.product_name}</p>
+                                    <p className="text-sm font-semibold text-slate-800 line-clamp-1">
+                                        {product[`product_name_${language}`] || td(product.product_name || "")}
+                                    </p>
                                     <p className="text-xs text-slate-500 line-clamp-1">
-                                        {product.shop_name || product.seller_name || "Vendor"}
+                                        {product.shop_name || product.seller_name || t("search.vendor")}
                                     </p>
                                     <p className="text-xs font-bold text-emerald-700 mt-1">
                                         ₹{Number(product.price || 0).toLocaleString()}
@@ -61,7 +65,7 @@ const SearchBar = ({
                                 onClick={onViewAllMatches}
                                 className="w-full px-4 py-3 text-left text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
                             >
-                                View all matches sorted by lowest price
+                                {t("search.viewAllMatches")}
                             </button>
                         </>
                     )}
