@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { API_URL, getImageUrl } from "../config";
+import { API_URL } from "../config";
 import { Loader, MapPin, Upload } from "lucide-react";
 
 const CreateExchange = () => {

@@ -34,25 +34,25 @@ const ExchangeDetail = () => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_URL}/api/exchange/${id}`);
-        setListing(res.data);
+        const result = await axios.get(`${API_URL}/api/exchange/${id}`);
+        setListing(result.data);
 
         // Fetch proposals if this is the listing owner
-        if (res.data.user_id === user_id) {
-          const matchRes = await axios.get(
+        if (result.data.user_id === user_id) {
+          const matchResult = await axios.get(
             `${API_URL}/api/exchange/matches/received`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
           // Filter for this listing only
-          const listingMatches = matchRes.data.filter(
+          const listingMatches = matchResult.data.filter(
             (m) => m.exchange_listing_id === parseInt(id)
           );
           setMatches(listingMatches);
         }
-      } catch (err) {
-        console.error("Error fetching details:", err);
+      } catch (_err) {
+        console.error("Error fetching details:", _err);
       } finally {
         setLoading(false);
       }
@@ -78,7 +78,7 @@ const ExchangeDetail = () => {
     try {
       setSubmittingProposal(true);
 
-      const res = await axios.post(
+      await axios.post(
         `${API_URL}/api/exchange/propose`,
         {
           exchange_listing_id: listing.id,
@@ -91,9 +91,9 @@ const ExchangeDetail = () => {
 
       alert("✅ Proposal sent! The farmer will review it soon.");
       setProposalReason("");
-    } catch (err) {
-      console.error("Proposal error:", err);
-      alert("Error: " + (err.response?.data?.error || err.message));
+    } catch (_err) {
+      console.error("Proposal error:", _err);
+      alert("Error: " + (_err.response?.data?.error || _err.message));
     } finally {
       setSubmittingProposal(false);
     }
@@ -104,7 +104,7 @@ const ExchangeDetail = () => {
     try {
       setProcessingMatch(true);
 
-      const res = await axios.patch(
+      await axios.patch(
         `${API_URL}/api/exchange/match/${match_id}/accept`,
         {},
         {
@@ -121,7 +121,8 @@ const ExchangeDetail = () => {
         )
       );
       setSelectedMatch({ ...selectedMatch, status: "accepted" });
-    } catch (err) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_err) {
       alert("Error accepting proposal");
     } finally {
       setProcessingMatch(false);
@@ -147,7 +148,8 @@ const ExchangeDetail = () => {
 
       // Update local state
       setMatches(matches.filter((m) => m.id !== match_id));
-    } catch (err) {
+      // eslint-disable-next-line no-unused-vars
+    } catch (_err) {
       alert("Error rejecting proposal");
     } finally {
       setProcessingMatch(false);
