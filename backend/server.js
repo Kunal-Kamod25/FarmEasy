@@ -54,6 +54,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const translationRoutes = require("./routes/translationRoutes"); // Google Translate API
 const exchangeRoutes = require("./routes/exchangeRoutes"); // crop exchange between farmers
 const deliveryRoutes = require("./routes/deliveryRoutes");  // GPS delivery tracking system
+const reviewRoutes = require("./routes/reviewRoutes");  // Product and vendor reviews/ratings
 
 
 // Use routes
@@ -71,6 +72,7 @@ app.use("/api/password", passwordRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/exchange", exchangeRoutes); // Crop exchange marketplace
 app.use("/api/delivery", deliveryRoutes); // GPS-based home delivery tracking
+app.use("/api/reviews", reviewRoutes); // Product and vendor reviews
 
 
 // ================= TEST ROUTE =================
