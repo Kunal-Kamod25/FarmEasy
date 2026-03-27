@@ -10,13 +10,12 @@ import {
   Package, ShoppingCart, IndianRupee, TrendingUp,
   Plus, LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck, AlertCircle
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";
 
 const PIE_COLORS = ["#16a34a", "#f59e0b", "#6366f1", "#ef4444", "#06b6d4", "#8b5cf6"];
 
 export default function VendorDashboard() {
-  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = (() => {
     try { return JSON.parse(localStorage.getItem("user")); }

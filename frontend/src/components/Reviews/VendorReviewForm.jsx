@@ -20,7 +20,6 @@ const VendorReviewForm = ({ vendorId, onReviewSubmitted }) => {
   });
 
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -179,8 +178,6 @@ const VendorReviewForm = ({ vendorId, onReviewSubmitted }) => {
                   onClick={() =>
                     setFormData({ ...formData, communicationRating: star })
                   }
-                  onMouseEnter={() => setHoveredCategory("communication")}
-                  onMouseLeave={() => setHoveredCategory(null)}
                   className="focus:outline-none transition"
                 >
                   <Star
@@ -208,8 +205,6 @@ const VendorReviewForm = ({ vendorId, onReviewSubmitted }) => {
                   onClick={() =>
                     setFormData({ ...formData, deliveryRating: star })
                   }
-                  onMouseEnter={() => setHoveredCategory("delivery")}
-                  onMouseLeave={() => setHoveredCategory(null)}
                   className="focus:outline-none transition"
                 >
                   <Star
@@ -237,8 +232,6 @@ const VendorReviewForm = ({ vendorId, onReviewSubmitted }) => {
                   onClick={() =>
                     setFormData({ ...formData, qualityRating: star })
                   }
-                  onMouseEnter={() => setHoveredCategory("quality")}
-                  onMouseLeave={() => setHoveredCategory(null)}
                   className="focus:outline-none transition"
                 >
                   <Star
