@@ -1,55 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { SUPPORTED_LANGUAGES, translations } from "./translations";
-
-const STORAGE_KEY = "farmeasy_language";
+import { createContext, useContext, useEffect, useMemo } from "react";
+import { translations } from "./translations";
 
 const LanguageContext = createContext(null);
 
-const DYNAMIC_TERMS = {
-  hi: {
-    seeds: "बीज",
-    fertilizer: "उर्वरक",
-    fertilizers: "उर्वरक",
-    organic: "जैविक",
-    hybrid: "हाइब्रिड",
-    pesticide: "कीटनाशक",
-    pesticides: "कीटनाशक",
-    equipment: "उपकरण",
-    irrigation: "सिंचाई",
-    spray: "स्प्रे",
-    pump: "पंप",
-    soil: "मिट्टी",
-    nutrient: "पोषक तत्व",
-    compost: "कम्पोस्ट",
-    farming: "खेती",
-    farm: "फार्म",
-    premium: "प्रीमियम",
-  },
-  mr: {
-    seeds: "बियाणे",
-    fertilizer: "खत",
-    fertilizers: "खते",
-    organic: "सेंद्रिय",
-    hybrid: "हायब्रिड",
-    pesticide: "कीटकनाशक",
-    pesticides: "कीटकनाशके",
-    equipment: "उपकरणे",
-    irrigation: "सिंचन",
-    spray: "फवारणी",
-    pump: "पंप",
-    soil: "माती",
-    nutrient: "पोषक द्रव्य",
-    compost: "कंपोस्ट",
-    farming: "शेती",
-    farm: "फार्म",
-    premium: "प्रीमियम",
-  },
-};
-
-const normalizeLanguageCode = (code) => {
-  if (!code) return "en";
-  return SUPPORTED_LANGUAGES.some((l) => l.code === code) ? code : "en";
-};
+const ENGLISH_ONLY = [{ code: "en", label: "English" }];
 
 const interpolate = (text, params) => {
   if (!params) return text;
@@ -59,47 +13,32 @@ const interpolate = (text, params) => {
 };
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return normalizeLanguageCode(saved);
-  });
+  const language = "en";
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, language);
-    document.documentElement.lang = language;
-  }, [language]);
+    document.documentElement.lang = "en";
+  }, []);
 
   const t = useMemo(() => {
     return (key, params) => {
-      const langPack = translations[language] || translations.en;
-      const fallback = translations.en;
-      const value = langPack[key] ?? fallback[key] ?? key;
+      const value = translations.en?.[key] ?? key;
       return interpolate(value, params);
     };
-  }, [language]);
+  }, []);
 
   const td = useMemo(() => {
-    return (text) => {
-      if (!text || language === "en") return text;
-      const termMap = DYNAMIC_TERMS[language];
-      if (!termMap) return text;
-
-      return Object.entries(termMap).reduce((acc, [enWord, localizedWord]) => {
-        const regex = new RegExp(`\\b${enWord}\\b`, "gi");
-        return acc.replace(regex, localizedWord);
-      }, String(text));
-    };
-  }, [language]);
+    return (text) => text;
+  }, []);
 
   const value = useMemo(
     () => ({
       language,
-      setLanguage: (code) => setLanguage(normalizeLanguageCode(code)),
-      languages: SUPPORTED_LANGUAGES,
+      setLanguage: () => {},
+      languages: ENGLISH_ONLY,
       t,
       td,
     }),
-    [language, t, td]
+    [t, td]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

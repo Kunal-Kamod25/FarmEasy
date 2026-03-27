@@ -1,6 +1,5 @@
 import { IoLogoInstagram } from "react-icons/io5";
 import { FiMail, FiPhoneCall } from "react-icons/fi";
-import LanguageSwitcher from "../Common/LanguageSwitcher";
 import { useLanguage } from "../../context/language/LanguageContext";
 
 const Topbar = () => {
@@ -38,9 +37,6 @@ const Topbar = () => {
                         <FiPhoneCall className="inline-block mr-2" />
                         +91 7767859953
                     </a>
-                </div>
-                <div className="hidden md:block">
-                    <LanguageSwitcher />
                 </div>
             </div>
         </div>
