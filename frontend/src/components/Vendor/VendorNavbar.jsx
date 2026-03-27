@@ -1,8 +1,13 @@
-import React from "react";
-import { User, Bell, Search } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { User, Bell, Search, LogOut, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 
 const VendorNavbar = () => {
+  const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
   const user = (() => {
     try {
       return JSON.parse(localStorage.getItem("user"));
@@ -10,6 +15,24 @@ const VendorNavbar = () => {
       return {};
     }
   })();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setShowDropdown(false);
+    navigate("/");
+  };
 
   const fullName = user?.full_name || user?.fullname || "Vendor";
   const truncatedName = fullName.length > 15 ? fullName.substring(0, 15) + "..." : fullName;
@@ -51,12 +74,15 @@ const VendorNavbar = () => {
 
         <div className="h-10 w-[1px] bg-gray-100 mx-1"></div>
 
-        <div className="flex items-center gap-3 pl-3 py-1 cursor-pointer group">
+        <div className="flex items-center gap-3 pl-3 py-1 cursor-pointer group relative" ref={dropdownRef}>
           <div className="text-right hidden sm:block">
             <p className="text-sm font-black text-gray-800 leading-tight group-hover:text-emerald-700 transition-colors uppercase tracking-tight">{truncatedName}</p>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Store Owner</p>
           </div>
-          <div className="w-11 h-11 p-0.5 bg-white rounded-2xl shadow-sm border border-gray-100 group-hover:border-emerald-500 transition-all overflow-hidden">
+          <div 
+            className="w-11 h-11 p-0.5 bg-white rounded-2xl shadow-sm border border-gray-100 group-hover:border-emerald-500 transition-all overflow-hidden"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
             <div className="w-full h-full bg-emerald-50 rounded-[0.9rem] flex items-center justify-center overflow-hidden">
               {user?.profile_pic ? (
                 <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
@@ -65,6 +91,41 @@ const VendorNavbar = () => {
               )}
             </div>
           </div>
+
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+              {/* Profile Section */}
+              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <p className="text-sm font-bold text-gray-800">{fullName}</p>
+                <p className="text-xs text-gray-500 mt-1">{user?.email || "vendor@farmeasy.com"}</p>
+              </div>
+
+              {/* Menu Items */}
+              <div className="py-2">
+                <button 
+                  onClick={() => {
+                    navigate("/vendor/profile");
+                    setShowDropdown(false);
+                  }}
+                  className="w-full px-4 py-2.5 flex items-center gap-3 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors text-sm font-medium"
+                >
+                  <Settings size={16} />
+                  My Profile
+                </button>
+
+                <div className="h-[1px] bg-gray-100 my-2"></div>
+
+                <button 
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2.5 flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors text-sm font-medium"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
