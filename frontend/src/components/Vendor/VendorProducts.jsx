@@ -176,9 +176,9 @@ const VendorProducts = () => {
                 {viewMode === "card" ? (
                   <div className="space-y-4">
                     {catProducts.map((p) => (
-                      <div key={p.id} className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                        <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5">
-                          <div className="relative w-full sm:w-36 md:w-40 h-36 md:h-40 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
+                      <div key={p.id} className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden min-h-[230px]">
+                        <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-[160px_minmax(0,1fr)] gap-4 sm:gap-5 h-full">
+                          <div className="relative w-full h-36 sm:h-full bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
                             {p.product_image ? (
                               <img
                                 src={getImageUrl(p.product_image)}
@@ -195,7 +195,7 @@ const VendorProducts = () => {
                             </span>
                           </div>
 
-                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div className="min-w-0 flex flex-col justify-between h-full">
                             <div>
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
@@ -206,7 +206,7 @@ const VendorProducts = () => {
                                   Preview <Eye size={12} />
                                 </button>
                               </div>
-                              <p className="text-gray-500 text-sm font-medium mt-2 line-clamp-2">{p.product_description || "No description provided"}</p>
+                              <p className="text-gray-500 text-sm font-medium mt-2 line-clamp-2 min-h-[40px]">{p.product_description || "No description provided"}</p>
                             </div>
 
                             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
