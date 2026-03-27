@@ -13,6 +13,7 @@ import AllProductsProductCard from "./AllProductsProductCard";
 const DEFAULT_FILTERS = {
     search: "",
     category_id: "",
+    color: "",
     min_price: "",
     max_price: "",
     product_type: "",
@@ -36,6 +37,7 @@ const getInitialFiltersFromQuery = (searchParams) => {
         search: getParam("search"),
         // Support both `category_id` and existing legacy `category` links.
         category_id: getParam("category_id", "category"),
+        color: getParam("color"),
         min_price: getParam("min_price"),
         max_price: getParam("max_price"),
         // Support a shorter alias for type-based links.
@@ -278,6 +280,53 @@ const AllProductsPage = () => {
                                     </select>
                                 </div>
                             )}
+
+                            {/* Color Filter */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                    🎨 Color
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {["Red", "Green", "Blue", "Yellow", "Orange", "Purple", "Black", "White", "Brown", "Gray"].map(colorName => (
+                                        <button
+                                            key={colorName}
+                                            onClick={() => handleFilterChange("color", filters.color === colorName ? "" : colorName)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                                filters.color === colorName
+                                                    ? "bg-white text-slate-900 border-2 border-slate-800 shadow-md"
+                                                    : "bg-white/40 text-slate-700 border border-slate-300 hover:bg-white/60"
+                                            }`}
+                                        >
+                                            <span 
+                                                className="inline-block w-3 h-3 rounded-full mr-1.5"
+                                                style={{
+                                                    backgroundColor: {
+                                                        Red: "#ef4444",
+                                                        Green: "#22c55e",
+                                                        Blue: "#3b82f6",
+                                                        Yellow: "#eab308",
+                                                        Orange: "#f97316",
+                                                        Purple: "#a855f7",
+                                                        Black: "#1f2937",
+                                                        White: "#f5f5f5",
+                                                        Brown: "#92400e",
+                                                        Gray: "#6b7280"
+                                                    }[colorName]
+                                                }}
+                                            />
+                                            {colorName}
+                                        </button>
+                                    ))}
+                                </div>
+                                {filters.color && (
+                                    <button
+                                        onClick={() => handleFilterChange("color", "")}
+                                        className="mt-2 text-xs text-red-500 hover:text-red-600 font-semibold"
+                                    >
+                                        Clear Color
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Seller Filter */}
                             {sellers.length > 0 && (

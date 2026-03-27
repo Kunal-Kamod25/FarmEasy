@@ -34,6 +34,7 @@ const VendorAddProduct = () => {
     product_type: "",
     price: "",
     category_id: "",
+    color: "",
     product_quantity: "",
   });
 
@@ -107,6 +108,7 @@ const VendorAddProduct = () => {
       submitData.append("product_type", formData.product_type);
       submitData.append("price", formData.price);
       submitData.append("category_id", formData.category_id);
+      submitData.append("color", formData.color);
       submitData.append("product_quantity", formData.product_quantity);
 
       // attach the first selected image as the product thumbnail
@@ -132,6 +134,7 @@ const VendorAddProduct = () => {
         product_type: "",
         price: "",
         category_id: "",
+        color: "",
         product_quantity: "",
       });
       setImages([]);
@@ -248,7 +251,7 @@ const VendorAddProduct = () => {
                 Pricing & Inventory
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                     Price (₹) <span className="text-red-500">*</span>
@@ -279,6 +282,30 @@ const VendorAddProduct = () => {
                     placeholder="Available units"
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    🎨 Product Color
+                  </label>
+                  <select
+                    name="color"
+                    value={formData.color}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                  >
+                    <option value="">Select color</option>
+                    <option value="Red">Red</option>
+                    <option value="Green">Green</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Yellow">Yellow</option>
+                    <option value="Orange">Orange</option>
+                    <option value="Purple">Purple</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Brown">Brown</option>
+                    <option value="Gray">Gray</option>
+                  </select>
                 </div>
               </div>
             </div>
