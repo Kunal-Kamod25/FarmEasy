@@ -5,7 +5,7 @@
 // Shows communication, delivery, and quality ratings
 // =====================================================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Star, Trash2, Edit2, Loader } from "lucide-react";
 import { API_URL } from "../../config";
@@ -18,11 +18,7 @@ const VendorReviews = ({ vendorId }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("recent");
 
-  useEffect(() => {
-    fetchReviews();
-  }, [vendorId, page, sortBy]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(
@@ -44,7 +40,11 @@ const VendorReviews = ({ vendorId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [vendorId, page, sortBy]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm("Are you sure you want to delete this review?"))
