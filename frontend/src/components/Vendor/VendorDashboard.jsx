@@ -82,19 +82,22 @@ export default function VendorDashboard() {
       title: "Total Products",
       value: stats.totalProducts || 0,
       icon: <Package size={22} />,
-      color: "from-emerald-400 to-green-600",
+      color: "from-emerald-400 via-green-500 to-teal-600",
+      bgGradient: "bg-gradient-to-br",
     },
     {
       title: "Total Orders",
       value: stats.totalOrders || 0,
       icon: <ShoppingCart size={22} />,
-      color: "from-blue-400 to-cyan-500",
+      color: "from-blue-400 via-cyan-500 to-sky-600",
+      bgGradient: "bg-gradient-to-br",
     },
     {
       title: "Total Revenue",
       value: `₹${Number(stats.totalRevenue || 0).toLocaleString()}`,
       icon: <IndianRupee size={22} />,
-      color: "from-violet-400 to-purple-600",
+      color: "from-violet-400 via-purple-500 to-indigo-600",
+      bgGradient: "bg-gradient-to-br",
     },
     {
       title: "Avg. Order Value",
@@ -102,7 +105,8 @@ export default function VendorDashboard() {
         ? `₹${Math.floor(stats.totalRevenue / stats.totalOrders).toLocaleString()}`
         : "₹0",
       icon: <TrendingUp size={22} />,
-      color: "from-orange-400 to-amber-500",
+      color: "from-orange-400 via-amber-500 to-red-600",
+      bgGradient: "bg-gradient-to-br",
     },
   ];
 
@@ -146,16 +150,27 @@ export default function VendorDashboard() {
         {statCards.map((card, i) => (
           <div
             key={i}
-            className={`bg-gradient-to-br ${card.color} rounded-[2rem] p-6 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group`}
+            className={`${card.bgGradient} ${card.color} rounded-[2.5rem] p-6 text-white shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group border border-white/10`}
           >
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-            <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
+            {/* Background Blur Effects */}
+            <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/15 rounded-full blur-3xl group-hover:bg-white/25 transition-all duration-300"></div>
+            <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/15 transition-all duration-300"></div>
+            
+            {/* Content */}
+            <div className="flex items-start justify-between mb-6 relative z-10">
+              <div className="bg-white/20 backdrop-blur-md p-3.5 rounded-2xl shadow-lg group-hover:bg-white/30 transition-all duration-300 border border-white/20">
                 {card.icon}
               </div>
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                <TrendingUp size={18} className="text-white" />
+              </div>
             </div>
-            <p className="text-white/80 text-xs font-bold uppercase tracking-[0.1em] relative z-10">{card.title}</p>
-            <h3 className="text-3xl font-black mt-1 relative z-10">{statsLoading ? "..." : card.value}</h3>
+            
+            <p className="text-white/75 text-xs font-bold uppercase tracking-[0.15em] relative z-10 letter-spacing">{card.title}</p>
+            <h3 className="text-4xl font-black mt-2 relative z-10 drop-shadow-lg">{statsLoading ? "..." : card.value}</h3>
+            
+            {/* Bottom accent line */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 group-hover:h-1.5 transition-all duration-300"></div>
           </div>
         ))}
       </div>
