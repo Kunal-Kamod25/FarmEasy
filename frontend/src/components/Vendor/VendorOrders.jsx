@@ -10,7 +10,9 @@ import {
 
 const VendorOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
   const [search, setSearch] = useState("");
+  const [orderTab, setOrderTab] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [statusOptions, setStatusOptions] = useState([]);
@@ -20,6 +22,9 @@ const VendorOrders = () => {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?.id;
+
       const [ordersRes, statusRes] = await Promise.all([
         axios.get(`${API_URL}/api/vendor/orders`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -29,7 +34,15 @@ const VendorOrders = () => {
         }).catch(() => ({ data: {} }))
       ]);
 
+      let myOrdersRes = { data: [] };
+      if (userId) {
+        myOrdersRes = await axios.get(`${API_URL}/api/orders/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: [] }));
+      }
+
       setOrders(ordersRes.data || []);
+      setMyOrders(myOrdersRes.data || []);
 
       if (Array.isArray(statusRes.data?.orderStatuses) && statusRes.data.orderStatuses.length) {
         setStatusOptions(statusRes.data.orderStatuses);
@@ -45,10 +58,32 @@ const VendorOrders = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const normalizedOrders = orders.map((o) => ({
+  const normalizedVendorOrders = orders.map((o) => ({
     ...o,
+    orderSource: "Orders",
     normalizedStatus: getDisplayOrderStatus(o.status),
   }));
+
+  const normalizedMyOrders = myOrders.map((o) => {
+    const items = o.items || o.orderItems || [];
+    const sellerNames = [...new Set(items.map((item) => item?.seller_shop).filter(Boolean))];
+    return {
+      ...o,
+      id: o.id || o.order_id,
+      customer_name: sellerNames.length ? sellerNames.join(", ") : "Various Sellers",
+      total_amount: o.total_amount || o.total_price || o.totalPrice || 0,
+      created_at: o.created_at || o.order_date || o.createdAt,
+      orderSource: "My Orders",
+      normalizedStatus: getDisplayOrderStatus(o.order_status || o.status),
+    };
+  });
+
+  const normalizedOrders =
+    orderTab === "Orders"
+      ? normalizedVendorOrders
+      : orderTab === "My Orders"
+        ? normalizedMyOrders
+        : [...normalizedVendorOrders, ...normalizedMyOrders].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
   const totalOrders = normalizedOrders.length;
   const pendingOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Pending").length;
@@ -61,11 +96,18 @@ const VendorOrders = () => {
   );
 
   const filteredOrders = normalizedOrders.filter((order) => {
-    const matchSearch = order.id.toString().includes(search) ||
-      order.customer_name?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = String(order.id || "").includes(search) ||
+      order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+      order.orderSource?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || order.normalizedStatus === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const getPartyLabel = () => {
+    if (orderTab === "Orders") return "Customer";
+    if (orderTab === "My Orders") return "Seller";
+    return "Customer / Seller";
+  };
 
   const statusBadge = (status) => {
     const cls = getOrderStatusClass(status);
@@ -78,7 +120,7 @@ const VendorOrders = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Manage and track all customer orders</p>
+        <p className="text-gray-500 text-sm mt-0.5">Manage vendor orders and orders you placed</p>
       </div>
 
       {/* Stats Cards */}
@@ -121,11 +163,29 @@ const VendorOrders = () => {
 
         {/* Controls */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
+            {["All", "Orders", "My Orders"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setOrderTab(tab);
+                  setStatusFilter("All");
+                }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${orderTab === tab
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : "text-gray-600 hover:bg-gray-200"
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
           <div className="relative w-full sm:w-72">
             <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by order ID or customer..."
+              placeholder="Search by order ID, customer, seller..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"
@@ -167,8 +227,9 @@ const VendorOrders = () => {
               <thead>
                 <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                   <th className="text-left px-6 py-3">Order ID</th>
-                  <th className="text-left px-6 py-3">Customer</th>
+                  <th className="text-left px-6 py-3">{getPartyLabel()}</th>
                   <th className="text-left px-6 py-3">Amount</th>
+                  <th className="text-left px-6 py-3">Type</th>
                   <th className="text-left px-6 py-3">Status</th>
                   <th className="text-left px-6 py-3">Date</th>
                   <th className="text-left px-6 py-3">Action</th>
@@ -192,6 +253,11 @@ const VendorOrders = () => {
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800">
                       ₹{Number(order.total_amount).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-[11px] font-semibold rounded-full ${order.orderSource === "My Orders" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"}`}>
+                        {order.orderSource}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusBadge(order.normalizedStatus)}`}>
