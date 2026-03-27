@@ -24,6 +24,7 @@
         min_price,
         max_price,
         product_type,
+        color,
         seller_id,
         search,
         sort,
@@ -39,6 +40,7 @@
           p.product_description,
           p.product_type,
           p.product_quantity,
+          p.color,
           p.price,
           p.product_image,
           p.created_at,
@@ -76,6 +78,11 @@
       if (product_type) {
         sql += " AND p.product_type = ?";
         params.push(product_type);
+      }
+
+      if (color) {
+        sql += " AND (p.color = ? OR p.color LIKE ?)";
+        params.push(color, `%${color}%`);
       }
 
       if (seller_id) {
