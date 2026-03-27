@@ -11,7 +11,7 @@ const VendorProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("list"); // 'list' | 'card'
+  const [viewMode, setViewMode] = useState("card"); // 'list' | 'card'
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -174,50 +174,59 @@ const VendorProducts = () => {
                 </div>
 
                 {viewMode === "card" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  <div className="space-y-4">
                     {catProducts.map((p) => (
-                      <div key={p.id} className="group bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col">
-                        <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                          {p.product_image ? (
-                            <img src={getImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package size={40} className="text-gray-200" />
-                            </div>
-                          )}
-                          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-                            <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-2xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all">
-                              <Pencil size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(p.id)} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-2xl text-red-600 hover:bg-red-600 hover:text-white transition-all">
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col">
-                          <h4 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1">{p.product_name}</h4>
-                          <p className="text-gray-400 text-xs font-medium mt-1 line-clamp-1">{p.product_description || "No description provided"}</p>
-                          
-                          <div className="mt-6 flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">Price</span>
-                              <span className="text-lg font-black text-gray-900">₹{Number(p.price).toLocaleString()}</span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">Stock</span>
-                              <div className={`text-sm font-black ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>
-                                {p.product_quantity}
+                      <div key={p.id} className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5">
+                          <div className="relative w-full sm:w-36 md:w-40 h-36 md:h-40 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
+                            {p.product_image ? (
+                              <img
+                                src={getImageUrl(p.product_image)}
+                                alt={p.product_name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                <Package size={38} />
                               </div>
-                            </div>
+                            )}
+                            <span className={`absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${p.product_quantity > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+                              {p.product_quantity > 0 ? "In Stock" : "OOS"}
+                            </span>
                           </div>
 
-                          <div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${p.product_quantity > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
-                              {p.product_quantity > 0 ? "In Stock" : "Sold Out"}
-                            </span>
-                            <button onClick={() => navigate(`/product/${p.id}`)} className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1">
-                              Preview <Eye size={12} />
-                            </button>
+                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <h4 className="font-bold text-lg text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1">{p.product_name}</h4>
+                                  <p className="text-xs font-semibold text-emerald-600 mt-0.5 uppercase tracking-wide">{category}</p>
+                                </div>
+                                <button onClick={() => navigate(`/product/${p.id}`)} className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 shrink-0">
+                                  Preview <Eye size={12} />
+                                </button>
+                              </div>
+                              <p className="text-gray-500 text-sm font-medium mt-2 line-clamp-2">{p.product_description || "No description provided"}</p>
+                            </div>
+
+                            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wide">Price</p>
+                                <p className="text-base font-black text-gray-900">₹{Number(p.price).toLocaleString()}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wide">Quantity</p>
+                                <p className={`text-base font-black ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>{p.product_quantity}</p>
+                              </div>
+                              <div className="col-span-2 sm:col-span-1 flex sm:justify-end items-center gap-2">
+                                <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-2.5 rounded-xl border border-gray-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors">
+                                  <Pencil size={16} />
+                                </button>
+                                <button onClick={() => handleDelete(p.id)} className="p-2.5 rounded-xl border border-gray-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
