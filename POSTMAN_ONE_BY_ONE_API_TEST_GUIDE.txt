@@ -516,7 +516,162 @@ Headers: Authorization
 Expected: 200
 
 ============================================================
-12) ADMIN ROUTE (PROTECTED, ADMIN TOKEN)
+12) REVIEW ROUTES (PROTECTED, CUSTOMER TOKEN)
+============================================================
+Login as customer first. Need at least one completed order for product/vendor to create reviews.
+
+[TC_REVIEW_PROD_001] Get product reviews list
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}
+Auth: No (public)
+Expected: 200 with reviews array, summary, pagination
+Query params: ?limit=10&page=1&sort=recent
+
+[TC_REVIEW_PROD_002] Get product rating summary
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}/summary
+Auth: No (public)
+Expected: 200 with average_rating, total_reviews, five_star, four_star, three_star, two_star, one_star
+
+[TC_REVIEW_PROD_003] Create product review
+Method: POST
+URL: {{baseUrl}}/api/reviews/product
+Headers: Authorization: Bearer {{token}}
+Body (JSON):
+{
+  "product_id": {{productId}},
+  "rating": 4,
+  "title": "Great product!",
+  "comment": "This product is amazing and arrived quickly. Highly recommend!"
+}
+Expected: 201 with review object
+Note: User must have completed order for this product
+
+[TC_REVIEW_PROD_004] Get single product review
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/review/1
+Auth: No (public)
+Expected: 200 with review object including reviewer_name
+
+[TC_REVIEW_PROD_005] Update product review
+Method: PATCH
+URL: {{baseUrl}}/api/reviews/product/review/1
+Headers: Authorization
+Body (JSON):
+{
+  "rating": 5,
+  "title": "Updated - Even better!",
+  "comment": "After using it more, I think it's perfect!"
+}
+Expected: 200
+Note: Only review owner can update
+
+[TC_REVIEW_PROD_006] Delete product review
+Method: DELETE
+URL: {{baseUrl}}/api/reviews/product/review/1
+Headers: Authorization
+Expected: 200
+Note: Only review owner or admin can delete
+
+[TC_REVIEW_PROD_007] Mark product review as helpful
+Method: POST
+URL: {{baseUrl}}/api/reviews/product/review/1/helpful
+Headers: Authorization
+Body (JSON):
+{
+  "helpful": true
+}
+Expected: 200
+Note: Increments helpfulness_count, prevents duplicate votes
+
+[TC_REVIEW_PROD_008] Get vendor's received product reviews
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}/product-reviews
+Headers: Authorization
+Expected: 200 (vendor can see reviews they received)
+
+============================================================
+12B) VENDOR REVIEW ROUTES (PROTECTED, CUSTOMER TOKEN)
+============================================================
+Login as customer. Need completed order from vendor to create vendor review.
+
+[TC_REVIEW_VENDOR_001] Get vendor reviews list
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}
+Auth: No (public)
+Expected: 200 with reviews array, summary, pagination
+
+[TC_REVIEW_VENDOR_002] Get vendor rating summary
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}/summary
+Auth: No (public)
+Expected: 200 with:
+- average_rating (overall 1-5)
+- total_reviews
+- average_communication (1-5)
+- average_delivery (1-5)
+- average_quality (1-5)
+
+[TC_REVIEW_VENDOR_003] Create vendor review
+Method: POST
+URL: {{baseUrl}}/api/reviews/vendor
+Headers: Authorization
+Body (JSON):
+{
+  "vendor_id": {{vendorUserId}},
+  "rating": 4,
+  "communication_rating": 5,
+  "delivery_rating": 4,
+  "quality_rating": 4,
+  "comment": "Great vendor! Fast shipping and good communication. Products exactly as described."
+}
+Expected: 201 with review object
+Note: All fields required; user must have purchased from vendor
+
+[TC_REVIEW_VENDOR_004] Get single vendor review
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Auth: No (public)
+Expected: 200 with vendor review object
+
+[TC_REVIEW_VENDOR_005] Update vendor review
+Method: PATCH
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Headers: Authorization
+Body (JSON):
+{
+  "rating": 5,
+  "communication_rating": 5,
+  "delivery_rating": 5,
+  "quality_rating": 5,
+  "comment": "Actually, everything was perfect! Upgrading to 5 stars."
+}
+Expected: 200
+Note: Only review owner can update
+
+[TC_REVIEW_VENDOR_006] Delete vendor review
+Method: DELETE
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Headers: Authorization
+Expected: 200
+Note: Only review owner or admin can delete
+
+[TC_REVIEW_VENDOR_007] Get top-rated vendors (public)
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendors/top-rated
+Auth: No (public)
+Query params: ?limit=10
+Expected: 200 with array of vendors sorted by average_rating DESC
+
+[TC_REVIEW_VENDOR_008] Product reviews sorting
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}?sort=helpful
+Auth: No (public)
+Query params: sort=recent|highest|lowest|helpful
+Expected: 200 with sorted reviews
+
+============================================================
+13) ADMIN ROUTE (PROTECTED, ADMIN TOKEN)
 ============================================================
 Login with admin account and set {{token}} to admin token.
 
@@ -529,16 +684,21 @@ Expected:
 - 403 for non-admin token
 
 ============================================================
-13) QUICK FAILURE TESTS YOU MUST RUN
+14) QUICK FAILURE TESTS YOU MUST RUN
 ============================================================
 1. Protected endpoint without token -> expect 401/403
 2. Protected endpoint with malformed token -> expect 403
 3. Profile/orders endpoint with other user id -> expect 403
 4. Cart add without productId -> expect 400
 5. Login without identifier/password -> expect 400
+6. Create product review without rating -> expect 400
+7. Create vendor review without verified purchase -> expect 400
+8. Create duplicate review for same product -> expect 400
+9. Update/delete review not owned by user -> expect 403
+10. Create review with invalid rating (0 or 6) -> expect 400
 
 ============================================================
-14) HOW TO CHECK RESULT PROPERLY IN POSTMAN
+15) HOW TO CHECK RESULT PROPERLY IN POSTMAN
 ============================================================
 For each request check:
 1. Status code
@@ -573,5 +733,11 @@ END NOTE
 ============================================================
 Follow this file from top to bottom once.
 After that, repeat module-wise:
-Auth -> Products -> Cart -> Orders -> Vendor -> Admin.
+Auth -> Products -> Cart -> Orders -> Vendor -> Reviews -> Admin.
+
+IMPORTANT: For Review endpoints, make sure you have:
+1. Logged in as customer (have token)
+2. Placed at least one order (for verified_purchase flag)
+3. Saved productId and vendorUserId from previous tests
+
 This is the fastest way to learn API testing deeply.
