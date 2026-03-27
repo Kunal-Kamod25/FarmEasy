@@ -11,8 +11,12 @@ router.get("/", async (req, res) => {
         res.json(rows);
 
     } catch (error) {
-        console.log("Error while fetching categories:", error);
-        return res.status(500).json({ message: "Database error" });
+        console.error("❌ Error fetching categories:", error.message, error.code);
+        return res.status(500).json({ 
+            message: "Database error fetching categories",
+            error: error.message,
+            code: error.code
+        });
     }
 });
 
@@ -29,8 +33,12 @@ router.get("/:id/subcategories", async (req, res) => {
         res.json(rows);
 
     } catch (error) {
-        console.log("Error while fetching subcategories:", error);
-        return res.status(500).json({ message: "Database error" });
+        console.error("❌ Error fetching subcategories:", error.message, error.code);
+        return res.status(500).json({ 
+            message: "Database error fetching subcategories",
+            error: error.message,
+            code: error.code
+        });
     }
 });
 

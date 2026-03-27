@@ -125,8 +125,12 @@
       res.json(products);
 
     } catch (error) {
-      console.error("Error fetching all products:", error);
-      res.status(500).json({ message: "Database error while fetching products" });
+      console.error("❌ Error fetching all products:", error.message, error.code);
+      res.status(500).json({ 
+        message: "Database error while fetching products",
+        error: error.message,
+        code: error.code
+      });
     }
   });
 
