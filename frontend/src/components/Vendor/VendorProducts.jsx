@@ -174,11 +174,11 @@ const VendorProducts = () => {
                 </div>
 
                 {viewMode === "card" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {catProducts.map((p) => (
-                      <div key={p.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/70 hover:-translate-y-1 transition-all duration-500 overflow-hidden min-h-[300px]">
-                        <div className="p-4 flex flex-col h-full gap-3">
-                          <div className="relative w-full h-40 bg-gradient-to-b from-slate-50 to-white rounded-2xl overflow-hidden border border-slate-100">
+                      <div key={p.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/70 hover:-translate-y-1 transition-all duration-500 overflow-hidden min-h-[255px]">
+                        <div className="p-3.5 flex flex-col h-full gap-2.5">
+                          <div className="relative w-full h-32 bg-gradient-to-b from-slate-50 to-white rounded-2xl overflow-hidden border border-slate-100">
                             {p.product_image ? (
                               <img
                                 src={getImageUrl(p.product_image)}
@@ -190,7 +190,7 @@ const VendorProducts = () => {
                                 <Package size={38} />
                               </div>
                             )}
-                            <span className={`absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${p.product_quantity > 0 ? "bg-emerald-50/95 text-emerald-700 border-emerald-100" : "bg-red-50/95 text-red-600 border-red-100"}`}>
+                            <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${p.product_quantity > 0 ? "bg-emerald-50/95 text-emerald-700 border-emerald-100" : "bg-red-50/95 text-red-600 border-red-100"}`}>
                               {p.product_quantity > 0 ? "In Stock" : "OOS"}
                             </span>
                             <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
@@ -200,31 +200,31 @@ const VendorProducts = () => {
                             <div>
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                  <h4 className="font-bold text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">{p.product_name}</h4>
+                                  <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">{p.product_name}</h4>
                                   <p className="text-[10px] font-bold text-emerald-700 mt-0.5 uppercase tracking-wider">{category}</p>
                                 </div>
                                 <button onClick={() => navigate(`/product/${p.id}`)} className="text-emerald-700 font-black text-[10px] uppercase tracking-wider hover:underline flex items-center gap-1 shrink-0">
                                   Preview <Eye size={12} />
                                 </button>
                               </div>
-                              <p className="text-slate-500 text-sm font-medium mt-2 line-clamp-2 min-h-[40px]">{p.product_description || "No description provided"}</p>
+                              <p className="text-slate-500 text-xs font-medium mt-1.5 line-clamp-2 min-h-[32px]">{p.product_description || "No description provided"}</p>
                             </div>
 
-                            <div className="mt-3 grid grid-cols-2 gap-2">
-                              <div className="bg-slate-50 rounded-xl px-3 py-2 border border-slate-100/80">
+                            <div className="mt-2.5 grid grid-cols-2 gap-2">
+                              <div className="bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100/80">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Price</p>
                                 <p className="text-sm font-black text-slate-900">₹{Number(p.price).toLocaleString()}</p>
                               </div>
-                              <div className="bg-slate-50 rounded-xl px-3 py-2 border border-slate-100/80">
+                              <div className="bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100/80">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Quantity</p>
                                 <p className={`text-sm font-black ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>{p.product_quantity}</p>
                               </div>
-                              <div className="col-span-2 flex justify-end items-center gap-2 pt-1">
-                                <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-2 rounded-xl border border-slate-100 bg-white text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm">
-                                  <Pencil size={16} />
+                              <div className="col-span-2 flex justify-end items-center gap-1.5 pt-0.5">
+                                <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-1.5 rounded-lg border border-slate-100 bg-white text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm">
+                                  <Pencil size={14} />
                                 </button>
-                                <button onClick={() => handleDelete(p.id)} className="p-2 rounded-xl border border-slate-100 bg-white text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm">
-                                  <Trash2 size={16} />
+                                <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg border border-slate-100 bg-white text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm">
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             </div>
