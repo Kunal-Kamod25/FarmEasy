@@ -4,7 +4,7 @@
 // Display product reviews and rating summary
 // =====================================================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Star, ThumbsUp, Trash2, Edit2, Loader } from "lucide-react";
 import { API_URL } from "../../config";
@@ -17,11 +17,7 @@ const ProductReviews = ({ productId }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("recent");
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId, page, sortBy]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(
@@ -43,7 +39,11 @@ const ProductReviews = ({ productId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId, page, sortBy]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleHelpful = async (reviewId) => {
     try {
