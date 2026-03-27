@@ -37,7 +37,7 @@ export const ProductCard = ({
         {showLoginModal && <LoginModal message={loginMessage} onClose={() => setShowLoginModal(false)} />}
         <div
             onClick={onViewDetail}
-            className="group cursor-pointer bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+            className="group cursor-pointer bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full min-h-[360px]"
         >
             {/* ── image area ── */}
             <div className="relative h-44 bg-gradient-to-b from-slate-50 to-white flex items-center justify-center overflow-hidden">
@@ -96,19 +96,17 @@ export const ProductCard = ({
             <div className="p-4 flex flex-col flex-grow">
 
                 {/* product name */}
-                <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 mb-1.5 group-hover:text-emerald-700 transition-colors">
+                <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 min-h-[38px] mb-1.5 group-hover:text-emerald-700 transition-colors">
                     {product.product_name}
                 </h3>
 
                 {/* short description */}
-                {product.product_description && (
-                    <p className="text-[11px] text-slate-500 line-clamp-2 mb-2 leading-relaxed">
-                        {product.product_description}
-                    </p>
-                )}
+                <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed min-h-[32px] mb-2">
+                    {product.product_description || "No description available"}
+                </p>
 
                 {/* seller info */}
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-2 min-h-[18px]">
                     <div className="bg-emerald-50 p-0.5 rounded">
                         <Store size={10} className="text-emerald-600" />
                     </div>
@@ -163,7 +161,7 @@ export const LoadingSkeleton = ({ count = 4 }) => (
         {[...Array(count)].map((_, i) => (
             <div
                 key={i}
-                className="bg-white rounded-2xl overflow-hidden animate-pulse border border-slate-100"
+                className="bg-white rounded-2xl overflow-hidden animate-pulse border border-slate-100 min-h-[360px]"
             >
                 <div className="h-44 bg-slate-100" />
                 <div className="p-4 space-y-2.5">
