@@ -13,7 +13,6 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { API_URL } from "../../config";
 import { useLanguage } from "../../context/language/LanguageContext";
-import LanguageSwitcher from "../Common/LanguageSwitcher";
 import LoginModal from "../Common/LoginModal";
 
 const Navbar = () => {
@@ -170,8 +169,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-3 md:hidden">
-            <LanguageSwitcher className="mr-1" />
-
             {!user && (
               <>
                 <Link
@@ -233,8 +230,6 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="hidden md:flex items-center gap-3">
-          <LanguageSwitcher />
-
           {/* 🔐 AUTH SECTION */}
           {user ? (
             <div ref={profileRef} className="relative">

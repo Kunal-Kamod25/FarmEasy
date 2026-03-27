@@ -1,16 +1,48 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
 import logo from "../../assets/Logo.png";
 import { FiMail, FiPhoneCall } from "react-icons/fi";
 import { useLanguage } from "../../context/language/LanguageContext";
+import { API_URL } from "../../config";
 
 const Footer = () => {
     const { t } = useLanguage();
+    const [email, setEmail] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [newsletterMessage, setNewsletterMessage] = useState("");
+    const [newsletterError, setNewsletterError] = useState(false);
     const subject = t("topbar.orderInquirySubject");
     const body = t("topbar.orderInquiryBody");
 
     const mailtoLink = `mailto:farmeasy003@gmail.com?subject=${encodeURIComponent(
         subject
     )}&body=${encodeURIComponent(body)}`;
+
+    const handleNewsletterSubmit = async (e) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+
+        try {
+            setSubmitting(true);
+            setNewsletterMessage("");
+            setNewsletterError(false);
+
+            const res = await axios.post(`${API_URL}/api/newsletter/subscribe`, {
+                email: email.trim(),
+            });
+
+            setNewsletterMessage(res.data?.message || "Subscribed successfully.");
+            setEmail("");
+        } catch (error) {
+            setNewsletterError(true);
+            setNewsletterMessage(
+                error?.response?.data?.message || "Unable to subscribe right now. Please try again."
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     return (
         <div className="bg-gray-950">
@@ -44,9 +76,11 @@ const Footer = () => {
                             {t("footer.newsletter.line3")}
                         </p>
 
-                        <form className="flex">
+                        <form className="flex" onSubmit={handleNewsletterSubmit}>
                             <input
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t("footer.newsletter.placeholder")}
                                 required
                                 className="p-3 w-full text-sm bg-gray-900 text-white border border-gray-700 rounded-l-md 
@@ -54,12 +88,18 @@ const Footer = () => {
                             />
                             <button
                                 type="submit"
+                                disabled={submitting}
                                 className="bg-green-600 text-white font-semibold px-6 py-3 text-sm rounded-r-md 
-                hover:bg-green-500 transition-all"
+                hover:bg-green-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                {t("footer.newsletter.subscribe")}
+                                {submitting ? "Subscribing..." : t("footer.newsletter.subscribe")}
                             </button>
                         </form>
+                        {newsletterMessage && (
+                            <p className={`mt-3 text-xs ${newsletterError ? "text-red-400" : "text-green-400"}`}>
+                                {newsletterMessage}
+                            </p>
+                        )}
                     </div>
 
                     {/* Shop Links */}
