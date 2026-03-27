@@ -1,16 +1,25 @@
 const db = require("../config/db");
 
-const getRecentMonthKeys = (months = 6) => {
+const getRangeKeys = (startStr, endStr, useMonthly) => {
   const keys = [];
-  const now = new Date();
-
-  for (let i = months - 1; i >= 0; i -= 1) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const monthLabel = d.toLocaleString("en-IN", { month: "short" });
-    keys.push({ monthKey, monthLabel });
+  const current = new Date(startStr);
+  const end = new Date(endStr);
+  
+  while (current.getTime() <= end.getTime()) {
+    if (useMonthly) {
+      const gKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+      const gLabel = current.toLocaleString("en-IN", { month: "short", year: "numeric" });
+      if (!keys.some(k => k.groupKey === gKey)) {
+        keys.push({ groupKey: gKey, groupLabel: gLabel });
+      }
+      current.setMonth(current.getMonth() + 1);
+    } else {
+      const gKey = current.toISOString().split('T')[0];
+      const gLabel = current.toLocaleString("en-IN", { day: "2-digit", month: "short" });
+      keys.push({ groupKey: gKey, groupLabel: gLabel });
+      current.setDate(current.getDate() + 1);
+    }
   }
-
   return keys;
 };
 
@@ -254,6 +263,22 @@ exports.deleteProduct = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { startDate, endDate } = req.query; 
+
+    // Compute dates if not provided
+    const now = new Date();
+    const end = endDate ? new Date(endDate) : now;
+    const start = startDate ? new Date(startDate) : new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+
+    const endDateStr = end.toISOString().split('T')[0] + ' 23:59:59';
+    const startDateStr = start.toISOString().split('T')[0] + ' 00:00:00';
+
+    const daysDiff = (end.getTime() - start.getTime()) / (1000 * 3600 * 24);
+    const useMonthly = daysDiff > 90;
+    
+    // Format strings for mysql
+    const groupByFormat = useMonthly ? '%Y-%m' : '%Y-%m-%d';
+    const labelFormat = useMonthly ? '%b %Y' : '%d %b';
 
     const [seller] = await db.query(
       "SELECT id FROM seller WHERE user_id = ?",
@@ -261,47 +286,45 @@ exports.getDashboardStats = async (req, res) => {
     );
 
     if (!seller.length) {
-      // return zeros if no seller profile yet instead of erroring
       return res.json({
         totalProducts: 0,
         totalOrders: 0,
         totalRevenue: 0,
         activeOffers: 0,
         categoryBreakdown: [],
-        monthlyBreakdown: []
+        monthlyBreakdown: [],
+        feedbackStats: []
       });
     }
 
     const sellerId = seller[0].id;
 
-    // count their products
     const [[{ totalProducts }]] = await db.query(
       "SELECT COUNT(*) as totalProducts FROM product WHERE seller_id = ?",
       [sellerId]
     );
 
-    // count orders that have their products in it
     const [[{ totalOrders }]] = await db.query(`
       SELECT COUNT(DISTINCT oi.order_id) as totalOrders
       FROM order_items oi
       JOIN product p ON oi.product_id = p.id
-      WHERE p.seller_id = ?
-    `, [sellerId]);
+      JOIN orders o ON oi.order_id = o.id
+      WHERE p.seller_id = ? AND o.order_date >= ? AND o.order_date <= ?
+    `, [sellerId, startDateStr, endDateStr]);
 
-    // sum up revenue from their products
     const [[{ totalRevenue }]] = await db.query(`
       SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as totalRevenue
       FROM order_items oi
       JOIN product p ON oi.product_id = p.id
-      WHERE p.seller_id = ?
-    `, [sellerId]);
+      JOIN orders o ON oi.order_id = o.id
+      WHERE p.seller_id = ? AND o.order_date >= ? AND o.order_date <= ?
+    `, [sellerId, startDateStr, endDateStr]);
 
     const [[{ activeOffers }]] = await db.query(
       "SELECT COUNT(*) as activeOffers FROM product WHERE seller_id = ? AND product_quantity > 0",
       [sellerId]
     );
 
-    // real category breakdown from DB (no more hardcoded "Seeds: 12")
     const [categoryBreakdown] = await db.query(`
       SELECT 
         COALESCE(pc.product_cat_name, 'Uncategorized') as name,
@@ -313,34 +336,56 @@ exports.getDashboardStats = async (req, res) => {
       ORDER BY count DESC
     `, [sellerId]);
 
-    const [monthlyRows] = await db.query(`
+    const [chartRows] = await db.query(`
       SELECT
-        DATE_FORMAT(o.order_date, '%Y-%m') as month_key,
-        DATE_FORMAT(o.order_date, '%b') as month_label,
+        DATE_FORMAT(o.order_date, ?) as group_key,
+        DATE_FORMAT(o.order_date, ?) as group_label,
         COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
         COUNT(DISTINCT oi.order_id) as orders
       FROM order_items oi
       JOIN product p ON oi.product_id = p.id
       JOIN orders o ON oi.order_id = o.id
       WHERE p.seller_id = ?
-        AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH)
-      GROUP BY month_key, month_label
-      ORDER BY month_key ASC
-    `, [sellerId]);
+        AND o.order_date >= ?
+        AND o.order_date <= ?
+      GROUP BY group_key, group_label
+      ORDER BY group_key ASC
+    `, [groupByFormat, labelFormat, sellerId, startDateStr, endDateStr]);
 
-    const monthMap = new Map(
-      monthlyRows.map((row) => [
-        row.month_key,
-        {
-          month: row.month_label,
-          revenue: Number(row.revenue || 0),
-          orders: Number(row.orders || 0)
-        }
-      ])
-    );
+    const chartMap = new Map(chartRows.map(r => [r.group_key, r]));
+    const timeKeys = getRangeKeys(start.toISOString(), end.toISOString(), useMonthly);
 
-    const monthlyBreakdown = getRecentMonthKeys().map(({ monthKey, monthLabel }) => {
-      return monthMap.get(monthKey) || { month: monthLabel, revenue: 0, orders: 0 };
+    const monthlyBreakdown = timeKeys.map(({ groupKey, groupLabel }) => {
+      const row = chartMap.get(groupKey);
+      return {
+        month: groupLabel,
+        revenue: row ? Number(row.revenue) : 0,
+        orders: row ? Number(row.orders) : 0
+      };
+    });
+
+    const [feedbackRows] = await db.query(`
+      SELECT
+        DATE_FORMAT(vr.created_at, ?) as group_key,
+        DATE_FORMAT(vr.created_at, ?) as group_label,
+        AVG(vr.rating) as avg_rating,
+        COUNT(*) as review_count
+      FROM vendor_reviews vr
+      WHERE vr.vendor_id = ?
+        AND vr.created_at >= ?
+        AND vr.created_at <= ?
+      GROUP BY group_key, group_label
+      ORDER BY group_key ASC
+    `, [groupByFormat, labelFormat, userId, startDateStr, endDateStr]);
+
+    const feedbackMap = new Map(feedbackRows.map(r => [r.group_key, r]));
+    const feedbackStats = timeKeys.map(({ groupKey, groupLabel }) => {
+      const row = feedbackMap.get(groupKey);
+      return {
+        month: groupLabel,
+        rating: row ? parseFloat(parseFloat(row.avg_rating).toFixed(1)) : 0,
+        reviews: row ? Number(row.review_count) : 0
+      };
     });
 
     res.json({
@@ -349,7 +394,8 @@ exports.getDashboardStats = async (req, res) => {
       totalRevenue,
       activeOffers,
       categoryBreakdown,
-      monthlyBreakdown
+      monthlyBreakdown,
+      feedbackStats
     });
 
   } catch (error) {
