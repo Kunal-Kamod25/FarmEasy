@@ -80,31 +80,31 @@ const VendorProducts = () => {
 
       {/* ── SUMMARY CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center gap-4 group hover:shadow-md transition-all">
-          <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-emerald-500/20 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
             <Package size={24} />
           </div>
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Catalog</p>
-            <h3 className="text-2xl font-black text-gray-900">{products.length}</h3>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Total Catalog</p>
+            <h3 className="text-2xl font-black text-white">{products.length}</h3>
           </div>
         </div>
-        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center gap-4 group hover:shadow-md transition-all">
-          <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-blue-500/20 bg-gradient-to-br from-blue-500 via-cyan-500 to-sky-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
             <Plus size={24} className="rotate-45" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Active Listing</p>
-            <h3 className="text-2xl font-black text-gray-900">{totalActive}</h3>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Active Listing</p>
+            <h3 className="text-2xl font-black text-white">{totalActive}</h3>
           </div>
         </div>
-        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50 flex items-center gap-4 group hover:shadow-md transition-all">
-          <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-rose-500/20 bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
             <AlertCircle size={24} />
           </div>
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Stock Alerts</p>
-            <h3 className="text-2xl font-black text-gray-900">{outOfStock}</h3>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Stock Alerts</p>
+            <h3 className="text-2xl font-black text-white">{outOfStock}</h3>
           </div>
         </div>
       </div>
