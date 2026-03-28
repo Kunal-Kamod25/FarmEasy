@@ -18,6 +18,12 @@ Backend Base URL: http://localhost:5000
    categoryId =
    sellerId =
    sessionId =
+  listingId =
+  matchId =
+  driverId =
+  deliveryId =
+  orderId =
+  languageCode = hi
 
 3. Common header for protected routes:
    Authorization: Bearer {{token}}
@@ -36,6 +42,13 @@ URL: {{baseUrl}}/
 Auth: No
 Body: None
 Expected: 200 and text "Backend running successfully..."
+
+[TC_HEALTH_002]
+Method: GET
+URL: {{baseUrl}}/health
+Auth: No
+Body: None
+Expected: 200 and JSON with status "OK"
 
 ============================================================
 2) AUTH ROUTES
@@ -671,6 +684,319 @@ Query params: sort=recent|highest|lowest|helpful
 Expected: 200 with sorted reviews
 
 ============================================================
+12C) TRANSLATION ROUTES (PUBLIC)
+============================================================
+[TC_TRANSLATION_001] Get translated strings by language code
+Method: GET
+URL: {{baseUrl}}/api/translations/{{languageCode}}
+Auth: No
+Expected: 200 with translation key-value data
+
+[TC_TRANSLATION_002] Get supported languages list
+Method: GET
+URL: {{baseUrl}}/api/translations/languages/list
+Auth: No
+Expected: 200 with array/object of supported languages
+
+============================================================
+12D) NEWSLETTER ROUTE (PUBLIC)
+============================================================
+[TC_NEWS_001] Subscribe email to newsletter
+Method: POST
+URL: {{baseUrl}}/api/newsletter/subscribe
+Auth: No
+Body (JSON):
+{
+  "email": "customer1@example.com"
+}
+Expected: 200 or 201 with success message
+Negative: invalid email -> 400
+
+============================================================
+12E) CROP EXCHANGE ROUTES (PUBLIC + PROTECTED)
+============================================================
+Login as customer/farmer and set token before protected tests.
+
+[TC_EXCH_001] Browse nearby listings (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/browse?latitude=18.5204&longitude=73.8567&crop=wheat
+Auth: No
+Expected: 200 with listings array
+
+[TC_EXCH_002] Create listing (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/create
+Headers: Authorization
+Body (JSON):
+{
+  "crop_name": "Wheat",
+  "quantity": 100,
+  "unit": "kg",
+  "expected_crop": "Rice",
+  "latitude": 18.5204,
+  "longitude": 73.8567,
+  "location_name": "Pune"
+}
+Expected: 201 or 200 with listing object/id
+Action: save listing id into {{listingId}}
+
+[TC_EXCH_003] Get listing by id (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Auth: No
+Expected: 200 with listing details
+
+[TC_EXCH_004] Get trending crops (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/trending
+Auth: No
+Expected: 200 with popular crops
+
+[TC_EXCH_005] Get my listings (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/my/listings
+Headers: Authorization
+Expected: 200 with my listings array
+
+[TC_EXCH_006] Update listing (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Headers: Authorization
+Body (JSON):
+{
+  "quantity": 120,
+  "location_name": "Pune Rural"
+}
+Expected: 200
+
+[TC_EXCH_007] Propose a match (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/propose
+Headers: Authorization
+Body (JSON):
+{
+  "target_listing_id": {{listingId}},
+  "offered_crop": "Rice",
+  "offered_quantity": 80,
+  "message": "Interested in exchange"
+}
+Expected: 201 or 200 with match details
+Action: save match id into {{matchId}}
+
+[TC_EXCH_008] Get received matches (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/matches/received
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_009] Get sent matches (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/matches/sent
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_010] Accept match (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/accept
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_011] Reject match (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/reject
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_012] Send match message (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/messages
+Headers: Authorization
+Body (JSON):
+{
+  "match_id": {{matchId}},
+  "message": "Can deliver by tomorrow"
+}
+Expected: 201 or 200
+
+[TC_EXCH_013] Get match messages (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/messages/{{matchId}}
+Headers: Authorization
+Expected: 200 with conversation messages
+
+[TC_EXCH_014] Get recent chats (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/chats
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_015] Complete exchange (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/complete
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_016] Exchange stats (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/stats
+Headers: Authorization
+Expected: 200 with summary stats
+
+[TC_EXCH_017] Delete listing (protected)
+Method: DELETE
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Headers: Authorization
+Expected: 200
+
+============================================================
+12F) DELIVERY ROUTES (PUBLIC + PROTECTED)
+============================================================
+Use role-based token (customer/driver/admin) as needed for each endpoint.
+
+[TC_DEL_001] Register driver (public)
+Method: POST
+URL: {{baseUrl}}/api/delivery/driver/register
+Auth: No
+Body (JSON):
+{
+  "full_name": "Driver One",
+  "phone_number": "9123456789",
+  "vehicle_type": "Bike",
+  "license_number": "MH12DL1234"
+}
+Expected: 201 or 200 with driver details
+Action: save driver id into {{driverId}}
+
+[TC_DEL_002] Get available drivers (public)
+Method: GET
+URL: {{baseUrl}}/api/delivery/available-drivers?latitude=18.5204&longitude=73.8567&radius=10
+Auth: No
+Expected: 200 with nearby drivers
+
+[TC_DEL_003] Get driver profile (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}
+Headers: Authorization
+Expected: 200
+
+[TC_DEL_004] Update driver status (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}/status
+Headers: Authorization
+Body (JSON):
+{
+  "status": "available"
+}
+Expected: 200
+
+[TC_DEL_005] Update driver location (protected)
+Method: POST
+URL: {{baseUrl}}/api/delivery/location/update/{{driverId}}
+Headers: Authorization
+Body (JSON):
+{
+  "latitude": 18.5204,
+  "longitude": 73.8567,
+  "address": "Pune Station"
+}
+Expected: 200
+
+[TC_DEL_006] Get driver assignments (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}/assignments
+Headers: Authorization
+Expected: 200 with deliveries
+
+[TC_DEL_007] Create delivery from order (protected)
+Method: POST
+URL: {{baseUrl}}/api/delivery/create/{{orderId}}
+Headers: Authorization
+Body (JSON):
+{
+  "pickup_address": "Warehouse A",
+  "delivery_address": "Lane 1, Pune",
+  "delivery_latitude": 18.5300,
+  "delivery_longitude": 73.8500,
+  "driver_id": {{driverId}}
+}
+Expected: 201 or 200 with delivery details
+Action: save delivery id into {{deliveryId}}
+
+[TC_DEL_008] Assign driver to delivery (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/assign
+Headers: Authorization
+Body (JSON):
+{
+  "driver_id": {{driverId}}
+}
+Expected: 200
+
+[TC_DEL_009] Track delivery by order id (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/track/{{orderId}}
+Headers: Authorization
+Expected: 200 with driver/location/status/ETA
+
+[TC_DEL_010] Update delivery status by driver (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/status/{{driverId}}
+Headers: Authorization
+Body (JSON):
+{
+  "status": "on_the_way",
+  "notes": "Reached city area"
+}
+Expected: 200
+
+[TC_DEL_011] Delivery status history (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/status-history
+Headers: Authorization
+Expected: 200 with timeline
+
+[TC_DEL_012] Get my notifications (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/notifications/me
+Headers: Authorization
+Expected: 200 with notifications
+
+[TC_DEL_013] Mark one notification read (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/notifications/1/read
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_DEL_014] Mark all notifications read (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/notifications/read-all
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_DEL_015] Pending delivery assignments (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/pending-assignments
+Headers: Authorization (admin token)
+Expected: 200 for admin, 403 for non-admin
+
+[TC_DEL_016] Delayed deliveries (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/delayed
+Headers: Authorization (admin token)
+Expected: 200 for admin, 403 for non-admin
+
+[TC_DEL_017] Delivery analytics (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/analytics?start_date=2026-03-01&end_date=2026-03-31
+Headers: Authorization (admin token)
+Expected: 200 for admin, 400 if date range missing, 403 for non-admin
+
+============================================================
 13) ADMIN ROUTE (PROTECTED, ADMIN TOKEN)
 ============================================================
 Login with admin account and set {{token}} to admin token.
@@ -733,7 +1059,7 @@ END NOTE
 ============================================================
 Follow this file from top to bottom once.
 After that, repeat module-wise:
-Auth -> Products -> Cart -> Orders -> Vendor -> Reviews -> Admin.
+Auth -> Products -> Cart -> Orders -> Vendor -> Reviews -> Translation -> Newsletter -> Exchange -> Delivery -> Admin.
 
 IMPORTANT: For Review endpoints, make sure you have:
 1. Logged in as customer (have token)
