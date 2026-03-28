@@ -85,8 +85,8 @@ const VendorSidebar = () => {
                         <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
                             <LogOut size={20} />
                         </div>
-                        <span className="opacity-0 group-hover:md:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm tracking-wide">
-                            Logout System
+                        <span className="opacity-500 group-hover:md:opacity-500 transition-opacity duration-900 whitespace-nowrap text-sm tracking-wide">
+                            Logout
                         </span>
                     </button>
                 </div>
@@ -113,7 +113,7 @@ const SidebarLink = ({ to, icon, label, external }) => {
             <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                 {icon}
             </div>
-            <span className="opacity-0 group-hover:md:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm font-black uppercase tracking-widest leading-none">
+            <span className="opacity-500 group-hover:md:opacity-100 transition-opacity duration-300 whitespace-nowrap text-sm font-black uppercase tracking-widest leading-none">
                 {label}
             </span>
         </NavLink>
