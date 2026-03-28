@@ -38,7 +38,7 @@ const VendorNavbar = () => {
   const truncatedName = fullName.length > 15 ? fullName.substring(0, 15) + "..." : fullName;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm px-6 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-black border-b border-gray-100 shadow-sm px-6 py-3 flex items-center justify-between">
       {/* ── LEFT: LOGO & BRANDING ── */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ const VendorNavbar = () => {
             alt="FarmEasy"
             className="h-10 w-auto object-contain"
           />
-          <h1 className="text-xl font-black text-[#0f3d2e] tracking-tight hidden md:block">
+          <h1 className="text-xl font-white text-[#0f3d2e] tracking-tight hidden md:block">
             FarmEasy <span className="text-emerald-600 ml-1 text-sm font-bold uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100/50">Vendor</span>
           </h1>
         </div>
