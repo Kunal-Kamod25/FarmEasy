@@ -196,7 +196,7 @@ const Navbar = () => {
                     </span>
                   )}
                 </Link>
-                <Link to="/my-orders">
+                <Link to="/profile">
                   <HiOutlineUser className="h-5 w-5 text-white hover:text-green-500 transition-colors" />
                 </Link>
               </>
@@ -323,7 +323,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* 👤 Profile Icon */}
-                <Link to="/my-orders">
+                <Link to="/profile">
                   <HiOutlineUser className="h-6 w-6 text-white hover:text-green-500 transition-colors" />
                 </Link>
               </>
