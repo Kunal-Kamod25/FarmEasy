@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useLanguage } from "../context/language/LanguageContext";
 
 /* User Layout + Pages */
 const UserLayout = lazy(() => import("../components/Layout/UserLayout"));
@@ -34,6 +35,15 @@ const AdminRoute = lazy(() => import("./AdminRoute"));
 const Wishlist = lazy(() => import("../components/Products/wishlist"));
 const AllProductsPage = lazy(() => import("../components/Products/AllProductsPage"));
 
+/* Crop Exchange */
+const ExchangeMarketplace = lazy(() => import("../Pages/ExchangeMarketplace"));
+const CreateExchange = lazy(() => import("../Pages/CreateExchange"));
+const ExchangeDetail = lazy(() => import("../Pages/ExchangeDetail"));
+
+/* Delivery Tracking */
+const OrderTracking = lazy(() => import("../Pages/OrderTracking"));
+const DriverDeliveryApp = lazy(() => import("../Pages/DriverDeliveryApp"));
+
 /* Pages */
 const ProductDetailPage = lazy(() => import("../Pages/ProductDetails"));
 const CheckoutPage = lazy(() => import("../Pages/Checkout"));
@@ -44,13 +54,15 @@ const Support = lazy(() => import("../Pages/Support"));
 const ContactUs = lazy(() => import("../Pages/ContactUs"));
 const AboutUs = lazy(() => import("../Pages/AboutUs"));
 
-const RouteFallback = (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 text-sm font-semibold">
-    Loading page...
-  </div>
-);
-
 const AppRoutes = () => {
+  const { t } = useLanguage();
+
+  const RouteFallback = (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 text-sm font-semibold">
+      {t("common.loading")}
+    </div>
+  );
+
   return (
     <BrowserRouter>
       <Suspense fallback={RouteFallback}>
@@ -74,6 +86,14 @@ const AppRoutes = () => {
           <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/wishlist" element={<Wishlist />} />
 
+          {/* Crop Exchange */}
+          <Route path="/exchange" element={<ExchangeMarketplace />} />
+          <Route path="/exchange/create" element={<CreateExchange />} />
+          <Route path="/exchange/:id" element={<ExchangeDetail />} />
+
+          {/* Delivery Tracking */}
+          <Route path="/track-order/:orderId" element={<OrderTracking />} />
+
           {/* Checkout & Success */}
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
@@ -86,6 +106,9 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* ── DRIVER DELIVERY APP ── */}
+        <Route path="/driver-app" element={<DriverDeliveryApp />} />
 
         {/* ── ADMIN ── */}
         <Route

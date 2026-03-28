@@ -1,0 +1,1069 @@
+FarmEasy API One-by-One Testing Guide (Postman / Thunder Client)
+Date: 2026-03-24
+Backend Base URL: http://localhost:5000
+
+============================================================
+0) BEFORE STARTING
+============================================================
+1. Start backend:
+   npm run dev --prefix backend
+
+2. Create Postman Environment variables:
+   baseUrl = http://localhost:5000
+   token =
+   customerUserId =
+   vendorUserId =
+   adminUserId =
+   productId =
+   categoryId =
+   sellerId =
+   sessionId =
+  listingId =
+  matchId =
+  driverId =
+  deliveryId =
+  orderId =
+  languageCode = hi
+
+3. Common header for protected routes:
+   Authorization: Bearer {{token}}
+
+4. Test style for every endpoint:
+   A) Valid request (expected success)
+   B) Invalid request/body (expected 400/401/403/404)
+   C) For protected routes: test missing token (expected 401/403)
+
+============================================================
+1) HEALTH CHECK
+============================================================
+[TC_HEALTH_001]
+Method: GET
+URL: {{baseUrl}}/
+Auth: No
+Body: None
+Expected: 200 and text "Backend running successfully..."
+
+[TC_HEALTH_002]
+Method: GET
+URL: {{baseUrl}}/health
+Auth: No
+Body: None
+Expected: 200 and JSON with status "OK"
+
+============================================================
+2) AUTH ROUTES
+============================================================
+[TC_AUTH_001] Register customer
+Method: POST
+URL: {{baseUrl}}/api/authentication/register
+Auth: No
+Body (JSON):
+{
+  "fullname": "Customer One",
+  "email": "customer1@example.com",
+  "password": "Pass@123",
+  "role": "customer",
+  "phone_number": "9876543210"
+}
+Expected: 201, message "Account created successfully!"
+
+[TC_AUTH_002] Register vendor
+Method: POST
+URL: {{baseUrl}}/api/authentication/register
+Auth: No
+Body (JSON):
+{
+  "fullname": "Vendor One",
+  "email": "vendor1@example.com",
+  "password": "Pass@123",
+  "role": "vendor",
+  "phone_number": "9988776655",
+  "gst_number": "27ABCDE1234F1Z5"
+}
+Expected: 201
+
+[TC_AUTH_003] Register invalid (missing required)
+Method: POST
+URL: {{baseUrl}}/api/authentication/register
+Body:
+{
+  "email": "bad@example.com"
+}
+Expected: 400 or 500 with error message
+
+[TC_AUTH_004] Login customer
+Method: POST
+URL: {{baseUrl}}/api/authentication/login
+Body:
+{
+  "identifier": "customer1@example.com",
+  "password": "Pass@123",
+  "loginAs": "customer"
+}
+Expected: 200, response has token and user
+Action: Save token to {{token}}, save user.id to {{customerUserId}}
+
+[TC_AUTH_005] Login vendor
+Method: POST
+URL: {{baseUrl}}/api/authentication/login
+Body:
+{
+  "identifier": "vendor1@example.com",
+  "password": "Pass@123",
+  "loginAs": "vendor"
+}
+Expected: 200
+Action: Save token to {{token}} and user.id to {{vendorUserId}} when testing vendor routes
+
+[TC_AUTH_006] Login invalid password
+Method: POST
+URL: {{baseUrl}}/api/authentication/login
+Body:
+{
+  "identifier": "customer1@example.com",
+  "password": "wrong123",
+  "loginAs": "customer"
+}
+Expected: 401
+
+============================================================
+3) CATEGORY ROUTES (PUBLIC)
+============================================================
+[TC_CAT_001] Get categories
+Method: GET
+URL: {{baseUrl}}/api/categories/
+Expected: 200 and array
+Action: copy first id into {{categoryId}}
+
+[TC_CAT_002] Get subcategories by category id
+Method: GET
+URL: {{baseUrl}}/api/categories/{{categoryId}}/subcategories
+Expected: 200 and array
+
+============================================================
+4) PRODUCT ROUTES (PUBLIC)
+============================================================
+[TC_PROD_001] Get all products
+Method: GET
+URL: {{baseUrl}}/api/products/all
+Expected: 200 and array
+Action: save first product id into {{productId}}
+
+[TC_PROD_002] Get all products with search
+Method: GET
+URL: {{baseUrl}}/api/products/all?search=seed&sort=price_asc&limit=5&page=1
+Expected: 200
+
+[TC_PROD_003] Get product details by id
+Method: GET
+URL: {{baseUrl}}/api/products/{{productId}}
+Expected: 200 with product object
+
+[TC_PROD_004] Get products by category
+Method: GET
+URL: {{baseUrl}}/api/products/category/{{categoryId}}
+Expected: 200
+
+[TC_PROD_005] Get product types meta
+Method: GET
+URL: {{baseUrl}}/api/products/meta/types
+Expected: 200 array of strings
+
+[TC_PROD_006] Get sellers meta
+Method: GET
+URL: {{baseUrl}}/api/products/meta/sellers
+Expected: 200 array of seller objects
+
+============================================================
+5) PASSWORD ROUTES
+============================================================
+[TC_PASS_001] Forgot password (OTP mode)
+Method: POST
+URL: {{baseUrl}}/api/password/forgot-password
+Body:
+{
+  "email": "customer1@example.com",
+  "type": "otp"
+}
+Expected: 200
+Note: In dev mode response may include dev_token
+
+[TC_PASS_002] Verify OTP
+Method: POST
+URL: {{baseUrl}}/api/password/verify-otp
+Body:
+{
+  "email": "customer1@example.com",
+  "otp": "<otp from email or dev_token>"
+}
+Expected: 200 if valid
+
+[TC_PASS_003] Reset password with token/otp
+Method: POST
+URL: {{baseUrl}}/api/password/reset-password
+Body:
+{
+  "token": "<otp or reset token>",
+  "newPassword": "NewPass@123"
+}
+Expected: 200
+
+============================================================
+6) SELLER BASIC ROUTES (/seller)
+============================================================
+[TC_SELLER_001] Create seller record
+Method: POST
+URL: {{baseUrl}}/seller/
+Body:
+{
+  "user_id": {{vendorUserId}},
+  "aadhaar_no": "123412341234",
+  "pan_no": "ABCDE1234F",
+  "gst_no": "27ABCDE1234F1Z5"
+}
+Expected: 201
+
+[TC_SELLER_002] Get all sellers
+Method: GET
+URL: {{baseUrl}}/seller/
+Expected: 200
+
+[TC_SELLER_003] Get seller by user id
+Method: GET
+URL: {{baseUrl}}/seller/user/{{vendorUserId}}
+Expected: 200
+
+============================================================
+7) PROFILE ROUTES (PROTECTED)
+============================================================
+Use customer token first for these.
+
+[TC_PROFILE_001] Get my profile
+Method: GET
+URL: {{baseUrl}}/api/profile/me
+Headers: Authorization: Bearer {{token}}
+Expected: 200
+
+[TC_PROFILE_002] Update profile
+Method: PUT
+URL: {{baseUrl}}/api/profile/update
+Headers: Authorization
+Body:
+{
+  "fullname": "Customer One Updated",
+  "phone": "9876543210",
+  "address": "Lane 1",
+  "city": "Pune",
+  "state": "Maharashtra",
+  "pincode": "411001",
+  "bio": "Farmer account"
+}
+Expected: 200
+
+[TC_PROFILE_003] Get profile by user id (self only)
+Method: GET
+URL: {{baseUrl}}/api/profile/{{customerUserId}}
+Headers: Authorization
+Expected: 200
+Negative test: use another user id -> expected 403
+
+============================================================
+8) WISHLIST ROUTES (PROTECTED)
+============================================================
+[TC_WISH_001] Toggle add wishlist
+Method: POST
+URL: {{baseUrl}}/api/wishlist/
+Headers: Authorization
+Body:
+{
+  "productId": {{productId}}
+}
+Expected: 201 or 200 depending add/remove state
+
+[TC_WISH_002] Get wishlist
+Method: GET
+URL: {{baseUrl}}/api/wishlist/
+Headers: Authorization
+Expected: 200 with data array
+
+============================================================
+9) CART ROUTES (PROTECTED)
+============================================================
+[TC_CART_001] Get cart
+Method: GET
+URL: {{baseUrl}}/api/cart/
+Headers: Authorization
+Expected: 200
+
+[TC_CART_002] Add to cart
+Method: POST
+URL: {{baseUrl}}/api/cart/
+Headers: Authorization
+Body:
+{
+  "productId": {{productId}},
+  "quantity": 2
+}
+Expected: 201 or 200
+
+[TC_CART_003] Update cart quantity
+Method: PUT
+URL: {{baseUrl}}/api/cart/{{productId}}
+Headers: Authorization
+Body:
+{
+  "quantity": 3
+}
+Expected: 200
+
+[TC_CART_004] Remove one item from cart
+Method: DELETE
+URL: {{baseUrl}}/api/cart/{{productId}}
+Headers: Authorization
+Expected: 200
+
+[TC_CART_005] Clear cart
+Method: DELETE
+URL: {{baseUrl}}/api/cart/
+Headers: Authorization
+Expected: 200
+
+============================================================
+10) ORDER ROUTES (PROTECTED)
+============================================================
+Before placing order, add products to cart first.
+Shipping object required fields:
+fullName, email, phone, address, city, state, pincode
+
+[TC_ORDER_001] Place COD order
+Method: POST
+URL: {{baseUrl}}/api/orders/cod
+Headers: Authorization
+Body:
+{
+  "shippingDetails": {
+    "fullName": "Customer One",
+    "email": "customer1@example.com",
+    "phone": "9876543210",
+    "address": "Lane 1",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "pincode": "411001"
+  }
+}
+Expected: 201, success true, orderId
+
+[TC_ORDER_002] Backward endpoint (COD fallback)
+Method: POST
+URL: {{baseUrl}}/api/orders/
+Headers: Authorization
+Body:
+{
+  "paymentMethod": "COD",
+  "shippingDetails": {
+    "fullName": "Customer One",
+    "email": "customer1@example.com",
+    "phone": "9876543210",
+    "address": "Lane 1",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "pincode": "411001"
+  }
+}
+Expected: 201 for COD, 400 for unsupported method instructions
+
+[TC_ORDER_003] Razorpay order create
+Method: POST
+URL: {{baseUrl}}/api/orders/razorpay/order
+Headers: Authorization
+Body: same shippingDetails
+Expected: 200 (if Razorpay env configured) else 503
+
+[TC_ORDER_004] Razorpay finalize
+Method: POST
+URL: {{baseUrl}}/api/orders/razorpay/finalize
+Headers: Authorization
+Body:
+{
+  "razorpay_order_id": "<from gateway>",
+  "razorpay_payment_id": "<from gateway>",
+  "razorpay_signature": "<from gateway>",
+  "shippingDetails": {
+    "fullName": "Customer One",
+    "email": "customer1@example.com",
+    "phone": "9876543210",
+    "address": "Lane 1",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "pincode": "411001"
+  }
+}
+Expected: 201 when valid, 400/503 otherwise
+
+[TC_ORDER_005] Stripe checkout session
+Method: POST
+URL: {{baseUrl}}/api/orders/stripe/checkout-session
+Headers: Authorization
+Body: same shippingDetails
+Expected: 200 with checkoutUrl and sessionId (if Stripe configured) else 503
+Action: save sessionId to {{sessionId}}
+
+[TC_ORDER_006] Stripe finalize
+Method: POST
+URL: {{baseUrl}}/api/orders/stripe/finalize
+Headers: Authorization
+Body:
+{
+  "sessionId": "{{sessionId}}"
+}
+Expected: 201 when paid and valid, otherwise 400/503
+
+[TC_ORDER_007] Order summary
+Method: GET
+URL: {{baseUrl}}/api/orders/summary
+Headers: Authorization
+Expected: 200 with total_orders, total_spent
+
+[TC_ORDER_008] Status meta
+Method: GET
+URL: {{baseUrl}}/api/orders/meta/statuses
+Headers: Authorization
+Expected: 200 with orderStatuses and paymentStatuses
+
+[TC_ORDER_009] User orders
+Method: GET
+URL: {{baseUrl}}/api/orders/user/{{customerUserId}}
+Headers: Authorization
+Expected: 200 array of grouped orders
+Negative: use another user id -> 403
+
+============================================================
+11) VENDOR ROUTES (PROTECTED, VENDOR TOKEN)
+============================================================
+Login as vendor first and put vendor token into {{token}}.
+
+[TC_VENDOR_001] Get vendor products
+Method: GET
+URL: {{baseUrl}}/api/vendor/products
+Headers: Authorization
+Expected: 200
+
+[TC_VENDOR_002] Get one vendor product
+Method: GET
+URL: {{baseUrl}}/api/vendor/products/{{productId}}
+Headers: Authorization
+Expected: 200 or 404 if product not owned
+
+[TC_VENDOR_003] Add vendor product (form-data)
+Method: POST
+URL: {{baseUrl}}/api/vendor/products
+Headers: Authorization
+Body Type: form-data
+Fields:
+  product_name = "Test Product"
+  product_description = "Test desc"
+  product_type = "Seeds"
+  price = 120
+  category_id = {{categoryId}}
+  product_quantity = 10
+  product_image = <file>
+Expected: 200 with message "Product added successfully"
+
+[TC_VENDOR_004] Update vendor product (form-data)
+Method: PUT
+URL: {{baseUrl}}/api/vendor/products/{{productId}}
+Headers: Authorization
+Body Type: form-data
+Fields similar to add product
+Expected: 200
+
+[TC_VENDOR_005] Delete vendor product
+Method: DELETE
+URL: {{baseUrl}}/api/vendor/products/{{productId}}
+Headers: Authorization
+Expected: 200 or 404 unauthorized/not found
+
+[TC_VENDOR_006] Vendor orders
+Method: GET
+URL: {{baseUrl}}/api/vendor/orders
+Headers: Authorization
+Expected: 200
+
+[TC_VENDOR_007] Vendor dashboard stats
+Method: GET
+URL: {{baseUrl}}/api/vendor/dashboard
+Headers: Authorization
+Expected: 200
+
+[TC_VENDOR_008] Vendor sales summary
+Method: GET
+URL: {{baseUrl}}/api/vendor/sales-summary
+Headers: Authorization
+Expected: 200
+
+[TC_VENDOR_009] Vendor profile get
+Method: GET
+URL: {{baseUrl}}/api/vendor/profile
+Headers: Authorization
+Expected: 200
+
+[TC_VENDOR_010] Vendor profile update (form-data)
+Method: PUT
+URL: {{baseUrl}}/api/vendor/profile
+Headers: Authorization
+Body Type: form-data
+Fields:
+  full_name = "Vendor Updated"
+  phone_number = "9988776655"
+  address = "Shop street"
+  city = "Pune"
+  state = "Maharashtra"
+  pincode = "411002"
+  profile_image = <file optional>
+Expected: 200
+
+[TC_VENDOR_011] Vendor my purchases
+Method: GET
+URL: {{baseUrl}}/api/vendor/my-purchases
+Headers: Authorization
+Expected: 200
+
+============================================================
+12) REVIEW ROUTES (PROTECTED, CUSTOMER TOKEN)
+============================================================
+Login as customer first. Need at least one completed order for product/vendor to create reviews.
+
+[TC_REVIEW_PROD_001] Get product reviews list
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}
+Auth: No (public)
+Expected: 200 with reviews array, summary, pagination
+Query params: ?limit=10&page=1&sort=recent
+
+[TC_REVIEW_PROD_002] Get product rating summary
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}/summary
+Auth: No (public)
+Expected: 200 with average_rating, total_reviews, five_star, four_star, three_star, two_star, one_star
+
+[TC_REVIEW_PROD_003] Create product review
+Method: POST
+URL: {{baseUrl}}/api/reviews/product
+Headers: Authorization: Bearer {{token}}
+Body (JSON):
+{
+  "product_id": {{productId}},
+  "rating": 4,
+  "title": "Great product!",
+  "comment": "This product is amazing and arrived quickly. Highly recommend!"
+}
+Expected: 201 with review object
+Note: User must have completed order for this product
+
+[TC_REVIEW_PROD_004] Get single product review
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/review/1
+Auth: No (public)
+Expected: 200 with review object including reviewer_name
+
+[TC_REVIEW_PROD_005] Update product review
+Method: PATCH
+URL: {{baseUrl}}/api/reviews/product/review/1
+Headers: Authorization
+Body (JSON):
+{
+  "rating": 5,
+  "title": "Updated - Even better!",
+  "comment": "After using it more, I think it's perfect!"
+}
+Expected: 200
+Note: Only review owner can update
+
+[TC_REVIEW_PROD_006] Delete product review
+Method: DELETE
+URL: {{baseUrl}}/api/reviews/product/review/1
+Headers: Authorization
+Expected: 200
+Note: Only review owner or admin can delete
+
+[TC_REVIEW_PROD_007] Mark product review as helpful
+Method: POST
+URL: {{baseUrl}}/api/reviews/product/review/1/helpful
+Headers: Authorization
+Body (JSON):
+{
+  "helpful": true
+}
+Expected: 200
+Note: Increments helpfulness_count, prevents duplicate votes
+
+[TC_REVIEW_PROD_008] Get vendor's received product reviews
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}/product-reviews
+Headers: Authorization
+Expected: 200 (vendor can see reviews they received)
+
+============================================================
+12B) VENDOR REVIEW ROUTES (PROTECTED, CUSTOMER TOKEN)
+============================================================
+Login as customer. Need completed order from vendor to create vendor review.
+
+[TC_REVIEW_VENDOR_001] Get vendor reviews list
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}
+Auth: No (public)
+Expected: 200 with reviews array, summary, pagination
+
+[TC_REVIEW_VENDOR_002] Get vendor rating summary
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/{{vendorUserId}}/summary
+Auth: No (public)
+Expected: 200 with:
+- average_rating (overall 1-5)
+- total_reviews
+- average_communication (1-5)
+- average_delivery (1-5)
+- average_quality (1-5)
+
+[TC_REVIEW_VENDOR_003] Create vendor review
+Method: POST
+URL: {{baseUrl}}/api/reviews/vendor
+Headers: Authorization
+Body (JSON):
+{
+  "vendor_id": {{vendorUserId}},
+  "rating": 4,
+  "communication_rating": 5,
+  "delivery_rating": 4,
+  "quality_rating": 4,
+  "comment": "Great vendor! Fast shipping and good communication. Products exactly as described."
+}
+Expected: 201 with review object
+Note: All fields required; user must have purchased from vendor
+
+[TC_REVIEW_VENDOR_004] Get single vendor review
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Auth: No (public)
+Expected: 200 with vendor review object
+
+[TC_REVIEW_VENDOR_005] Update vendor review
+Method: PATCH
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Headers: Authorization
+Body (JSON):
+{
+  "rating": 5,
+  "communication_rating": 5,
+  "delivery_rating": 5,
+  "quality_rating": 5,
+  "comment": "Actually, everything was perfect! Upgrading to 5 stars."
+}
+Expected: 200
+Note: Only review owner can update
+
+[TC_REVIEW_VENDOR_006] Delete vendor review
+Method: DELETE
+URL: {{baseUrl}}/api/reviews/vendor/review/1
+Headers: Authorization
+Expected: 200
+Note: Only review owner or admin can delete
+
+[TC_REVIEW_VENDOR_007] Get top-rated vendors (public)
+Method: GET
+URL: {{baseUrl}}/api/reviews/vendors/top-rated
+Auth: No (public)
+Query params: ?limit=10
+Expected: 200 with array of vendors sorted by average_rating DESC
+
+[TC_REVIEW_VENDOR_008] Product reviews sorting
+Method: GET
+URL: {{baseUrl}}/api/reviews/product/{{productId}}?sort=helpful
+Auth: No (public)
+Query params: sort=recent|highest|lowest|helpful
+Expected: 200 with sorted reviews
+
+============================================================
+12C) TRANSLATION ROUTES (PUBLIC)
+============================================================
+[TC_TRANSLATION_001] Get translated strings by language code
+Method: GET
+URL: {{baseUrl}}/api/translations/{{languageCode}}
+Auth: No
+Expected: 200 with translation key-value data
+
+[TC_TRANSLATION_002] Get supported languages list
+Method: GET
+URL: {{baseUrl}}/api/translations/languages/list
+Auth: No
+Expected: 200 with array/object of supported languages
+
+============================================================
+12D) NEWSLETTER ROUTE (PUBLIC)
+============================================================
+[TC_NEWS_001] Subscribe email to newsletter
+Method: POST
+URL: {{baseUrl}}/api/newsletter/subscribe
+Auth: No
+Body (JSON):
+{
+  "email": "customer1@example.com"
+}
+Expected: 200 or 201 with success message
+Negative: invalid email -> 400
+
+============================================================
+12E) CROP EXCHANGE ROUTES (PUBLIC + PROTECTED)
+============================================================
+Login as customer/farmer and set token before protected tests.
+
+[TC_EXCH_001] Browse nearby listings (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/browse?latitude=18.5204&longitude=73.8567&crop=wheat
+Auth: No
+Expected: 200 with listings array
+
+[TC_EXCH_002] Create listing (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/create
+Headers: Authorization
+Body (JSON):
+{
+  "crop_name": "Wheat",
+  "quantity": 100,
+  "unit": "kg",
+  "expected_crop": "Rice",
+  "latitude": 18.5204,
+  "longitude": 73.8567,
+  "location_name": "Pune"
+}
+Expected: 201 or 200 with listing object/id
+Action: save listing id into {{listingId}}
+
+[TC_EXCH_003] Get listing by id (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Auth: No
+Expected: 200 with listing details
+
+[TC_EXCH_004] Get trending crops (public)
+Method: GET
+URL: {{baseUrl}}/api/exchange/trending
+Auth: No
+Expected: 200 with popular crops
+
+[TC_EXCH_005] Get my listings (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/my/listings
+Headers: Authorization
+Expected: 200 with my listings array
+
+[TC_EXCH_006] Update listing (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Headers: Authorization
+Body (JSON):
+{
+  "quantity": 120,
+  "location_name": "Pune Rural"
+}
+Expected: 200
+
+[TC_EXCH_007] Propose a match (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/propose
+Headers: Authorization
+Body (JSON):
+{
+  "target_listing_id": {{listingId}},
+  "offered_crop": "Rice",
+  "offered_quantity": 80,
+  "message": "Interested in exchange"
+}
+Expected: 201 or 200 with match details
+Action: save match id into {{matchId}}
+
+[TC_EXCH_008] Get received matches (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/matches/received
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_009] Get sent matches (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/matches/sent
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_010] Accept match (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/accept
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_011] Reject match (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/reject
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_012] Send match message (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/messages
+Headers: Authorization
+Body (JSON):
+{
+  "match_id": {{matchId}},
+  "message": "Can deliver by tomorrow"
+}
+Expected: 201 or 200
+
+[TC_EXCH_013] Get match messages (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/messages/{{matchId}}
+Headers: Authorization
+Expected: 200 with conversation messages
+
+[TC_EXCH_014] Get recent chats (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/chats
+Headers: Authorization
+Expected: 200
+
+[TC_EXCH_015] Complete exchange (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/exchange/match/{{matchId}}/complete
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_EXCH_016] Exchange stats (protected)
+Method: GET
+URL: {{baseUrl}}/api/exchange/stats
+Headers: Authorization
+Expected: 200 with summary stats
+
+[TC_EXCH_017] Delete listing (protected)
+Method: DELETE
+URL: {{baseUrl}}/api/exchange/{{listingId}}
+Headers: Authorization
+Expected: 200
+
+============================================================
+12F) DELIVERY ROUTES (PUBLIC + PROTECTED)
+============================================================
+Use role-based token (customer/driver/admin) as needed for each endpoint.
+
+[TC_DEL_001] Register driver (public)
+Method: POST
+URL: {{baseUrl}}/api/delivery/driver/register
+Auth: No
+Body (JSON):
+{
+  "full_name": "Driver One",
+  "phone_number": "9123456789",
+  "vehicle_type": "Bike",
+  "license_number": "MH12DL1234"
+}
+Expected: 201 or 200 with driver details
+Action: save driver id into {{driverId}}
+
+[TC_DEL_002] Get available drivers (public)
+Method: GET
+URL: {{baseUrl}}/api/delivery/available-drivers?latitude=18.5204&longitude=73.8567&radius=10
+Auth: No
+Expected: 200 with nearby drivers
+
+[TC_DEL_003] Get driver profile (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}
+Headers: Authorization
+Expected: 200
+
+[TC_DEL_004] Update driver status (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}/status
+Headers: Authorization
+Body (JSON):
+{
+  "status": "available"
+}
+Expected: 200
+
+[TC_DEL_005] Update driver location (protected)
+Method: POST
+URL: {{baseUrl}}/api/delivery/location/update/{{driverId}}
+Headers: Authorization
+Body (JSON):
+{
+  "latitude": 18.5204,
+  "longitude": 73.8567,
+  "address": "Pune Station"
+}
+Expected: 200
+
+[TC_DEL_006] Get driver assignments (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/driver/{{driverId}}/assignments
+Headers: Authorization
+Expected: 200 with deliveries
+
+[TC_DEL_007] Create delivery from order (protected)
+Method: POST
+URL: {{baseUrl}}/api/delivery/create/{{orderId}}
+Headers: Authorization
+Body (JSON):
+{
+  "pickup_address": "Warehouse A",
+  "delivery_address": "Lane 1, Pune",
+  "delivery_latitude": 18.5300,
+  "delivery_longitude": 73.8500,
+  "driver_id": {{driverId}}
+}
+Expected: 201 or 200 with delivery details
+Action: save delivery id into {{deliveryId}}
+
+[TC_DEL_008] Assign driver to delivery (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/assign
+Headers: Authorization
+Body (JSON):
+{
+  "driver_id": {{driverId}}
+}
+Expected: 200
+
+[TC_DEL_009] Track delivery by order id (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/track/{{orderId}}
+Headers: Authorization
+Expected: 200 with driver/location/status/ETA
+
+[TC_DEL_010] Update delivery status by driver (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/status/{{driverId}}
+Headers: Authorization
+Body (JSON):
+{
+  "status": "on_the_way",
+  "notes": "Reached city area"
+}
+Expected: 200
+
+[TC_DEL_011] Delivery status history (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/{{deliveryId}}/status-history
+Headers: Authorization
+Expected: 200 with timeline
+
+[TC_DEL_012] Get my notifications (protected)
+Method: GET
+URL: {{baseUrl}}/api/delivery/notifications/me
+Headers: Authorization
+Expected: 200 with notifications
+
+[TC_DEL_013] Mark one notification read (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/notifications/1/read
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_DEL_014] Mark all notifications read (protected)
+Method: PATCH
+URL: {{baseUrl}}/api/delivery/notifications/read-all
+Headers: Authorization
+Body: None
+Expected: 200
+
+[TC_DEL_015] Pending delivery assignments (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/pending-assignments
+Headers: Authorization (admin token)
+Expected: 200 for admin, 403 for non-admin
+
+[TC_DEL_016] Delayed deliveries (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/delayed
+Headers: Authorization (admin token)
+Expected: 200 for admin, 403 for non-admin
+
+[TC_DEL_017] Delivery analytics (admin)
+Method: GET
+URL: {{baseUrl}}/api/delivery/analytics?start_date=2026-03-01&end_date=2026-03-31
+Headers: Authorization (admin token)
+Expected: 200 for admin, 400 if date range missing, 403 for non-admin
+
+============================================================
+13) ADMIN ROUTE (PROTECTED, ADMIN TOKEN)
+============================================================
+Login with admin account and set {{token}} to admin token.
+
+[TC_ADMIN_001] Dashboard summary
+Method: GET
+URL: {{baseUrl}}/api/admin/dashboard-summary
+Headers: Authorization
+Expected:
+- 200 for admin user
+- 403 for non-admin token
+
+============================================================
+14) QUICK FAILURE TESTS YOU MUST RUN
+============================================================
+1. Protected endpoint without token -> expect 401/403
+2. Protected endpoint with malformed token -> expect 403
+3. Profile/orders endpoint with other user id -> expect 403
+4. Cart add without productId -> expect 400
+5. Login without identifier/password -> expect 400
+6. Create product review without rating -> expect 400
+7. Create vendor review without verified purchase -> expect 400
+8. Create duplicate review for same product -> expect 400
+9. Update/delete review not owned by user -> expect 403
+10. Create review with invalid rating (0 or 6) -> expect 400
+
+============================================================
+15) HOW TO CHECK RESULT PROPERLY IN POSTMAN
+============================================================
+For each request check:
+1. Status code
+2. Response body keys
+3. For create/update/delete, verify by calling GET endpoint after it
+4. Save IDs/tokens in environment for next requests
+
+Helpful Postman Tests tab snippets:
+
+A) Status check
+pm.test("Status is 200 or 201", function () {
+  pm.expect([200, 201]).to.include(pm.response.code);
+});
+
+B) Save token from login
+pm.test("Save token", function () {
+  const body = pm.response.json();
+  if (body.token) pm.environment.set("token", body.token);
+  if (body.user && body.user.id) pm.environment.set("customerUserId", body.user.id);
+});
+
+C) Save product id from products list
+pm.test("Save first product id", function () {
+  const body = pm.response.json();
+  if (Array.isArray(body) && body.length > 0 && body[0].id) {
+    pm.environment.set("productId", body[0].id);
+  }
+});
+
+============================================================
+END NOTE
+============================================================
+Follow this file from top to bottom once.
+After that, repeat module-wise:
+Auth -> Products -> Cart -> Orders -> Vendor -> Reviews -> Translation -> Newsletter -> Exchange -> Delivery -> Admin.
+
+IMPORTANT: For Review endpoints, make sure you have:
+1. Logged in as customer (have token)
+2. Placed at least one order (for verified_purchase flag)
+3. Saved productId and vendorUserId from previous tests
+
+This is the fastest way to learn API testing deeply.

@@ -13,18 +13,17 @@ export const CartProvider = ({ children }) => {
 
     const getToken = () => localStorage.getItem("token");
     const toPidKey = (id) => (id === undefined || id === null ? null : String(id));
+    const notifyAuthRequired = (message) => {
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("farmeasy:auth-required", { detail: { message } }));
+        }
+    };
 
     // ─── Fetch cart from backend (if logged in) ───────────────────────────────
     const fetchCart = useCallback(async () => {
         const token = getToken();
         if (!token) {
-            // Load from localStorage for guests
-            try {
-                const saved = JSON.parse(localStorage.getItem("guestCart") || "[]");
-                setCartItems(saved);
-            } catch {
-                setCartItems([]);
-            }
+            setCartItems([]);
             return;
         }
         try {
@@ -52,78 +51,53 @@ export const CartProvider = ({ children }) => {
         const token = getToken();
         const pid = getPid(product);
         if (!pid) return console.warn("addToCart called without valid product id", product);
+        if (!token) {
+            notifyAuthRequired("Please login to add items to your cart.");
+            return false;
+        }
         const pidKey = toPidKey(pid);
         const qtyToAdd = Math.max(1, Number.parseInt(quantity, 10) || 1);
 
-        if (token) {
-            // Optimistic update for instant UI response.
-            setCartItems((prev) => {
-                const existing = prev.find((i) => toPidKey(getPid(i)) === pidKey);
+        // Optimistic update for instant UI response.
+        setCartItems((prev) => {
+            const existing = prev.find((i) => toPidKey(getPid(i)) === pidKey);
 
-                const normalizedProduct = {
-                    ...product,
-                    id: pid,
-                    name: product.name || product.product_name,
-                    description: product.description || product.product_description,
-                    price: product.price,
-                    image: product.image || product.product_image || product.img
-                };
+            const normalizedProduct = {
+                ...product,
+                id: pid,
+                name: product.name || product.product_name,
+                description: product.description || product.product_description,
+                price: product.price,
+                image: product.image || product.product_image || product.img
+            };
 
-                if (existing) {
-                    return prev.map((i) =>
-                        toPidKey(getPid(i)) === pidKey
-                            ? { ...i, quantity: (Number(i.quantity) || 1) + qtyToAdd }
-                            : i
-                    );
-                }
-
-                return [...prev, { ...normalizedProduct, quantity: qtyToAdd }];
-            });
-
-            try {
-                await axios.post(
-                    `${API_URL}/api/cart`,
-                    { productId: pid, quantity: qtyToAdd },
-                    { headers: { Authorization: `Bearer ${token}` } }
+            if (existing) {
+                return prev.map((i) =>
+                    toPidKey(getPid(i)) === pidKey
+                        ? { ...i, quantity: (Number(i.quantity) || 1) + qtyToAdd }
+                        : i
                 );
-            } catch (err) {
-                console.error("Add to cart error:", err);
-                await fetchCart();
             }
-        } else {
-            // Guest cart stored in localStorage
-            setCartItems((prev) => {
-                const existing = prev.find((i) => toPidKey(getPid(i)) === pidKey);
-                let updated;
 
-                // standard shape for cart items
-                const normalizedProduct = {
-                    ...product,
-                    id: pid,
-                    name: product.name || product.product_name,
-                    description: product.description || product.product_description,
-                    price: product.price,
-                    image: product.image || product.product_image || product.img
-                };
+            return [...prev, { ...normalizedProduct, quantity: qtyToAdd }];
+        });
 
-                if (existing) {
-                    updated = prev.map((i) =>
-                        toPidKey(getPid(i)) === pidKey
-                            ? { ...i, quantity: (Number(i.quantity) || 1) + qtyToAdd }
-                            : i
-                    );
-                } else {
-                    updated = [...prev, { ...normalizedProduct, quantity: qtyToAdd }];
-                }
-                localStorage.setItem("guestCart", JSON.stringify(updated));
-                return updated;
-            });
+        try {
+            await axios.post(
+                `${API_URL}/api/cart`,
+                { productId: pid, quantity: qtyToAdd },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } catch (err) {
+            console.error("Add to cart error:", err);
+            await fetchCart();
         }
     }, [fetchCart, getPid]);
 
     // ─── Remove from Cart ─────────────────────────────────────────────────────
     const removeFromCart = useCallback(async (productId) => {
         const token = getToken();
+        if (!token) return;
         const pidKey = toPidKey(productId);
 
         if (token) {
@@ -136,12 +110,6 @@ export const CartProvider = ({ children }) => {
                 console.error("Remove from cart error:", err);
                 await fetchCart();
             }
-        } else {
-            setCartItems((prev) => {
-                const updated = prev.filter((i) => toPidKey(getPid(i)) !== pidKey);
-                localStorage.setItem("guestCart", JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [fetchCart, getPid]);
 
@@ -152,6 +120,7 @@ export const CartProvider = ({ children }) => {
         }
 
         const token = getToken();
+        if (!token) return;
         const pidKey = toPidKey(productId);
 
         if (token) {
@@ -170,20 +139,16 @@ export const CartProvider = ({ children }) => {
                 console.error("Update quantity error:", err);
                 await fetchCart();
             }
-        } else {
-            setCartItems((prev) => {
-                const updated = prev.map((i) =>
-                    toPidKey(getPid(i)) === pidKey ? { ...i, quantity } : i
-                );
-                localStorage.setItem("guestCart", JSON.stringify(updated));
-                return updated;
-            });
         }
     }, [fetchCart, getPid, removeFromCart]);
 
     // ─── Clear Cart ───────────────────────────────────────────────────────────
     const clearCart = useCallback(async () => {
         const token = getToken();
+        if (!token) {
+            setCartItems([]);
+            return;
+        }
         setCartItems([]);
 
         if (token) {
@@ -195,8 +160,6 @@ export const CartProvider = ({ children }) => {
                 console.error("Clear cart error:", err);
                 await fetchCart();
             }
-        } else {
-            localStorage.removeItem("guestCart");
         }
     }, [fetchCart]);
 

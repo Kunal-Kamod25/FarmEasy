@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
 import { API_URL, getImageUrl } from '../../config';
 
@@ -12,6 +11,7 @@ const VendorProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState("card"); // 'list' | 'card'
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -19,7 +19,7 @@ const VendorProducts = () => {
       const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProducts(res.data);
+      setProducts(res.data || []);
     } catch (error) {
       console.error(error);
       alert("Failed to load products");
@@ -45,189 +45,251 @@ const VendorProducts = () => {
   };
 
   const filtered = products.filter((p) =>
-    p.product_name?.toLowerCase().includes(search.toLowerCase())
+    p.product_name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.category_name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Group by category
+  const groupedProducts = filtered.reduce((groups, product) => {
+    const category = product.category_name || "Uncategorized";
+    if (!groups[category]) groups[category] = [];
+    groups[category].push(product);
+    return groups;
+  }, {});
 
   const totalActive = products.filter((p) => p.product_quantity > 0).length;
   const outOfStock = products.filter((p) => p.product_quantity === 0).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+    <div className="min-h-screen bg-transparent p-6 space-y-8">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Manage your product catalog</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Products</h1>
+          <p className="text-gray-500 font-medium mt-1">Manage and organize your inventory</p>
         </div>
         <Link
-          onClick={() => navigate("/vendor/add-product")}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm font-semibold"
+          to="/vendor/add-product"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all font-bold text-sm"
         >
-          <Plus size={16} />
-          Add Product
+          <Plus size={18} />
+          Add New Product
         </Link>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-emerald-400 to-green-600 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
-          <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Total Products</p>
-          <h3 className="text-3xl font-bold mt-1">{products.length}</h3>
-          <p className="text-white/60 text-xs mt-2">In your catalog</p>
+      {/* ── SUMMARY CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-emerald-500/20 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
+            <Package size={24} />
+          </div>
+          <div>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Total Catalog</p>
+            <h3 className="text-2xl font-black text-white">{products.length}</h3>
+          </div>
         </div>
-        <div className="bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
-          <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Active</p>
-          <h3 className="text-3xl font-bold mt-1">{totalActive}</h3>
-          <p className="text-white/60 text-xs mt-2">In stock & live</p>
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-blue-500/20 bg-gradient-to-br from-blue-500 via-cyan-500 to-sky-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
+            <Plus size={24} className="rotate-45" />
+          </div>
+          <div>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Active Listing</p>
+            <h3 className="text-2xl font-black text-white">{totalActive}</h3>
+          </div>
         </div>
-        <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
-          <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Out of Stock</p>
-          <h3 className="text-3xl font-bold mt-1">{outOfStock}</h3>
-          <p className="text-white/60 text-xs mt-2">Needs restocking</p>
+        <div className="rounded-[2rem] p-6 shadow-lg shadow-rose-500/20 bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500 flex items-center gap-4 group hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
+            <AlertCircle size={24} />
+          </div>
+          <div>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Stock Alerts</p>
+            <h3 className="text-2xl font-black text-white">{outOfStock}</h3>
+          </div>
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
-        {/* Table Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-800">All Products</h2>
-          <div className="relative w-64">
-            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"
-            />
-          </div>
+      {/* ── CONTROLS & TABS ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        
+        {/* Chrome-style Tabs */}
+        <div className="flex items-end w-fit rounded-t-[1.5rem] border border-slate-200 border-b-0 bg-slate-100/80 px-2 pt-1.5">
+          {[
+            { id: "list", label: "List View" },
+            { id: "card", label: "Card View" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setViewMode(tab.id)}
+              className={`relative -mb-px px-8 py-3 text-sm font-bold transition-all rounded-t-2xl border ${
+                viewMode === tab.id
+                  ? "z-10 bg-white text-emerald-700 border-slate-200 border-b-white shadow-sm"
+                  : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/70"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
+        {/* Search Bar */}
+        <div className="relative group w-full md:w-80">
+          <Search size={18} className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+          <input
+            type="text"
+            placeholder="Search by name or category..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-[1.5rem] shadow-sm focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none text-sm font-medium transition-all"
+          />
+        </div>
+      </div>
+
+      {/* ── CONTENT AREA ── */}
+      <div className="-mt-8 bg-white rounded-b-[2.5rem] rounded-tr-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-50 p-8 min-h-[400px]">
         {loading ? (
-          <div className="p-6 space-y-3">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-64 bg-gray-50 rounded-[2rem] animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="bg-gray-100 rounded-2xl p-5 mb-4">
-              <AlertCircle className="w-10 h-10 text-gray-300" />
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mb-6">
+              <Package size={40} className="text-gray-200" />
             </div>
-            <p className="text-gray-600 font-semibold">No products found</p>
-            <p className="text-gray-400 text-sm mt-1">
-              {search ? "Try a different search term" : "Add your first product to get started"}
+            <h3 className="text-xl font-black text-gray-900">No matching products</h3>
+            <p className="text-gray-500 font-medium mt-2 max-w-xs">
+              {search ? "We couldn't find anything matching your search query." : "Start adding products to your shop to see them here."}
             </p>
-            {!search && (
-              <Link
-                onClick={() => navigate("/vendor/add-product")}
-                className="mt-4 bg-emerald-600 text-white text-sm px-5 py-2 rounded-xl hover:bg-emerald-700 transition font-semibold"
-              >
-                + Add Product
-              </Link>
-            )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="text-left px-6 py-3">Product</th>
-                  <th className="text-left px-6 py-3">Type</th>
-                  <th className="text-left px-6 py-3">Price</th>
-                  <th className="text-left px-6 py-3">Stock</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="text-left px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {/* show real product image thumbnail if uploaded */}
-                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {product.product_image ? (
-                            <img src={getImageUrl(product.product_image)} alt={product.product_name} className="w-full h-full object-cover" />
-                          ) : (
-                            <Package size={16} className="text-emerald-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800 leading-tight line-clamp-1 max-w-[180px]">
-                            {product.product_name}
-                          </p>
-                          <p className="text-gray-400 text-xs line-clamp-1 max-w-[180px]">
-                            {product.product_description || "No description"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {product.product_type || "—"}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-gray-800">
-                      ₹{Number(product.price).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-semibold ${product.product_quantity > 10
-                          ? "text-emerald-600"
-                          : product.product_quantity > 0
-                            ? "text-amber-500"
-                            : "text-red-500"
-                        }`}>
-                        {product.product_quantity ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${product.product_quantity > 0
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-red-50 text-red-600"
-                        }`}>
-                        {product.product_quantity > 0 ? "Active" : "Out of Stock"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => navigate(`/vendor/products/view/${product.id}`)}
-                          className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition"
-                          title="View"
-                        >
-                          <Eye size={14} />
-                        </button>
-                        <button
-                          onClick={() => navigate(`/vendor/products/edit/${product.id}`)}
-                          className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
-                          title="Edit"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <div className="space-y-12">
+            {Object.entries(groupedProducts).map(([category, catProducts]) => (
+              <div key={category} className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-sm font-black text-emerald-600 uppercase tracking-[0.2em]">{category}</h2>
+                  <div className="flex-1 h-[1px] bg-gradient-to-r from-emerald-100 to-transparent"></div>
+                  <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full">{catProducts.length} ITEMS</span>
+                </div>
 
-        {/* Footer */}
-        {!loading && filtered.length > 0 && (
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
-            <p className="text-xs text-gray-500">
-              Showing {filtered.length} of {products.length} products
-            </p>
+                {viewMode === "card" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {catProducts.map((p) => (
+                      <div key={p.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100/70 hover:-translate-y-1 transition-all duration-500 overflow-hidden min-h-[255px]">
+                        <div className="p-3.5 flex flex-col h-full gap-2.5">
+                          <div className="relative w-full h-32 bg-gradient-to-b from-slate-50 to-white rounded-2xl overflow-hidden border border-slate-100">
+                            {p.product_image ? (
+                              <img
+                                src={getImageUrl(p.product_image)}
+                                alt={p.product_name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                <Package size={38} />
+                              </div>
+                            )}
+                            <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${p.product_quantity > 0 ? "bg-emerald-50/95 text-emerald-700 border-emerald-100" : "bg-red-50/95 text-red-600 border-red-100"}`}>
+                              {p.product_quantity > 0 ? "In Stock" : "OOS"}
+                            </span>
+                            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+                          </div>
+
+                          <div className="min-w-0 flex flex-col justify-between h-full">
+                            <div>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">{p.product_name}</h4>
+                                  <p className="text-[10px] font-bold text-emerald-700 mt-0.5 uppercase tracking-wider">{category}</p>
+                                </div>
+                                <button onClick={() => navigate(`/product/${p.id}`)} className="text-emerald-700 font-black text-[10px] uppercase tracking-wider hover:underline flex items-center gap-1 shrink-0">
+                                  Preview <Eye size={12} />
+                                </button>
+                              </div>
+                              <p className="text-slate-500 text-xs font-medium mt-1.5 line-clamp-2 min-h-[32px]">{p.product_description || "No description provided"}</p>
+                            </div>
+
+                            <div className="mt-2.5 grid grid-cols-2 gap-2">
+                              <div className="bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100/80">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Price</p>
+                                <p className="text-sm font-black text-slate-900">₹{Number(p.price).toLocaleString()}</p>
+                              </div>
+                              <div className="bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100/80">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Quantity</p>
+                                <p className={`text-sm font-black ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>{p.product_quantity}</p>
+                              </div>
+                              <div className="col-span-2 flex justify-end items-center gap-1.5 pt-0.5">
+                                <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-1.5 rounded-lg border border-slate-100 bg-white text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm">
+                                  <Pencil size={14} />
+                                </button>
+                                <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg border border-slate-100 bg-white text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto -mx-2">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] border-b border-gray-50">
+                          <th className="px-4 py-4 w-16">Item</th>
+                          <th className="px-4 py-4">Product Name</th>
+                          <th className="px-4 py-4">Base Price</th>
+                          <th className="px-4 py-4">Quantity</th>
+                          <th className="px-4 py-4">Status</th>
+                          <th className="px-4 py-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50/50">
+                        {catProducts.map((p) => (
+                          <tr key={p.id} className="group hover:bg-emerald-50/30 transition-colors">
+                            <td className="px-4 py-5">
+                              <div className="w-12 h-12 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 flex-shrink-0">
+                                {p.product_image ? (
+                                  <img src={getImageUrl(p.product_image)} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                    <Package size={20} />
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-5">
+                              <p className="font-bold text-gray-900 line-clamp-1">{p.product_name}</p>
+                              <p className="text-[10px] text-gray-400 font-medium">{p.product_type || "Standard"}</p>
+                            </td>
+                            <td className="px-4 py-5 font-black text-gray-900">₹{Number(p.price).toLocaleString()}</td>
+                            <td className="px-4 py-5">
+                              <span className={`font-black ${p.product_quantity > 10 ? "text-emerald-600" : p.product_quantity > 0 ? "text-amber-500" : "text-red-500"}`}>
+                                {p.product_quantity}
+                              </span>
+                            </td>
+                            <td className="px-4 py-5">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${p.product_quantity > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+                                {p.product_quantity > 0 ? "Active" : "OOS"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-5 text-right">
+                              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => navigate(`/product/${p.id}`)} className="p-2 text-gray-400 hover:text-emerald-600 transition-colors"><Eye size={16} /></button>
+                                <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Pencil size={16} /></button>
+                                <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -236,177 +298,3 @@ const VendorProducts = () => {
 };
 
 export default VendorProducts;
-
-
-
-
-
-
-
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-// import { Pencil, Trash2, Plus } from "lucide-react";
-
-// const VendorProducts = () => {
-//   const navigate = useNavigate();
-//   const token = localStorage.getItem("token");
-
-//   const [products, setProducts] = useState([]);
-//   const [loading, setLoading] = useState(false);
-
-//   const fetchProducts = async () => {
-//     try {
-//       setLoading(true);
-
-//       const res = await axios.get(
-//         `${API_URL}/api/vendor/products`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-
-//       setProducts(res.data);
-//     } catch (error) {
-//       console.error(error);
-//       alert("Failed to load products");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-
-//   const handleDelete = async (id) => {
-//     if (!window.confirm("Delete this product?")) return;
-
-//     try {
-//       await axios.delete(
-//         `${API_URL}/api/vendor/products/${id}`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-
-//       setProducts(products.filter((p) => p.id !== id));
-//     } catch (error) {
-//       alert("Failed to delete");
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 p-8">
-
-//       {/* Header */}
-//       <div className="flex justify-between items-center mb-8">
-//         <h2 className="text-3xl font-bold text-green-700">
-//           My Products
-//         </h2>
-
-//         <button
-//           onClick={() => navigate("/vendor/products/add")}
-//           className="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition"
-//         >
-//           <Plus size={18} />
-//           Add Product
-//         </button>
-//       </div>
-
-//       {loading ? (
-//         <p>Loading...</p>
-//       ) : products.length === 0 ? (
-//         <p>No products added yet.</p>
-//       ) : (
-//         <div className="space-y-6">
-//           {products.map((product) => (
-//             <div
-//               key={product.id}
-//               className="bg-white rounded-2xl shadow-md p-6 flex justify-between items-center hover:shadow-lg transition"
-//             >
-
-//               {/* LEFT SIDE */}
-//               <div className="flex items-center gap-6">
-
-//                 {/* Product Image */}
-//                 <img
-//                   src="https://via.placeholder.com/100"
-//                   alt="product"
-//                   className="w-24 h-24 object-cover rounded-xl"
-//                 />
-
-//                 {/* Product Info */}
-//                 <div>
-//                   <h3 className="text-xl font-semibold text-gray-800">
-//                     {product.product_name}
-//                   </h3>
-
-//                   <p className="text-gray-500 text-sm mt-1">
-//                     Quantity: {product.product_quantity}
-//                   </p>
-
-//                   <p className="text-gray-400 text-sm mt-1">
-//                     {product.product_description}
-//                   </p>
-
-//                   {/* Status Badge */}
-//                   <span className="inline-block mt-3 px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-//                     Active
-//                   </span>
-//                 </div>
-//               </div>
-
-//               {/* RIGHT SIDE */}
-//               <div className="text-right space-y-3">
-
-//                 <div>
-//                   <p className="text-gray-400 text-sm uppercase tracking-wide">
-//                     Price
-//                   </p>
-//                   <p className="text-2xl font-bold text-green-600">
-//                     ₹{product.price}
-//                   </p>
-//                 </div>
-
-//                 <div className="flex gap-2 justify-end">
-//                   <button
-//                     onClick={() =>
-//                       navigate(`/vendor/products/edit/${product.id}`)
-//                     }
-//                     className="bg-blue-100 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-200 transition"
-//                   >
-//                     <Pencil size={16} />
-//                   </button>
-
-//                   <button
-//                     onClick={() => handleDelete(product.id)}
-//                     className="bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition"
-//                   >
-//                     <Trash2 size={16} />
-//                   </button>
-//                 </div>
-
-//                 <button
-//                   onClick={() =>
-//                     navigate(`/vendor/products/view/${product.id}`)
-//                   }
-//                   className="text-green-600 font-medium text-sm hover:underline"
-//                 >
-//                   View Details →
-//                 </button>
-
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default VendorProducts;

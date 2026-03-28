@@ -3,10 +3,13 @@
   "private": true,
   "scripts": {
     "vercel-install": "npm install --prefix frontend",
-    "vercel-build": "npm run build --prefix frontend",
+    "vercel-build": "npm install --prefix backend && npm run build --prefix frontend",
     "frontend": "npm run dev --prefix frontend",
     "backend": "npm run dev --prefix backend",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "test:backend": "npm run test --prefix backend",
+    "test:frontend": "npm run test --prefix frontend",
+    "test": "npm run test:backend && npm run test:frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

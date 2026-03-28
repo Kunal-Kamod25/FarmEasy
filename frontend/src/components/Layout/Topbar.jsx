@@ -1,16 +1,12 @@
 import { IoLogoInstagram } from "react-icons/io5";
 import { FiMail, FiPhoneCall } from "react-icons/fi";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 const Topbar = () => {
-    const subject = "Order Inquiry";
-    const body = `
-Hello FarmEasy,
+    const { t } = useLanguage();
 
-I want to place an order.
-Please contact me.
-
-Thanks
-  `;
+    const subject = t("topbar.orderInquirySubject");
+    const body = t("topbar.orderInquiryBody");
 
     const mailtoLink = `mailto:farmeasy003@gmail.com?subject=${encodeURIComponent(
         subject
@@ -24,7 +20,7 @@ Thanks
                     </a>
                 </div>
                 <div className="text-medium text-center  flex-grow">
-                    <span>FarmEasy-Agricultural Marketplace</span>
+                    <span>{t("topbar.title")}</span>
                 </div>
                 <div className="text-sm hidden md:block">
                     <a

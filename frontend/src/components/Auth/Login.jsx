@@ -239,6 +239,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
+import { useLanguage } from "../../context/language/LanguageContext";
 
 // ─────────────────────────────────────────
 //  REGEX PATTERNS
@@ -250,6 +251,8 @@ const REGEX = {
 };
 
 const Login = () => {
+  const { t } = useLanguage();
+
   // selected role (customer or vendor)
   const [loginAs, setLoginAs] = useState("customer");
 
@@ -291,22 +294,22 @@ const Login = () => {
 
     if (loginType === "email") {
       if (!email.trim()) {
-        newErrors.email = "Email is required.";
+        newErrors.email = t("login.validation.emailRequired");
       } else if (!REGEX.email.test(email.trim())) {
-        newErrors.email = "Enter a valid email (e.g. hello@gmail.com).";
+        newErrors.email = t("login.validation.emailInvalid");
       }
     } else {
       if (!phone.trim()) {
-        newErrors.phone = "Phone number is required.";
+        newErrors.phone = t("login.validation.phoneRequired");
       } else if (!REGEX.phone.test(phone.trim())) {
-        newErrors.phone = "Enter a valid 10-digit phone number starting with 6-9.";
+        newErrors.phone = t("login.validation.phoneInvalid");
       }
     }
 
     if (!password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = t("login.validation.passwordRequired");
     } else if (!REGEX.specialChar.test(password)) {
-      newErrors.password = "Password must include a special character (e.g. !@#$%).";
+      newErrors.password = t("login.validation.passwordSpecial");
     }
 
     return newErrors;
@@ -326,7 +329,7 @@ const Login = () => {
       loginType === "email" ? email.trim() : phone.trim();
 
   if (!identifier || !password) {
-    alert("Identifier (email or phone) and password are required.");
+    alert(t("login.error.identifierRequired"));
     return;
   }
 
@@ -359,11 +362,11 @@ const Login = () => {
           navigate("/");
         }
       } else {
-        alert(data.message || "Login failed");
+        alert(data.message || t("login.error.failed"));
       }
 
     } catch {
-      alert("Server not responding");
+      alert(t("login.error.server"));
     }
   };
   return (
@@ -372,9 +375,9 @@ const Login = () => {
       <div className="bg-gradient-to-br from-green-700 to-green-900 text-white flex items-center justify-center">
         <div className="max-w-sm text-center">
           <div className="text-6xl mb-5">🌱</div>
-          <h2 className="text-4xl font-bold mb-4">Join FarmEasy</h2>
+          <h2 className="text-4xl font-bold mb-4">{t("login.joinTitle")}</h2>
           <p className="text-green-100 text-base">
-            India's trusted agricultural marketplace for customers and vendors.
+            {t("login.marketplaceSubtitle")}
           </p>
         </div>
       </div>
@@ -382,12 +385,12 @@ const Login = () => {
       {/* RIGHT LOGIN */}
       <div className="flex items-center justify-center">
         <div className="w-[360px] p-10 rounded-xl shadow-xl">
-          <h2 className="text-center text-2xl font-bold mb-1">Welcome</h2>
+          <h2 className="text-center text-2xl font-bold mb-1">{t("login.welcome")}</h2>
           <p className="text-center text-gray-500 mb-5">
-            Log in to your account
+            {t("login.subtitle")}
           </p>
 
-          <p className="font-semibold mb-2">Login as</p>
+          <p className="font-semibold mb-2">{t("login.loginAs")}</p>
           <div className="flex gap-4 mb-6">
             <label
               className={` px-4 py-3 cursor-pointer flex items-center gap-2
@@ -401,7 +404,7 @@ const Login = () => {
                 checked={loginAs === "customer"}
                 onChange={() => handleRoleChange("customer")}
               />
-              Customer
+              {t("login.customer")}
             </label>
 
             <label
@@ -416,28 +419,28 @@ const Login = () => {
                 checked={loginAs === "vendor"}
                 onChange={() => handleRoleChange("vendor")}
               />
-              Vendor
+              {t("login.vendor")}
             </label>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* login method dropdown */}
             <div>
-              <label className="block mb-1 font-medium">Login using</label>
+              <label className="block mb-1 font-medium">{t("login.loginUsing")}</label>
               <select
                 value={loginType}
                 onChange={(e) => handleLoginTypeChange(e.target.value)}
                 className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
               >
-                <option value="email">Email</option>
-                <option value="phone">Phone Number</option>
+                <option value="email">{t("login.email")}</option>
+                <option value="phone">{t("login.phone")}</option>
               </select>
             </div>
 
             {/* email OR phone input */}
             {loginType === "email" ? (
               <div>
-                <label className="block mb-1">Email</label>
+                <label className="block mb-1">{t("login.email")}</label>
                 <input
                   type="email"
                   placeholder={
@@ -459,10 +462,10 @@ const Login = () => {
               </div>
             ) : (
               <div>
-                <label className="block mb-1">Phone Number</label>
+                <label className="block mb-1">{t("login.phone")}</label>
                 <input
                   type="tel"
-                  placeholder="Enter phone number"
+                  placeholder={t("login.phonePlaceholder")}
                   value={phone}
                   onChange={(e) => {
                     setPhone(e.target.value);
@@ -479,10 +482,10 @@ const Login = () => {
 
             {/* password */}
             <div>
-              <label className="block mb-1">Password</label>
+              <label className="block mb-1">{t("login.password")}</label>
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder={t("login.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -503,14 +506,14 @@ const Login = () => {
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
                 />
-                Remember me
+                {t("login.rememberMe")}
               </label>
 
               <Link
                 to="/forgot-password"
                 className="relative text-green-600 font-medium after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
               >
-                Forgot password?
+                {t("login.forgotPassword")}
               </Link>
             </div>
 
@@ -518,17 +521,17 @@ const Login = () => {
               type="submit"
               className="w-full bg-green-700 text-white py-3 rounded-md hover:bg-green-800 transition"
             >
-              Log In
+              {t("login.loginButton")}
             </button>
           </form>
 
           <p className="text-center mt-5">
-            Don't have an account?{" "}
+            {t("login.noAccount")}{" "}
             <Link
               to="/register"
               className="relative text-green-600 font-semibold after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
             >
-              Sign Up
+              {t("login.signUp")}
             </Link>
           </p>
         </div>

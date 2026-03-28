@@ -361,7 +361,7 @@ const Register = () => {
 
       if (response.ok) {
         alert("Registration Successful!");
-        navigate("/Login");
+        navigate("/login");
       } else {
         alert(data.message || "Registration failed");
       }
@@ -377,9 +377,7 @@ const Register = () => {
 
       {/* LEFT – Branding / Info (VISIBLE ON MOBILE) */}
       <div className="text-inter flex items-center justify-center bg-gradient-to-br from-green-700 to-emerald-900 text-white p-10 min-h-[40vh] lg:min-h-screen order-1">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="max-w-md text-center"
         >
           <Sprout className="w-24 h-24 mx-auto mb-6 text-white/90" />
@@ -402,14 +400,12 @@ const Register = () => {
               <span>Sell directly to genuine buyers</span>
             </li>
           </ul>
-        </motion.div>
+        </div>
       </div>
 
       {/* RIGHT – Register Form */}
       <div className="flex items-center justify-center p-8 bg-white order-2">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="w-full max-w-md"
         >
           <h1 className="text-3xl font-bold mb-2 text-center">
@@ -575,11 +571,11 @@ const Register = () => {
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
-            <Link to="/Login" className="text-green-600 font-medium hover:underline">
+            <Link to="/login" className="text-green-600 font-medium hover:underline">
               Sign In
             </Link>
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
