@@ -113,7 +113,7 @@ const VendorProducts = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         
         {/* Chrome-style Tabs */}
-        <div className="flex items-end bg-gray-100/50 p-1 px-2 rounded-t-[1.5rem] w-fit border-b-2 border-transparent">
+        <div className="flex items-end w-fit rounded-t-[1.5rem] border border-slate-200 border-b-0 bg-slate-100/80 px-2 pt-1.5">
           {[
             { id: "list", label: "List View" },
             { id: "card", label: "Card View" },
@@ -121,10 +121,10 @@ const VendorProducts = () => {
             <button
               key={tab.id}
               onClick={() => setViewMode(tab.id)}
-              className={`relative px-8 py-3 text-sm font-bold transition-all rounded-t-xl overflow-hidden ${
+              className={`relative -mb-px px-8 py-3 text-sm font-bold transition-all rounded-t-2xl border ${
                 viewMode === tab.id
-                  ? "bg-white text-emerald-700 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] before:content-[''] before:absolute before:-left-4 before:bottom-0 before:w-4 before:h-4 before:bg-white before:rounded-br-xl before:shadow-[4px_0_0_0_white] after:content-[''] after:absolute after:-right-4 after:bottom-0 after:w-4 after:h-4 after:bg-white after:rounded-bl-xl after:shadow-[-4px_0_0_0_white]"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                  ? "z-10 bg-white text-emerald-700 border-slate-200 border-b-white shadow-sm"
+                  : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/70"
               }`}
             >
               {tab.label}
@@ -146,7 +146,7 @@ const VendorProducts = () => {
       </div>
 
       {/* ── CONTENT AREA ── */}
-      <div className="bg-white rounded-b-[2.5rem] rounded-tr-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-50 p-8 min-h-[400px]">
+      <div className="-mt-8 bg-white rounded-b-[2.5rem] rounded-tr-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-50 p-8 min-h-[400px]">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (
