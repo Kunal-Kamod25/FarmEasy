@@ -22,7 +22,7 @@ const loadRazorpayScript = () => {
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [_searchParams] = useSearchParams();
     const { t, td, language } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");

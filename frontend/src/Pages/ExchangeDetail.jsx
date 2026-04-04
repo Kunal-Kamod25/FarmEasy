@@ -122,7 +122,6 @@ const ExchangeDetail = () => {
         )
       );
       setSelectedMatch({ ...selectedMatch, status: "accepted" });
-      // eslint-disable-next-line no-unused-vars
     } catch (_err) {
       console.error("Accept error:", _err);
       setError(_err.response?.data?.error || "Error accepting proposal");
@@ -149,7 +148,6 @@ const ExchangeDetail = () => {
 
       // Update local state
       setMatches(matches.filter((m) => m.id !== match_id));
-      // eslint-disable-next-line no-unused-vars
     } catch (_err) {
       console.error("Reject error:", _err);
       setError(_err.response?.data?.error || "Error rejecting proposal");

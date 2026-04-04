@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AlertCircle, X } from "lucide-react";
 
 /**
@@ -16,6 +16,11 @@ import { AlertCircle, X } from "lucide-react";
 const ErrorNotification = ({ message, onClose, autoCloseTime = null, className = "" }) => {
   const [isVisible, setIsVisible] = useState(true);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    onClose?.();
+  }, [onClose]);
+
   useEffect(() => {
     if (!autoCloseTime || !isVisible) return;
 
@@ -24,12 +29,7 @@ const ErrorNotification = ({ message, onClose, autoCloseTime = null, className =
     }, autoCloseTime);
 
     return () => clearTimeout(timer);
-  }, [autoCloseTime, isVisible]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    onClose?.();
-  };
+  }, [autoCloseTime, isVisible, handleClose]);
 
   if (!message || !isVisible) return null;
 

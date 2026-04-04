@@ -91,7 +91,7 @@ const VendorOrders = () => {
   const cancelledOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Cancelled").length;
 
   const canonicalStatuses = statusOptions.length ? statusOptions : ORDER_STATUS_PRIORITY;
-  const availableStatuses = canonicalStatuses.filter((status) =>
+  const _availableStatuses = canonicalStatuses.filter((status) =>
     normalizedOrders.some((o) => o.normalizedStatus === status)
   );
 
