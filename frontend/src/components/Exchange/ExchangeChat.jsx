@@ -9,12 +9,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
 import { Send, Loader } from "lucide-react";
+import ErrorNotification from "../Common/ErrorNotification";
 
 const ExchangeChat = ({ matchId, user_id, otherFarmer }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const messagesEndRef = useRef(null);
 
   // ===== AUTO-SCROLL TO LATEST MESSAGE =====
@@ -90,10 +92,10 @@ const ExchangeChat = ({ matchId, user_id, otherFarmer }) => {
       setNewMessage("");
     } catch (err) {
       console.error("Error sending message:", err);
-      alert("Failed to send message");
+      setError("Failed to send message");
     } finally {
       setSending(false);
-    }
+      setError(""); // Clear error after showing for a moment
   };
 
   if (loading) {
@@ -106,6 +108,15 @@ const ExchangeChat = ({ matchId, user_id, otherFarmer }) => {
 
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl shadow-lg border border-emerald-100">
+      {/* ERROR NOTIFICATION */}
+      {error && (
+        <ErrorNotification 
+          message={error} 
+          onClose={() => setError("")}
+          className="rounded-t-2xl rounded-b-none"
+        />
+      )}
+
       {/* Chat Header */}
       <div className="p-4 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-transparent">
         <p className="font-bold text-gray-900">💬 Negotiate with {otherFarmer}</p>
