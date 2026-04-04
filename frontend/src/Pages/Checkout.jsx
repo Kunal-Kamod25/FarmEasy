@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from '../config';
 import { useLanguage } from "../context/language/LanguageContext";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const loadRazorpayScript = () => {
     if (window.Razorpay) return Promise.resolve(true);
@@ -304,13 +305,7 @@ const Checkout = () => {
                                 </div>
                             </div>
 
-                            {searchParams.get("payment") === "cancelled" && (
-                                <p className="text-amber-600 text-sm font-medium mt-2">
-                                    {t("checkout.paymentCancelled")}
-                                </p>
-                            )}
-
-                            {error && <p className="text-red-500 text-sm font-medium mt-4">{error}</p>}
+                            {error && <ErrorNotification message={error} onClose={() => setError("")} />}
 
                             <button
                                 type="submit"
