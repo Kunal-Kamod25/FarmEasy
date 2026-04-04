@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../config";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const AdminHomePage = () => {
     const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ const AdminHomePage = () => {
         <div className="max-w-7xl p-6 space-y-6">
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
 
-            {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+            {error && <ErrorNotification message={error} onClose={() => setError("")} />}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="p-4 shadow-md rounded-lg bg-white">
