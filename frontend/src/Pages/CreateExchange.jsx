@@ -10,6 +10,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { Loader, MapPin, Upload } from "lucide-react";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const CreateExchange = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const CreateExchange = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -68,7 +70,7 @@ const CreateExchange = () => {
 
     // Limit to 3 images
     if (images.length + files.length > 3) {
-      alert("Maximum 3 images allowed");
+      setGeneralError("Maximum 3 images allowed");
       return;
     }
 
@@ -78,12 +80,13 @@ const CreateExchange = () => {
   // ===== UPLOAD IMAGES TO CLOUDINARY =====
   const handleUploadImages = async () => {
     if (images.length === 0) {
-      alert("Please select images first");
+      setGeneralError("Please select images first");
       return;
     }
 
     try {
       setUploadingImages(true);
+      setGeneralError("");
 
       // Upload each image to Cloudinary
       const uploadPromises = images.map(async (image) => {
@@ -102,10 +105,9 @@ const CreateExchange = () => {
       const uploadedUrls = await Promise.all(uploadPromises);
       setImageUrls([...imageUrls, ...uploadedUrls]);
       setImages([]); // Clear file input
-      alert("Images uploaded successfully!");
     } catch (err) {
       console.error("Image upload error:", err);
-      alert("Failed to upload images");
+      setGeneralError("Failed to upload images");
     } finally {
       setUploadingImages(false);
     }
@@ -147,12 +149,13 @@ const CreateExchange = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert("Please fill in all required fields");
+      setGeneralError("Please fill in all required fields");
       return;
     }
 
     try {
       setLoading(true);
+      setGeneralError("");
 
       // ===== CREATE LISTING =====
       const res = await axios.post(
@@ -169,12 +172,11 @@ const CreateExchange = () => {
       );
 
       if (res.data.success) {
-        alert("✅ Crop exchange listing posted successfully!");
         navigate("/exchange"); // Go back to marketplace
       }
     } catch (err) {
       console.error("Submit error:", err);
-      alert("Error: " + (err.response?.data?.error || err.message));
+      setGeneralError(err.response?.data?.error || err.message || "Failed to create listing");
     } finally {
       setLoading(false);
     }
@@ -183,6 +185,14 @@ const CreateExchange = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 p-6">
       <div className="max-w-2xl mx-auto">
+        {/* ERROR NOTIFICATION */}
+        {generalError && (
+          <ErrorNotification 
+            message={generalError} 
+            onClose={() => setGeneralError("")} 
+          />
+        )}
+
         {/* HEADER */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -367,9 +377,11 @@ const CreateExchange = () => {
             )}
 
             {locationError && (
-              <div className="bg-red-50 p-3 rounded-lg border border-red-200 text-sm text-red-700">
-                ❌ {locationError}
-              </div>
+              <ErrorNotification 
+                message={locationError} 
+                onClose={() => setLocationError("")}
+                className="mt-4"
+              />
             )}
 
             {errors.location && (
