@@ -11,6 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { Loader, Send, Check, X, MessageCircle, User } from "lucide-react";
 import ExchangeChat from "../components/Exchange/ExchangeChat";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const ExchangeDetail = () => {
   const { id } = useParams();
@@ -24,6 +25,7 @@ const ExchangeDetail = () => {
   const [proposalReason, setProposalReason] = useState("");
   const [submittingProposal, setSubmittingProposal] = useState(false);
   const [processingMatch, setProcessingMatch] = useState(false);
+  const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -103,6 +105,7 @@ const ExchangeDetail = () => {
   const handleAcceptProposal = async (match_id) => {
     try {
       setProcessingMatch(true);
+      setError("");
 
       await axios.patch(
         `${API_URL}/api/exchange/match/${match_id}/accept`,
@@ -111,8 +114,6 @@ const ExchangeDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      alert("✅ Proposal accepted! Start chatting to finalize details.");
 
       // Update local state
       setMatches(
@@ -123,7 +124,8 @@ const ExchangeDetail = () => {
       setSelectedMatch({ ...selectedMatch, status: "accepted" });
       // eslint-disable-next-line no-unused-vars
     } catch (_err) {
-      alert("Error accepting proposal");
+      console.error("Accept error:", _err);
+      setError(_err.response?.data?.error || "Error accepting proposal");
     } finally {
       setProcessingMatch(false);
     }
@@ -135,6 +137,7 @@ const ExchangeDetail = () => {
 
     try {
       setProcessingMatch(true);
+      setError("");
 
       await axios.patch(
         `${API_URL}/api/exchange/match/${match_id}/reject`,
@@ -144,13 +147,12 @@ const ExchangeDetail = () => {
         }
       );
 
-      alert("Proposal rejected");
-
       // Update local state
       setMatches(matches.filter((m) => m.id !== match_id));
       // eslint-disable-next-line no-unused-vars
     } catch (_err) {
-      alert("Error rejecting proposal");
+      console.error("Reject error:", _err);
+      setError(_err.response?.data?.error || "Error rejecting proposal");
     } finally {
       setProcessingMatch(false);
     }
@@ -183,6 +185,15 @@ const ExchangeDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 p-6">
       <div className="max-w-6xl mx-auto">
+        {/* ERROR NOTIFICATION */}
+        {error && (
+          <ErrorNotification 
+            message={error} 
+            onClose={() => setError("")}
+            className="mb-6"
+          />
+        )}
+
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate("/exchange")}
