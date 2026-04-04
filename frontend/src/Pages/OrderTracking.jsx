@@ -10,6 +10,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapPin, Phone, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const OrderTracking = () => {
   const { orderId } = useParams();
@@ -134,20 +135,14 @@ const OrderTracking = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50 to-white px-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 border-l-4 border-red-500">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-red-700 mb-2">Error</h3>
-              <p className="text-gray-600 text-sm">{error}</p>
-              <button
-                onClick={() => navigate("/my-orders")}
-                className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition text-sm"
-              >
-                Back to Orders
-              </button>
-            </div>
-          </div>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <ErrorNotification message={error} onClose={() => navigate("/my-orders")} />
+          <button
+            onClick={() => navigate("/my-orders")}
+            className="mt-4 w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition text-sm"
+          >
+            Back to Orders
+          </button>
         </div>
       </div>
     );
