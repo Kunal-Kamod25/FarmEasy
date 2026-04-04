@@ -164,10 +164,12 @@ const HeroCarousel = () => {
       </AnimatePresence>
 
       {/* NAVIGATION CONTROLS */}
-      <div className="absolute inset-0 flex items-center justify-between px-4 z-20 pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-between px-4 z-20">
         <button
+          type="button"
+          aria-label="Previous slide"
           onClick={prevSlide}
-          className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group"
+          className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-white/70"
         >
           <svg className="w-6 h-6 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -175,8 +177,10 @@ const HeroCarousel = () => {
         </button>
 
         <button
+          type="button"
+          aria-label="Next slide"
           onClick={nextSlide}
-          className="pointer-events-auto w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group"
+          className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-white/70"
         >
           <svg className="w-6 h-6 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
