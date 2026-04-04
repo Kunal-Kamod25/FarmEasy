@@ -163,17 +163,17 @@ const VendorOrders = () => {
 
         {/* Controls */}
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 px-6 pt-4 pb-0">
-          <div className="flex items-end gap-1">
+          <div className="relative -mb-px flex items-end gap-1 rounded-t-[1.25rem] border border-slate-200 bg-slate-100 px-2 pt-2">
             {["All", "Orders", "My Orders"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
                   setOrderTab(tab);
-                  // setStatusFilter("All");
+                  setStatusFilter("All");
                 }}
-                className={`relative px-4 py-2 text-xs font-semibold rounded-t-2xl border border-b-0 transition ${orderTab === tab
-                    ? "z-10 bg-white text-emerald-700 border-slate-200 shadow-sm"
-                    : "bg-slate-100/80 text-gray-600 border-transparent hover:bg-slate-100 hover:text-gray-700"
+                className={`relative -mb-px px-4 py-2 text-xs font-semibold rounded-t-[1rem] border border-b-0 transition ${orderTab === tab
+                    ? "z-10 bg-white text-emerald-700 border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.08)]"
+                    : "bg-slate-100 text-slate-500 border-transparent hover:bg-slate-200 hover:text-slate-700"
                   }`}
               >
                 {tab}
@@ -188,10 +188,10 @@ const VendorOrders = () => {
               placeholder="Search by order ID, customer, seller..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"
+              className="pl-12 pr-6 py-2.5 bg-white border border-gray-400 rounded-[1.2rem] text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/100 focus:border-emerald-500 w-48 lg:w-72 transition-all font-medium"
             />
           </div>
-          <div className="flex gap-2">
+          {/* <div className="flex gap-2">
             {["All", ...availableStatuses].map((status) => (
               <button
                 key={status}
@@ -204,7 +204,7 @@ const VendorOrders = () => {
                 {status}
               </button>
             ))}
-          </div>
+          </div> */}
         </div>
 
         {loading ? (

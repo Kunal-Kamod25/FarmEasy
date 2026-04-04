@@ -113,7 +113,7 @@ const VendorProducts = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         
         {/* Chrome-style Tabs */}
-        <div className="flex items-end w-fit rounded-t-[1.5rem] border border-slate-200 border-b-0 bg-slate-100/80 px-2 pt-1.5">
+        <div className="relative -mb-px flex items-end gap-1 w-fit rounded-t-[1.35rem] border border-slate-200 bg-slate-100 px-2 pt-2">
           {[
             { id: "list", label: "List View" },
             { id: "card", label: "Card View" },
@@ -121,10 +121,10 @@ const VendorProducts = () => {
             <button
               key={tab.id}
               onClick={() => setViewMode(tab.id)}
-              className={`relative -mb-px px-8 py-3 text-sm font-bold transition-all rounded-t-2xl border ${
+              className={`relative -mb-px px-8 py-3 text-sm font-bold transition-all rounded-t-[1.1rem] border border-b-0 ${
                 viewMode === tab.id
-                  ? "z-10 bg-white text-emerald-700 border-slate-200 border-b-white shadow-sm"
-                  : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/70"
+                  ? "z-10 bg-white text-emerald-700 border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.08)]"
+                  : "bg-slate-100 text-slate-500 border-transparent hover:bg-slate-200 hover:text-slate-700"
               }`}
             >
               {tab.label}
@@ -140,13 +140,13 @@ const VendorProducts = () => {
             placeholder="Search by name or category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-[1.5rem] shadow-sm focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none text-sm font-medium transition-all"
+            className="pl-12 pr-6 py-2.5 bg-white border border-gray-400 rounded-[1.2rem] text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/100 focus:border-emerald-500 w-48 lg:w-72 transition-all font-medium"
           />
         </div>
       </div>
 
       {/* ── CONTENT AREA ── */}
-      <div className="-mt-8 bg-white rounded-b-[2.5rem] rounded-tr-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-50 p-8 min-h-[400px]">
+      <div className="-mt-8 bg-white rounded-b-[2.5rem] rounded-tr-[2.5rem] shadow-xl shadow-gray-200/50 border border-slate-200 p-8 min-h-[400px]">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (
