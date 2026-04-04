@@ -357,6 +357,7 @@ const Navbar = () => {
               </div>
             </>
           )}
+        </div>
       </nav>
 
       <CartDrawer
