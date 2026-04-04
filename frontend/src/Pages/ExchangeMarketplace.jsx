@@ -13,6 +13,8 @@ import { API_URL } from "../config";
 import { Search, MapPin, Plus, Loader } from "lucide-react";
 import ExchangeCard from "../components/Exchange/ExchangeCard";
 import { useLanguage } from "../context/language/LanguageContext";
+import ErrorNotification from "../components/Common/ErrorNotification";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const ExchangeMarketplace = () => {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const ExchangeMarketplace = () => {
   const [location, setLocation] = useState(null);
   const [cropFilter, setCropFilter] = useState("");
   const [radiusFilter, setRadiusFilter] = useState(50);
+  const [locationError, setLocationError] = useState("");
   const token = localStorage.getItem("token");
 
   // ===== FETCH NEARBY LISTINGS =====
@@ -57,7 +60,7 @@ const ExchangeMarketplace = () => {
   useEffect(() => {
     // Check if browser supports geolocation
     if (!navigator.geolocation) {
-      alert("Please enable location services");
+      setLocationError("Please enable location services");
       return;
     }
 
@@ -66,11 +69,12 @@ const ExchangeMarketplace = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         setLocation({ latitude, longitude });
+        setLocationError("");
         fetchListings(latitude, longitude);
       },
       (error) => {
         console.error("Location error:", error);
-        alert("Could not access your location. Please enable GPS.");
+        setLocationError("Could not access your location. Please enable GPS.");
       }
     );
   }, [fetchListings]);
@@ -82,7 +86,7 @@ const ExchangeMarketplace = () => {
     }
   }, [radiusFilter, cropFilter, location, fetchListings]);
 
-  // ===== REDIRECT TO LOGIN IF NOT AUTHENTICATED =====
+  // ===== REDIRECT TO LOGIN IF NOT AUTHENTICATED ======
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -92,6 +96,22 @@ const ExchangeMarketplace = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-yellow-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* ERROR NOTIFICATION */}
+        {locationError && (
+          <ErrorNotification 
+            message={locationError} 
+            onClose={() => setLocationError("")}
+            className="mb-6"
+          />
+        )}
+        {/* ERROR NOTIFICATION */}
+        {locationError && (
+          <ErrorNotification 
+            message={locationError} 
+            onClose={() => setLocationError("")}
+            className="mb-6"
+          />
+        )}
         {/* HEADER */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
