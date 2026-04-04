@@ -273,12 +273,12 @@ const Navbar = () => {
                   }}
                   className="flex flex-col items-center gap-1 group cursor-pointer"
                 >
+                  <HiOutlineUser className="h-6 w-6 text-white group-hover:text-green-500 transition-colors" />
                   <div className="text-right">
                     <p className="text-xs font-semibold text-gray-300 group-hover:text-green-400 transition-colors uppercase tracking-tight leading-tight">
                       {truncateText(user?.fullname || user?.full_name, 12)}
                     </p>
                   </div>
-                  <HiOutlineUser className="h-6 w-6 text-white group-hover:text-green-500 transition-colors" />
                 </button>
 
                 {profileOpen && (
