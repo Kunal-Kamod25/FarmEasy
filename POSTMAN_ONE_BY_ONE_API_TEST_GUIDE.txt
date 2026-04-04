@@ -1,37 +1,65 @@
 FarmEasy API One-by-One Testing Guide (Postman / Thunder Client)
-Date: 2026-03-24
+Date: 2026-04-04
 Backend Base URL: http://localhost:5000
+Frontend Base URL: http://localhost:5173
 
 ============================================================
 0) BEFORE STARTING
 ============================================================
+IMPORTANT: Error Handling Update (April 2026)
+- All error responses are now displayed via ErrorNotification component
+- Plain text alerts have been replaced with toast-style notifications  
+- Error UI shows red left border with AlertCircle icon
+- Errors auto-dismiss after 5 seconds or can be manually closed
+- Backend should return proper error codes: 400, 401, 403, 404, 500
+
+Updated pages with ErrorNotification:
+✓ AdminHomePage, Checkout, DriverDeliveryApp, OrderTracking
+✓ CreateExchange, ExchangeDetail, ExchangeMarketplace
+✓ VendorProducts, ExchangeChat
+Form validation errors remain inline for better UX context.
+
 1. Start backend:
    npm run dev --prefix backend
 
-2. Create Postman Environment variables:
-   baseUrl = http://localhost:5000
-   token =
-   customerUserId =
-   vendorUserId =
-   adminUserId =
-   productId =
-   categoryId =
-   sellerId =
-   sessionId =
-  listingId =
-  matchId =
-  driverId =
-  deliveryId =
-  orderId =
-  languageCode = hi
+2. Start frontend (optional for UI testing):
+   npm run dev --prefix frontend
 
-3. Common header for protected routes:
+3. Create Postman Environment variables:
+   baseUrl = http://localhost:5000
+   frontendUrl = http://localhost:5173
+   token = 
+   customerUserId = 
+   vendorUserId = 
+   adminUserId = 
+   productId = 
+   categoryId = 
+   sellerId = 
+   sessionId = 
+   listingId = 
+   matchId = 
+   driverId = 
+   deliveryId = 
+   orderId = 
+   reviewId = 
+   languageCode = hi
+
+4. Common header for protected routes:
    Authorization: Bearer {{token}}
 
-4. Test style for every endpoint:
-   A) Valid request (expected success)
-   B) Invalid request/body (expected 400/401/403/404)
-   C) For protected routes: test missing token (expected 401/403)
+5. Error Response Guidelines:
+   - 400: Bad Request (validation failed, missing fields)
+   - 401: Unauthorized (invalid/missing token)
+   - 403: Forbidden (insufficient permissions, user doesn't own resource)
+   - 404: Not Found (resource doesn't exist)
+   - 500: Server Error (backend issue)
+   - Error messages now show in ErrorNotification component on frontend
+
+6. Test style for every endpoint:
+   A) Valid request (expected success: 200/201)
+   B) Invalid request/body (expected: 400/401/403/404)
+   C) For protected routes: test missing/malformed token (expected: 401/403)
+   D) For user-specific routes: test with different user id (expected: 403)
 
 ============================================================
 1) HEALTH CHECK
@@ -1055,15 +1083,56 @@ pm.test("Save first product id", function () {
 });
 
 ============================================================
+APRIL 2026 FRONTEND IMPROVEMENTS
+============================================================
+Recent UI/UX Enhancements Completed:
+✓ ErrorNotification component deployed across all major pages
+✓ All alert() calls replaced with state-based error notifications
+✓ Toast-style error displays with auto-dismiss (5 seconds)
+✓ CarouselNavigation buttons now fully functional and accessible
+✓ ReusableProductCard component for unified product display (user + vendor)
+✓ Form validation errors display inline with field context
+✓ Consistent error styling: red left border, AlertCircle icon, close button
+
+When testing APIs with frontend:
+- Launch frontend: npm run dev --prefix frontend
+- Navigate to {{frontendUrl}}/api-endpoints to test (if available)
+- Errors will show in toast notifications instead of alerts
+- Check browser console for additional debug info
+
+============================================================
 END NOTE
 ============================================================
-Follow this file from top to bottom once.
-After that, repeat module-wise:
-Auth -> Products -> Cart -> Orders -> Vendor -> Reviews -> Translation -> Newsletter -> Exchange -> Delivery -> Admin.
+Testing Strategy:
+1. First run: Follow this guide top to bottom sequentially
+2. Subsequent runs: Focus on modules you're actively developing
+3. Always test positive cases before negative cases
+4. Save environment variables after each successful login/creation
 
-IMPORTANT: For Review endpoints, make sure you have:
-1. Logged in as customer (have token)
-2. Placed at least one order (for verified_purchase flag)
-3. Saved productId and vendorUserId from previous tests
+Recommended Testing Order:
+Auth -> Categories/Products -> Cart -> Orders -> Vendor -> Reviews -> 
+Newsletter -> Translation -> Exchange -> Delivery -> Admin
 
-This is the fastest way to learn API testing deeply.
+Critical Checks Before Deployment:
+✓ All 401/403 negative tests pass
+✓ All CRUD operations complete successfully
+✓ Error responses include descriptive messages
+✓ Frontend displays errors via ErrorNotification
+✓ Token variables persist correctly through sequence
+✓ User-specific endpoints return 403 for unauthorized users
+
+IMPORTANT: For Review endpoints:
+1. Must be logged in as customer (have valid token)
+2. Must have completed at least one order for product reviews
+3. Must have purchased from the vendor for vendor reviews
+4. Save productId and vendorUserId from earlier tests
+5. Cannot create duplicate reviews for same product
+
+Notes for Future:
+- Form validation errors remain inline (not toast) for UX context
+- Only critical/top-level errors use ErrorNotification
+- Auth/login errors show in ErrorNotification
+- Network/API errors show in ErrorNotification
+- Field-specific validation errors stay inline below fields
+
+This comprehensive guide is the fastest way to master FarmEasy API testing.
