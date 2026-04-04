@@ -21,6 +21,7 @@ import {
   LogOut,
   Loader
 } from "lucide-react";
+import ErrorNotification from "../components/Common/ErrorNotification";
 
 const DriverDeliveryApp = () => {
   const navigate = useNavigate();
@@ -266,17 +267,7 @@ const DriverDeliveryApp = () => {
         </div>
 
         {/* ===== ERROR ALERT ===== */}
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-600 p-4 mb-6 rounded">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-red-800">Error</p>
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {error && <ErrorNotification message={error} onClose={() => setError("")} />}
 
         {/* ===== STATUS CARD ===== */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
