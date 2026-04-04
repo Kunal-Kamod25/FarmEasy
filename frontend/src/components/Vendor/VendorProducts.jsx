@@ -4,6 +4,7 @@ import axios from "axios";
 import { Pencil, Trash2, Plus, Package, Search, AlertCircle, Eye } from "lucide-react";
 import { API_URL, getImageUrl } from '../../config';
 import ReusableProductCard from "../Products/ReusableProductCard";
+import ErrorNotification from "../Common/ErrorNotification";
 
 const VendorProducts = () => {
   const navigate = useNavigate();
@@ -13,17 +14,19 @@ const VendorProducts = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("card"); // 'list' | 'card'
+  const [error, setError] = useState("");
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
+      setError("");
       const res = await axios.get(`${API_URL}/api/vendor/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(res.data || []);
     } catch (error) {
       console.error(error);
-      alert("Failed to load products");
+      setError("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -36,12 +39,14 @@ const VendorProducts = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
+      setError("");
       await axios.delete(`${API_URL}/api/vendor/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(products.filter((p) => p.id !== id));
-    } catch {
-      alert("Failed to delete");
+    } catch (error) {
+      console.error(error);
+      setError("Failed to delete product");
     }
   };
 
@@ -63,8 +68,15 @@ const VendorProducts = () => {
 
   return (
     <div className="min-h-screen bg-transparent p-6 space-y-8">
+      {/* ERROR NOTIFICATION */}
+      {error && (
+        <ErrorNotification 
+          message={error} 
+          onClose={() => setError("")}
+        />
+      )}
 
-      {/* ── HEADER ── */}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Products</h1>
