@@ -96,6 +96,7 @@ const ExchangeChat = ({ matchId, user_id, otherFarmer }) => {
     } finally {
       setSending(false);
       setError(""); // Clear error after showing for a moment
+    }
   };
 
   if (loading) {

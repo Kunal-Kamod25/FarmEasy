@@ -14,7 +14,6 @@ import { Search, MapPin, Plus, Loader } from "lucide-react";
 import ExchangeCard from "../components/Exchange/ExchangeCard";
 import { useLanguage } from "../context/language/LanguageContext";
 import ErrorNotification from "../components/Common/ErrorNotification";
-import ErrorNotification from "../components/Common/ErrorNotification";
 
 const ExchangeMarketplace = () => {
   const navigate = useNavigate();
