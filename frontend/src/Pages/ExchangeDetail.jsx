@@ -3,6 +3,7 @@
 // =====================================================
 // View full details of an exchange listing
 // Propose a match, accept/reject proposals, chat with farmers
+// Glass morphism UI with farm-themed background
 // =====================================================
 
 import React, { useState, useEffect } from "react";
@@ -158,19 +159,28 @@ const ExchangeDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-50">
-        <Loader className="w-12 h-12 animate-spin text-emerald-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900">
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          .floating { animation: float 3s ease-in-out infinite; }
+        `}</style>
+        <div className="floating">
+          <Loader className="w-16 h-16 animate-spin text-emerald-300" />
+        </div>
       </div>
     );
   }
 
   if (!listing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-green-50">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Listing not found</h2>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900 p-6">
+        <h2 className="text-3xl font-bold text-white mb-4">Listing not found</h2>
         <button
           onClick={() => navigate("/exchange")}
-          className="bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg"
+          className="bg-emerald-400 hover:bg-emerald-300 text-emerald-900 font-bold py-3 px-8 rounded-xl transition-all active:scale-95"
         >
           Back to Marketplace
         </button>
@@ -181,21 +191,33 @@ const ExchangeDetail = () => {
   const isOwner = listing.user_id === user_id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div 
+      className="min-h-screen p-6 relative overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(135deg, rgba(5, 150, 105, 0.9), rgba(16, 185, 129, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="farm" patternUnits="userSpaceOnUse" width="200" height="200"><path d="M50,150 Q100,50 150,150" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/><circle cx="70" cy="180" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="130" cy="170" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="1200" height="600" fill="url(%23farm)"/></svg>')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Animated background blobs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* ERROR NOTIFICATION */}
         {error && (
           <ErrorNotification 
             message={error} 
             onClose={() => setError("")}
-            className="mb-6"
+            className="mb-6 backdrop-blur-md"
           />
         )}
 
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate("/exchange")}
-          className="mb-6 text-emerald-600 hover:underline font-semibold"
+          className="mb-6 text-emerald-100 hover:text-white font-bold transition-colors flex items-center gap-2"
         >
           ← Back to Marketplace
         </button>
@@ -203,84 +225,86 @@ const ExchangeDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT: LISTING DETAILS */}
           <div className="lg:col-span-2">
-            {/* FARMER CARD */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-emerald-100">
+            {/* FARMER CARD - Glass Morphism */}
+            <div className="backdrop-blur-xl bg-white/20 rounded-3xl shadow-2xl p-8 mb-6 border border-white/30 hover:bg-white/25 transition-all duration-300">
               <div className="flex items-start gap-4 mb-6">
-                <div className="w-16 h-16 bg-emerald-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User size={32} className="text-emerald-700" />
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-300 to-teal-300 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white/50">
+                  <User size={40} className="text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-3xl font-bold text-white">
                     {listing.full_name}
                   </h2>
-                  <p className="text-gray-600">{listing.city}, {listing.state}</p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-emerald-100 text-lg">{listing.city}, {listing.state}</p>
+                  <p className="text-emerald-50 mt-2 font-medium">
                     📞 {listing.phone_number}
                   </p>
                 </div>
                 {isOwner && (
-                  <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">
-                    Your Listing
+                  <div className="backdrop-blur-md bg-yellow-400/40 text-yellow-100 px-4 py-2 rounded-full text-sm font-bold border border-yellow-300/50">
+                    ⭐ Your Listing
                   </div>
                 )}
               </div>
             </div>
 
-            {/* EXCHANGE DETAILS */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-emerald-100">
-              <h3 className="text-xl font-bold mb-6">Exchange Details</h3>
+            {/* EXCHANGE DETAILS - Glass Card */}
+            <div className="backdrop-blur-xl bg-white/15 rounded-3xl shadow-2xl p-8 mb-6 border border-white/30">
+              <h3 className="text-2xl font-bold text-white mb-8">🌾 Exchange Details</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* OFFERING */}
                 <div>
-                  <p className="text-xs font-bold text-gray-500 mb-2 uppercase">
-                    ✅ Offering
+                  <p className="text-xs font-bold text-emerald-100 mb-3 uppercase tracking-wider">
+                    ✅ You Offer
                   </p>
-                  <div className="bg-emerald-50 p-4 rounded-lg border-2 border-emerald-200">
-                    <p className="text-3xl font-bold text-emerald-700">
+                  <div className="glass-card backdrop-blur-md bg-gradient-to-br from-emerald-400/30 to-emerald-300/20 p-6 rounded-2xl border border-emerald-300/50 hover:border-emerald-300 transition-all">
+                    <p className="text-4xl font-bold text-white">
                       {listing.offering_crop}
                     </p>
-                    <p className="text-lg text-gray-600 mt-2">
+                    <p className="text-xl text-emerald-50 mt-3 font-semibold">
                       {listing.offering_quantity} {listing.offering_unit}
                     </p>
-                    <p className="text-xs text-gray-500 mt-3">
-                      Quality: {listing.description || "Not specified"}
+                    <p className="text-sm text-emerald-100 mt-4 leading-relaxed">
+                      {listing.description || "Premium quality produce"}
                     </p>
                   </div>
                 </div>
 
                 {/* SEEKING */}
                 <div>
-                  <p className="text-xs font-bold text-gray-500 mb-2 uppercase">
-                    👀 Seeking
+                  <p className="text-xs font-bold text-emerald-100 mb-3 uppercase tracking-wider">
+                    👀 You Seek
                   </p>
-                  <div className="bg-indigo-50 p-4 rounded-lg border-2 border-indigo-200">
-                    <p className="text-3xl font-bold text-indigo-700">
+                  <div className="glass-card backdrop-blur-md bg-gradient-to-br from-teal-400/30 to-cyan-400/20 p-6 rounded-2xl border border-cyan-300/50 hover:border-cyan-300 transition-all">
+                    <p className="text-4xl font-bold text-white">
                       {listing.seeking_crop}
                     </p>
-                    <p className="text-lg text-gray-600 mt-2">
+                    <p className="text-xl text-teal-50 mt-3 font-semibold">
                       {listing.seeking_quantity || "Any quantity"}{" "}
                       {listing.seeking_unit}
                     </p>
-                    <p className="text-xs text-gray-500 mt-3">
-                      {listing.radius_km}km search radius
+                    <p className="text-sm text-teal-100 mt-4">
+                      Search radius: {listing.radius_km}km 📍
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* IMAGES */}
+              {/* IMAGES GALLERY */}
               {listing.exchange_images && listing.exchange_images.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-bold mb-3">Images</p>
-                  <div className="grid grid-cols-3 gap-3">
+                <div className="mt-8">
+                  <p className="text-sm font-bold text-emerald-100 mb-4 uppercase tracking-wider">📸 Farm Images</p>
+                  <div className="grid grid-cols-3 gap-4">
                     {listing.exchange_images.map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt="crop"
-                        className="w-full h-24 object-cover rounded-lg border border-emerald-200"
-                      />
+                      <div key={idx} className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <img
+                          src={img}
+                          alt="crop"
+                          className="w-full h-32 object-cover rounded-xl border-2 border-white/30 backdrop-blur-sm group-hover:border-white/50 transition-all shadow-lg"
+                        />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -291,27 +315,27 @@ const ExchangeDetail = () => {
           {/* RIGHT: ACTIONS & PROPOSALS */}
           <div className="lg:col-span-1">
             {isOwner ? (
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-emerald-100 sticky top-6">
-                <h3 className="text-lg font-bold mb-4">Proposals Received</h3>
+              <div className="backdrop-blur-xl bg-white/15 rounded-3xl shadow-2xl p-8 border border-white/30 sticky top-6 max-h-[600px] overflow-y-auto">
+                <h3 className="text-xl font-bold text-white mb-6">💌 Proposals</h3>
 
                 {matches.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No proposals yet</p>
+                  <p className="text-emerald-100 text-center py-8">No proposals yet</p>
                 ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="space-y-3">
                     {matches.map((match) => (
                       <div
                         key={match.id}
-                        className={`p-4 rounded-lg border cursor-pointer transition ${
+                        className={`backdrop-blur-md p-4 rounded-xl border cursor-pointer transition-all ${
                           selectedMatch?.id === match.id
-                            ? "border-emerald-600 bg-emerald-50"
-                            : "border-gray-200 hover:border-emerald-300"
+                            ? "bg-emerald-300/30 border-emerald-300/70 shadow-lg"
+                            : "bg-white/10 border-white/20 hover:bg-white/15 hover:border-white/30"
                         }`}
                         onClick={() => setSelectedMatch(match)}
                       >
-                        <p className="font-bold text-gray-900">
+                        <p className="font-bold text-white text-sm">
                           {match.proposer_name}
                         </p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-emerald-100 mt-1">
                           {match.proposer_city}, {match.state}
                         </p>
 
@@ -323,7 +347,7 @@ const ExchangeDetail = () => {
                                 handleAcceptProposal(match.id);
                               }}
                               disabled={processingMatch}
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 disabled:bg-gray-300"
+                              className="flex-1 bg-emerald-400/80 hover:bg-emerald-300 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
                             >
                               <Check size={14} />
                               Accept
@@ -334,7 +358,7 @@ const ExchangeDetail = () => {
                                 handleRejectProposal(match.id);
                               }}
                               disabled={processingMatch}
-                              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 disabled:bg-gray-300"
+                              className="flex-1 bg-red-400/80 hover:bg-red-300 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
                             >
                               <X size={14} />
                               Reject
@@ -343,7 +367,7 @@ const ExchangeDetail = () => {
                         )}
 
                         {match.status === "accepted" && (
-                          <div className="mt-2 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded inline-block">
+                          <div className="mt-3 bg-emerald-400/40 text-white text-xs font-bold px-3 py-1.5 rounded-lg inline-block border border-emerald-300/50 backdrop-blur-sm">
                             ✅ Accepted - Chat to finalize
                           </div>
                         )}
@@ -353,21 +377,21 @@ const ExchangeDetail = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-emerald-100">
-                <h3 className="text-lg font-bold mb-4">💬 Propose Exchange</h3>
+              <div className="backdrop-blur-xl bg-white/15 rounded-3xl shadow-2xl p-8 border border-white/30 sticky top-6">
+                <h3 className="text-xl font-bold text-white mb-6">💬 Propose Exchange</h3>
 
                 <textarea
                   placeholder="Why are you interested? Any special requirements?"
                   value={proposalReason}
                   onChange={(e) => setProposalReason(e.target.value)}
                   rows="4"
-                  className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 mb-3"
+                  className="w-full px-4 py-3 backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl text-white placeholder-emerald-100/50 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:bg-white/30 mb-4 transition-all"
                 ></textarea>
 
                 <button
                   onClick={handleProposals}
                   disabled={submittingProposal}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+                  className="w-full bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg backdrop-blur-sm border border-white/30"
                 >
                   {submittingProposal ? (
                     <>
@@ -382,8 +406,8 @@ const ExchangeDetail = () => {
                   )}
                 </button>
 
-                <p className="text-xs text-gray-500 mt-3 text-center">
-                  ⏰ Farmer will review and accept or reject within 24 hours
+                <p className="text-xs text-emerald-100 mt-4 text-center">
+                  ⏰ Farmer will review within 24 hours
                 </p>
               </div>
             )}
@@ -392,7 +416,7 @@ const ExchangeDetail = () => {
 
         {/* CHAT SECTION (if match is selected) */}
         {selectedMatch && selectedMatch.status === "accepted" && (
-          <div className="mt-8">
+          <div className="mt-10">
             <ExchangeChat
               matchId={selectedMatch.id}
               user_id={user_id}
@@ -401,6 +425,23 @@ const ExchangeDetail = () => {
           </div>
         )}
       </div>
+
+      <style>{`
+        .glass-card {
+          backdrop-filter: blur(10px) saturate(180%);
+          -webkit-backdrop-filter: blur(10px) saturate(180%);
+        }
+        
+        @supports not (backdrop-filter: blur(10px)) {
+          .glass-card {
+            background-color: rgba(16, 185, 129, 0.1);
+          }
+        }
+        
+        textarea::placeholder {
+          color: rgba(209, 250, 229, 0.5);
+        }
+      `}</style>
     </div>
   );
 };
