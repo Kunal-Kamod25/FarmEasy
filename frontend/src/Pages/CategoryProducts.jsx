@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import { Loader, ChevronDown } from "lucide-react";
+import { Loader, ChevronDown, ChevronRight } from "lucide-react";
 import { ProductCard, LoadingSkeleton, EmptyState } from "../components/HomeSections/HomeProductCard";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
