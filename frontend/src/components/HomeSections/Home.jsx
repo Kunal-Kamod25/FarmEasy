@@ -48,18 +48,23 @@ const Home = () => {
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`${API}/api/categories`);
-      setCategories(res.data || []);
+      // API returns { success: true, data: [...] }
+      let data = res.data?.data || res.data || [];
+      if (!Array.isArray(data)) data = [];
+      setCategories(data);
     } catch (err) {
       console.error("Failed to load categories:", err);
     }
   };
 
+  // Group by numeric category_id for reliable matching
   const productsByCategory = useMemo(() => {
     const grouped = {};
     allProducts.forEach((p) => {
-      const cat = p.category_name || "Other";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(p);
+      const catId = p.category_id;
+      if (catId === null || catId === undefined) return;
+      if (!grouped[catId]) grouped[catId] = [];
+      grouped[catId].push(p);
     });
     return grouped;
   }, [allProducts]);
@@ -180,7 +185,7 @@ const Home = () => {
           <CategorySection
             key={cat.id}
             cat={cat}
-            products={productsByCategory[cat.product_cat_name] || []}
+            products={productsByCategory[cat.id] || []}
             navigate={navigate}
             addToCart={addToCart}
             toggleWishlist={toggleWishlist}

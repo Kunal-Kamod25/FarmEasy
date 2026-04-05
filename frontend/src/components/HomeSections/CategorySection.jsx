@@ -35,7 +35,7 @@ const CategorySection = ({
     isWishlisted,
     idx
 }) => {
-    const catName = cat.product_cat_name;
+    const catName = cat.name || cat.product_cat_name || "Category";
     const catKey = catName.toLowerCase();
     const icon = CATEGORY_ICONS[catKey] || "📦";
     const gradient = CATEGORY_COLORS[catKey] || "from-emerald-500 to-green-600";

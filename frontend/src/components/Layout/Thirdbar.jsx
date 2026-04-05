@@ -156,14 +156,14 @@ const Thirdbar = () => {
 
   // Fallback categories if API fails
   const FALLBACK_CATEGORIES = [
-    { id: 1, name: 'Fertilizers', icon: '🌾' },
-    { id: 2, name: 'Seeds', icon: '🌱' },
-    { id: 3, name: 'Irrigation', icon: '💧' },
-    { id: 4, name: 'Cattle Feeds', icon: '🐄' },
-    { id: 5, name: 'Pulses', icon: '🌾' },
-    { id: 6, name: 'Pesticides', icon: '🔬' },
-    { id: 7, name: 'Tools', icon: '⚙️' },
-    { id: 8, name: 'Equipment', icon: '🛠️' },
+    { id: 1, name: 'Fertilizers', product_cat_name: 'Fertilizers', icon: '🌾', subcategories: [] },
+    { id: 2, name: 'Seeds', product_cat_name: 'Seeds', icon: '🌱', subcategories: [] },
+    { id: 3, name: 'Irrigation', product_cat_name: 'Irrigation', icon: '💧', subcategories: [] },
+    { id: 4, name: 'Cattle Feeds', product_cat_name: 'Cattle Feeds', icon: '🐄', subcategories: [] },
+    { id: 5, name: 'Pulses', product_cat_name: 'Pulses', icon: '🌾', subcategories: [] },
+    { id: 6, name: 'Pesticides', product_cat_name: 'Pesticides', icon: '🔬', subcategories: [] },
+    { id: 7, name: 'Tools', product_cat_name: 'Tools', icon: '⚙️', subcategories: [] },
+    { id: 8, name: 'Equipment', product_cat_name: 'Equipment', icon: '🛠️', subcategories: [] },
   ];
 
   // Fetch parent categories (category_id = null) from database
@@ -354,8 +354,9 @@ const Thirdbar = () => {
               items={
                 category.subcategories && category.subcategories.length > 0
                   ? category.subcategories.map((sub) => ({
-                    name: sub.name,
-                    path: `/category/${sub.id}`,
+                    name: sub.name || sub.subcategory_name,
+                    // Navigate to parent category page filtered by subcategory name
+                    path: `/category/${category.id}?sub=${encodeURIComponent(sub.name || sub.subcategory_name)}`,
                   }))
                   : null
               }
