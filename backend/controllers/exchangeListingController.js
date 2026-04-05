@@ -6,6 +6,7 @@
 // =====================================================
 
 const CropExchange = require("../models/CropExchange");
+const s3 = require("../config/s3");
 
 // ===== CREATE A NEW EXCHANGE LISTING =====
 // POST /api/exchange/create
@@ -182,6 +183,36 @@ exports.deleteListing = async (req, res) => {
       return res.status(403).json({ error: "Not authorized" });
     }
 
+    // ===== DELETE IMAGES FROM S3 =====
+    if (listing.exchange_images) {
+      try {
+        const imageUrls = Array.isArray(listing.exchange_images) 
+          ? listing.exchange_images 
+          : [listing.exchange_images];
+        
+        imageUrls.forEach(imageUrl => {
+          if (imageUrl && imageUrl.includes('.amazonaws.com')) {
+            const s3Key = extractS3KeyFromUrl(imageUrl);
+            
+            s3.deleteObject(
+              {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: s3Key
+              },
+              (error) => {
+                if (error) {
+                  console.error("S3 Delete Error for exchange image:", error);
+                }
+              }
+            );
+          }
+        });
+      } catch (error) {
+        console.error("Error deleting exchange images:", error);
+        // Continue with deletion even if S3 delete fails
+      }
+    }
+
     // ===== DELETE =====
     await CropExchange.delete(id);
 
@@ -190,3 +221,17 @@ exports.deleteListing = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ===== HELPER FUNCTION: Extract S3 key from full S3 URL =====
+function extractS3KeyFromUrl(url) {
+  try {
+    const parts = url.split('.amazonaws.com/');
+    if (parts.length > 1) {
+      return parts[1]; // Returns: farmeasy/filename.jpg
+    }
+    return url;
+  } catch (error) {
+    console.error("Error extracting S3 key:", error);
+    return url;
+  }
+}
