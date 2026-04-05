@@ -68,6 +68,8 @@ const exchangeRoutes = require("./routes/exchangeRoutes"); // crop exchange betw
 const deliveryRoutes = require("./routes/deliveryRoutes");  // GPS delivery tracking system
 const reviewRoutes = require("./routes/reviewRoutes");  // Product and vendor reviews/ratings
 const newsletterRoutes = require("./routes/newsletterRoutes"); // Newsletter subscription
+const notificationRoutes = require("./routes/notificationRoutes"); // Vendor notifications
+const messageRoutes = require("./routes/messageRoutes");  // Farmer-vendor messaging
 
 
 // Use routes
@@ -87,6 +89,8 @@ app.use("/api/exchange", exchangeRoutes); // Crop exchange marketplace
 app.use("/api/delivery", deliveryRoutes); // GPS-based home delivery tracking
 app.use("/api/reviews", reviewRoutes); // Product and vendor reviews
 app.use("/api/newsletter", newsletterRoutes); // Newsletter subscriptions
+app.use("/api/notifications", notificationRoutes); // Vendor notifications
+app.use("/api/messages", messageRoutes); // Farmer-vendor messaging
 
 
 // ================= TEST ROUTE =================
