@@ -44,8 +44,8 @@ const VendorChat = () => {
             setCurrentConversation(conv);
           }
         }
-      } catch (err) {
-        console.error("Error fetching conversations:", err);
+      } catch (_err) {
+        console.error("Error fetching conversations:", _err);
         setError("Failed to load conversations");
       } finally {
         setLoading(false);
@@ -69,8 +69,8 @@ const VendorChat = () => {
         );
         setMessages(res.data.data.messages || []);
         scrollToBottom();
-      } catch (err) {
-        console.error("Error fetching messages:", err);
+      } catch (_err) {
+        console.error("Error fetching messages:", _err);
         setError("Failed to load messages");
       }
     };
@@ -121,7 +121,7 @@ const VendorChat = () => {
       setMessages(res.data.data.messages || []);
       setMessageText("");
       scrollToBottom();
-    } catch (err) {
+    } catch {
       setError("Failed to send message");
     } finally {
       setSending(false);
@@ -135,29 +135,11 @@ const VendorChat = () => {
     scrollToBottom();
   };
 
-  // ===== HANDLE START NEW CHAT =====
-  const handleStartNewChat = async (vendorId, productId) => {
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/messages/conversation/start`,
-        { vendor_id: vendorId, product_id: productId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      navigate(`/chat/${res.data.data.conversationId}`);
-
-      // Refresh conversations
-      const convRes = await axios.get(
-        `${API_URL}/api/messages/conversations`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setConversations(convRes.data.data.conversations || []);
-    } catch (err) {
-      setError("Failed to start conversation");
-    }
-  };
+  // ===== HANDLE START NEW CHAT ===== (Currently unused - available for future use)
+  // Uncomment when needed to start new vendor conversations
+  // const handleStartNewChat = async (vendorId, productId) => {
+  //   try { ... }
+  // };
 
   // ===== FILTER CONVERSATIONS =====
   const filteredConversations = conversations.filter((conv) =>

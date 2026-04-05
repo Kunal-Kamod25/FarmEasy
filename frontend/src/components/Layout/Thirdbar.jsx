@@ -187,15 +187,15 @@ const Thirdbar = () => {
                 ...parentCat,
                 subcategories: subsRes.data?.data?.subcategories || [],
               };
-            } catch (err) {
+            } catch {
               return { ...parentCat, subcategories: [] };
             }
           })
         );
 
         setCategories(categoriesWithSubs);
-      } catch (error) {
-        console.log("Error fetching categories:", error);
+      } catch (_error) {
+        console.log("Error fetching categories:", _error);
         // Fallback to empty if API fails
         setCategories([]);
       }

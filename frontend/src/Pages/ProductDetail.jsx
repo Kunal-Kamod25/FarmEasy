@@ -8,7 +8,6 @@ const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   // ===== STATE =====
   const [product, setProduct] = useState(null);
@@ -29,8 +28,7 @@ const ProductDetail = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [reviewStats, setReviewStats] = useState(null);
 
-  // Wishlist & Cart
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  // Cart
   const [cartQuantity, setCartQuantity] = useState(1);
 
   // ===== FETCH PRODUCT DETAILS =====
@@ -58,7 +56,7 @@ const ProductDetail = () => {
     };
 
     fetchProductDetails();
-  }, [productId]);
+  }, [productId, reviewsPerPage, sortBy]);
 
   // ===== FETCH REVIEWS WITH SORTING =====
   const handleReviewSort = async (newSort) => {
@@ -90,7 +88,7 @@ const ProductDetail = () => {
 
     try {
       setSubmittingReview(true);
-      const res = await axios.post(
+      await axios.post(
         `${API_URL}/api/reviews/product/${productId}`,
         {
           rating: userRating,
@@ -150,7 +148,7 @@ const ProductDetail = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("Added to cart!");
-    } catch (err) {
+    } catch {
       setError("Failed to add to cart");
     }
   };
@@ -169,7 +167,7 @@ const ProductDetail = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       navigate(`/chat/${res.data.data.conversationId}`);
-    } catch (err) {
+    } catch {
       setError("Failed to start conversation");
     }
   };
