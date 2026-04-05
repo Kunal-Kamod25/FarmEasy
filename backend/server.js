@@ -203,7 +203,24 @@ async function initializeDatabase() {
     
     console.log("\n🌱 Initializing database with categories and brands...");
     
-    // Insert parent categories
+    // ===== ALSO POPULATE product_category TABLE (for products to use) =====
+    // This is separate from the new 'categories' table with hierarchy
+    const productCategories = ['Fertilizers', 'Seeds', 'Irrigation', 'Cattle Feeds', 'Pulses', 'Pesticides & Fungicides', 'Tools & Machinery', 'Farm Equipment'];
+    
+    for (const catName of productCategories) {
+      try {
+        await db.query(
+          'INSERT INTO product_category (product_cat_name) VALUES (?)',
+          [catName]
+        );
+        console.log(`  ✅ Added product_category: ${catName}`);
+      } catch (err) {
+        // Skip if duplicate
+        if (err.code !== 'ER_DUP_ENTRY') console.log(`  ⚠️ Could not add ${catName} to product_category:`, err.message);
+      }
+    }
+    
+    // Insert parent categories in the hierarchy table
     const parentCategories = [
       ['Fertilizers', 'All types of fertilizers and soil nutrients', null, '🌾', 'fertilizers', 1],
       ['Seeds', 'Quality agricultural seeds', null, '🌱', 'seeds', 2],
@@ -222,7 +239,7 @@ async function initializeDatabase() {
         cat
       );
       categoryMap[cat[4]] = result.insertId; // Store by slug
-      console.log(`  ✅ Added category: ${cat[0]}`);
+      console.log(`  ✅ Added hierarchy category: ${cat[0]}`);
     }
     
     // Insert subcategories
@@ -270,6 +287,85 @@ async function initializeDatabase() {
       console.log(`  ✅ Added ${brands.length} brands`);
     } else {
       console.log(`  ✅ Brands already exist (${existingBrands} brands)`);
+    }
+    
+    // ===== CREATE TEST PRODUCTS for each category =====
+    // This ensures categories show with product counts on the home page
+    const [productCount] = await db.query("SELECT COUNT(*) as count FROM product");
+    const existingProducts = productCount[0]?.count || 0;
+    
+    if (existingProducts === 0) {
+      console.log("\n  📦 Adding test products to each category...");
+      
+      // First, ensure we have a test seller account
+      const [sellerResult] = await db.query(
+        'SELECT id FROM seller LIMIT 1'
+      );
+      
+      let sellerId = 1; // Default to ID 1
+      if (!sellerResult || sellerResult.length === 0) {
+        // Create a test seller if none exists
+        try {
+          const [newSeller] = await db.query(
+            'INSERT INTO seller (user_id, shop_name, shop_description, shop_image) VALUES (?, ?, ?, ?)',
+            [1, 'Test Farm Store', 'Test Products', 'https://placehold.co/200x200']
+          );
+          sellerId = newSeller.insertId;
+          console.log(`    ✅ Created test seller with ID ${sellerId}`);
+        } catch (err) {
+          console.log(`    ⚠️ Could not create test seller, using default ID 1`);
+        }
+      } else {
+        sellerId = sellerResult[0].id;
+      }
+      
+      // Get category IDs from product_category table
+      const [categories] = await db.query('SELECT id, product_cat_name FROM product_category');
+      
+      // Create one test product per category
+      const testProducts = [
+        { name: 'Premium Urea Fertilizer', desc: 'High-quality urea for all crops', price: 450, qty: 100, cat: 'Fertilizers' },
+        { name: 'Hybrid Maize Seeds', desc: 'High-yield hybrid maize seeds', price: 350, qty: 50, cat: 'Seeds' },
+        { name: 'Drip Irrigation System', desc: 'Complete drip irrigation kit', price: 5000, qty: 10, cat: 'Irrigation' },
+        { name: 'Premium Cattle Feed', desc: 'Nutritious feed for dairy cattle', price: 550, qty: 200, cat: 'Cattle Feeds' },
+        { name: 'Red Masoor Dal', desc: 'Premium quality red lentils', price: 80, qty: 500, cat: 'Pulses' },
+        { name: 'Neem Pesticide', desc: 'Organic neem-based pesticide', price: 280, qty: 30, cat: 'Pesticides & Fungicides' },
+        { name: 'Manual Weeder Tool', desc: 'Durable hand weeding tool', price: 150, qty: 100, cat: 'Tools & Machinery' },
+        { name: 'Tractor Attachment', desc: 'Universal tractor attachment parts', price: 2500, qty: 5, cat: 'Farm Equipment' },
+      ];
+      
+      for (const prod of testProducts) {
+        try {
+          const catData = categories.find(c => c.product_cat_name === prod.cat);
+          if (!catData) {
+            console.log(`    ⚠️ Category not found for ${prod.cat}`);
+            continue;
+          }
+          
+          await db.query(
+            `INSERT INTO product 
+            (product_name, product_description, product_type, product_quantity, price, product_image, category_id, seller_id, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [
+              prod.name,
+              prod.desc,
+              prod.cat,
+              prod.qty,
+              prod.price,
+              'https://placehold.co/400x400?text=' + encodeURIComponent(prod.name),
+              catData.id,
+              sellerId
+            ]
+          );
+          console.log(`    ✅ Added test product: ${prod.name}`);
+        } catch (err) {
+          console.log(`    ⚠️ Could not add ${prod.name}:`, err.message);
+        }
+      }
+      
+      console.log(`  ✅ Test products added!`);
+    } else {
+      console.log(`  ✅ Products already exist (${existingProducts} products)`);
     }
     
     console.log("✅ Database initialization complete!\n");

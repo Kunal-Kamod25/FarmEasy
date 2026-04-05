@@ -6,8 +6,11 @@ const CATEGORY_ICONS = {
     fertilizers: "🧪",
     seeds: "🌱",
     irrigation: "💧",
-    "pesticides & medicines": "💊",
-    "farm equipment": "🚜",
+    "cattle feeds": "🐄",
+    pulses: "🌾",
+    "pesticides & fungicides": "💊",
+    "tools & machinery": "⚙️",
+    "farm equipment": "🛠️",
     "organic products": "🌿",
 };
 
@@ -15,8 +18,11 @@ const CATEGORY_COLORS = {
     fertilizers: "from-emerald-500 to-green-600",
     seeds: "from-amber-500 to-yellow-600",
     irrigation: "from-blue-500 to-cyan-600",
-    "pesticides & medicines": "from-rose-500 to-pink-600",
-    "farm equipment": "from-slate-600 to-gray-700",
+    "cattle feeds": "from-red-500 to-orange-600",
+    pulses: "from-yellow-600 to-amber-700",
+    "pesticides & fungicides": "from-rose-500 to-pink-600",
+    "tools & machinery": "from-slate-600 to-gray-700",
+    "farm equipment": "from-indigo-500 to-blue-600",
     "organic products": "from-lime-500 to-emerald-600",
 };
 
@@ -63,16 +69,23 @@ const CategorySection = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-                    {products.slice(0, 8).map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onAddToCart={addToCart}
-                            onToggleWishlist={toggleWishlist}
-                            isWishlisted={isWishlisted(product.id)}
-                            onViewDetail={() => navigate(`/product/${product.id}`)}
-                        />
-                    ))}
+                    {products.length > 0 ? (
+                        products.slice(0, 8).map((product) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onAddToCart={addToCart}
+                                onToggleWishlist={toggleWishlist}
+                                isWishlisted={isWishlisted(product.id)}
+                                onViewDetail={() => navigate(`/product/${product.id}`)}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full py-12 text-center">
+                            <p className="text-slate-400 text-sm mb-2">📭 No products available yet</p>
+                            <p className="text-slate-300 text-xs">Check back soon! Vendors will be adding products to this category.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
