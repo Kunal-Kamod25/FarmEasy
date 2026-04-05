@@ -205,18 +205,32 @@ async function initializeDatabase() {
     
     // ===== ALSO POPULATE product_category TABLE (for products to use) =====
     // This is separate from the new 'categories' table with hierarchy
+    // Get existing product_category IDs or create new ones
+    const productCategoryMap = {};
     const productCategories = ['Fertilizers', 'Seeds', 'Irrigation', 'Cattle Feeds', 'Pulses', 'Pesticides & Fungicides', 'Tools & Machinery', 'Farm Equipment'];
     
     for (const catName of productCategories) {
       try {
-        await db.query(
-          'INSERT INTO product_category (product_cat_name) VALUES (?)',
+        // First try to find if it exists
+        const [existing] = await db.query(
+          'SELECT id FROM product_category WHERE product_cat_name = ?',
           [catName]
         );
-        console.log(`  ✅ Added product_category: ${catName}`);
+        
+        if (existing && existing.length > 0) {
+          productCategoryMap[catName] = existing[0].id;
+          console.log(`  ✅ Found product_category: ${catName} (ID: ${existing[0].id})`);
+        } else {
+          // Insert if doesn't exist
+          const [result] = await db.query(
+            'INSERT INTO product_category (product_cat_name) VALUES (?)',
+            [catName]
+          );
+          productCategoryMap[catName] = result.insertId;
+          console.log(`  ✅ Added product_category: ${catName} (ID: ${result.insertId})`);
+        }
       } catch (err) {
-        // Skip if duplicate
-        if (err.code !== 'ER_DUP_ENTRY') console.log(`  ⚠️ Could not add ${catName} to product_category:`, err.message);
+        console.log(`  ⚠️ Error with category ${catName}:`, err.message);
       }
     }
     
@@ -319,10 +333,7 @@ async function initializeDatabase() {
         sellerId = sellerResult[0].id;
       }
       
-      // Get category IDs from product_category table
-      const [categories] = await db.query('SELECT id, product_cat_name FROM product_category');
-      
-      // Create one test product per category
+      // Create one test product per category using the productCategoryMap
       const testProducts = [
         { name: 'Premium Urea Fertilizer', desc: 'High-quality urea for all crops', price: 450, qty: 100, cat: 'Fertilizers' },
         { name: 'Hybrid Maize Seeds', desc: 'High-yield hybrid maize seeds', price: 350, qty: 50, cat: 'Seeds' },
@@ -336,9 +347,9 @@ async function initializeDatabase() {
       
       for (const prod of testProducts) {
         try {
-          const catData = categories.find(c => c.product_cat_name === prod.cat);
-          if (!catData) {
-            console.log(`    ⚠️ Category not found for ${prod.cat}`);
+          const categoryId = productCategoryMap[prod.cat];
+          if (!categoryId) {
+            console.log(`    ⚠️ Category ID not found for ${prod.cat}`);
             continue;
           }
           
@@ -353,11 +364,11 @@ async function initializeDatabase() {
               prod.qty,
               prod.price,
               'https://placehold.co/400x400?text=' + encodeURIComponent(prod.name),
-              catData.id,
+              categoryId,
               sellerId
             ]
           );
-          console.log(`    ✅ Added test product: ${prod.name}`);
+          console.log(`    ✅ Added test product: ${prod.name} (Category ID: ${categoryId})`);
         } catch (err) {
           console.log(`    ⚠️ Could not add ${prod.name}:`, err.message);
         }
