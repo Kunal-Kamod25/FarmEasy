@@ -80,10 +80,10 @@ const Home = () => {
   }, [allProducts]);
 
   const activeCategories = useMemo(() => {
-    return categories.filter(
-      (cat) => productsByCategory[cat.product_cat_name]?.length > 0
-    );
-  }, [categories, productsByCategory]);
+    // Show ALL categories, not just ones with products
+    // This way categories appear even if vendors haven't added products yet
+    return categories;
+  }, [categories]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-amber-50/30 to-green-50">
