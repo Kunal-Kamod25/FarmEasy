@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import {
@@ -16,7 +16,6 @@ import { useWishlist } from "../context/WishlistContext";
 const CategoryProducts = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { isWishlisted, toggleWishlist } = useWishlist();
 
   // ===== STATE =====
@@ -55,7 +54,7 @@ const CategoryProducts = () => {
             `${API_URL}/api/categories/${categoryId}/subcategories`
           );
           setSubcategories(subRes.data?.data?.subcategories || []);
-        } catch (err) {
+        } catch {
           console.log("No subcategories found");
         }
       } catch (error) {

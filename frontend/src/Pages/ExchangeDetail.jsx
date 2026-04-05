@@ -424,7 +424,7 @@ const ExchangeDetail = () => {
 
       <style>{`
         @supports not (backdrop-filter: blur(10px)) {
-          .bg-white\/15 {
+          .bg-white/15 {
             background-color: rgba(255, 255, 255, 0.1);
           }
         }
