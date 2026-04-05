@@ -36,21 +36,41 @@ const CategoryProducts = () => {
       try {
         setLoading(true);
 
-        // Get category info
-        const catRes = await axios.get(
-          `${API_URL}/api/categories/${categoryId}`,
+        // Get all products filtered by category_id
+        const productsRes = await axios.get(
+          `${API_URL}/api/products/all`,
           {
             params: {
+              category_id: categoryId,
+              sort: sortBy === "price_asc" ? "price_asc" : 
+                    sortBy === "price_desc" ? "price_desc" : 
+                    sortBy === "oldest" ? "oldest" : "newest",
               limit: 50,
-              page: 1,
-              sortBy: sortBy,
             },
           }
         );
 
-        setCategory(catRes.data?.data?.category);
-        const fetchedProducts = catRes.data?.data?.products || [];
+        const fetchedProducts = productsRes.data || [];
         setAllProducts(fetchedProducts);
+
+        // Extract category info from first product or use default
+        if (fetchedProducts.length > 0) {
+          const categoryName = fetchedProducts[0].category_name || "Products";
+          setCategory({
+            id: categoryId,
+            name: categoryName,
+            product_cat_name: categoryName,
+            description: `Browse our collection of ${categoryName.toLowerCase()}`,
+          });
+        } else {
+          setCategory({
+            id: categoryId,
+            name: "Category",
+            product_cat_name: "Category",
+            description: "Browse our collection",
+          });
+        }
+
         // Apply sub-filter from URL param if present
         if (subFilter) {
           const filtered = fetchedProducts.filter(p =>
@@ -64,17 +84,21 @@ const CategoryProducts = () => {
           setProducts(fetchedProducts);
         }
 
-        // Get subcategories
+        // Get subcategories from categories API
         try {
-          const subRes = await axios.get(
-            `${API_URL}/api/categories/${categoryId}/subcategories`
-          );
-          setSubcategories(subRes.data?.data?.subcategories || []);
-        } catch {
-          console.log("No subcategories found");
+          const categoriesRes = await axios.get(`${API_URL}/api/categories`);
+          const allCategories = categoriesRes.data?.data || [];
+          
+          // Find category by id and get its subcategories
+          const mainCategory = allCategories.find(c => c.id == categoryId);
+          if (mainCategory && mainCategory.subcategories) {
+            setSubcategories(mainCategory.subcategories || []);
+          }
+        } catch (err) {
+          console.log("No subcategories found for category");
         }
       } catch (error) {
-        console.error("Error fetching category:", error);
+        console.error("Error fetching category products:", error.message);
       } finally {
         setLoading(false);
       }
