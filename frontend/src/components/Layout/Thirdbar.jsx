@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import axios from "axios";
@@ -107,6 +107,17 @@ const NavItem = ({
   );
 };
 
+// Fallback categories if API fails
+const FALLBACK_CATEGORIES = [
+  { id: 1, name: 'Fertilizers', product_cat_name: 'Fertilizers', icon: '🌾', subcategories: [] },
+  { id: 2, name: 'Seeds', product_cat_name: 'Seeds', icon: '🌱', subcategories: [] },
+  { id: 3, name: 'Irrigation', product_cat_name: 'Irrigation', icon: '💧', subcategories: [] },
+  { id: 4, name: 'Cattle Feeds', product_cat_name: 'Cattle Feeds', icon: '🐄', subcategories: [] },
+  { id: 5, name: 'Pulses', product_cat_name: 'Pulses', icon: '🌾', subcategories: [] },
+  { id: 6, name: 'Pesticides', product_cat_name: 'Pesticides', icon: '🔬', subcategories: [] },
+  { id: 7, name: 'Tools', product_cat_name: 'Tools', icon: '⚙️', subcategories: [] },
+  { id: 8, name: 'Equipment', product_cat_name: 'Equipment', icon: '🛠️', subcategories: [] },
+];
 
 const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
@@ -153,18 +164,6 @@ const Thirdbar = () => {
       document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, []);
-
-  // Fallback categories if API fails
-  const FALLBACK_CATEGORIES = [
-    { id: 1, name: 'Fertilizers', product_cat_name: 'Fertilizers', icon: '🌾', subcategories: [] },
-    { id: 2, name: 'Seeds', product_cat_name: 'Seeds', icon: '🌱', subcategories: [] },
-    { id: 3, name: 'Irrigation', product_cat_name: 'Irrigation', icon: '💧', subcategories: [] },
-    { id: 4, name: 'Cattle Feeds', product_cat_name: 'Cattle Feeds', icon: '🐄', subcategories: [] },
-    { id: 5, name: 'Pulses', product_cat_name: 'Pulses', icon: '🌾', subcategories: [] },
-    { id: 6, name: 'Pesticides', product_cat_name: 'Pesticides', icon: '🔬', subcategories: [] },
-    { id: 7, name: 'Tools', product_cat_name: 'Tools', icon: '⚙️', subcategories: [] },
-    { id: 8, name: 'Equipment', product_cat_name: 'Equipment', icon: '🛠️', subcategories: [] },
-  ];
 
   // Fetch parent categories (category_id = null) from database
   useEffect(() => {
@@ -276,6 +275,11 @@ const Thirdbar = () => {
   }, []);
 
   // build brand dropdown items from database brands
+  const brandItems = brands.map((brand) => ({
+    name: brand.name,
+    path: `/products?search=${encodeURIComponent(brand.name)}`,
+  }));
+
   // Map new categories to product_category table IDs for navigation
   // This ensures category links work correctly with existing products
   const categoryIdMap = {

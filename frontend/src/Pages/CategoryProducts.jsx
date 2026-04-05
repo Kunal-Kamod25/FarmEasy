@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
@@ -94,8 +94,8 @@ const CategoryProducts = () => {
           if (mainCategory && mainCategory.subcategories) {
             setSubcategories(mainCategory.subcategories || []);
           }
-        } catch (err) {
-          console.log("No subcategories found for category");
+        } catch {
+          // Subcategories not found or not available
         }
       } catch (error) {
         console.error("Error fetching category products:", error.message);
@@ -107,7 +107,7 @@ const CategoryProducts = () => {
     if (categoryId) {
       fetchCategoryDetails();
     }
-  }, [categoryId, sortBy]);
+  }, [categoryId, sortBy, subFilter]);
 
   // ===== HANDLE SUBCATEGORY FILTER (local, no API call needed) =====
   const handleSubcategoryClick = (subName) => {
