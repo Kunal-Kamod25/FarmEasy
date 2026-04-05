@@ -154,11 +154,25 @@ const Thirdbar = () => {
     };
   }, []);
 
+  // Fallback categories if API fails
+  const FALLBACK_CATEGORIES = [
+    { id: 1, name: 'Fertilizers', icon: '🌾' },
+    { id: 2, name: 'Seeds', icon: '🌱' },
+    { id: 3, name: 'Irrigation', icon: '💧' },
+    { id: 4, name: 'Cattle Feeds', icon: '🐄' },
+    { id: 5, name: 'Pulses', icon: '🌾' },
+    { id: 6, name: 'Pesticides', icon: '🔬' },
+    { id: 7, name: 'Tools', icon: '⚙️' },
+    { id: 8, name: 'Equipment', icon: '🛠️' },
+  ];
+
   // Fetch parent categories (category_id = null) from database
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log("📡 Fetching categories from:", `${API}/api/categories`);
         const categoryRes = await axios.get(`${API}/api/categories`);
+        console.log("📥 Categories response:", categoryRes.data);
         
         // API returns: { success: true, data: [...] } where data is array of categories
         let categoryData = categoryRes.data?.data || categoryRes.data || [];
@@ -172,9 +186,19 @@ const Thirdbar = () => {
         if (!Array.isArray(categoryData)) {
           categoryData = [];
         }
+        
+        console.log("🔍 Parsed category data:", categoryData);
 
         // Filter only parent categories (parent_id is null/undefined)
         const parentCategories = categoryData.filter(cat => !cat.parent_id);
+        
+        console.log("📋 Parent categories found:", parentCategories.length);
+
+        if (parentCategories.length === 0) {
+          console.warn("⚠️ No categories found from API, using fallback");
+          setCategories(FALLBACK_CATEGORIES);
+          return;
+        }
 
         // For each parent category, fetch its subcategories
         const categoriesWithSubs = await Promise.all(
@@ -194,11 +218,12 @@ const Thirdbar = () => {
           })
         );
 
+        console.log("✅ Categories loaded successfully:", categoriesWithSubs.length);
         setCategories(categoriesWithSubs);
-      } catch (_error) {
-        console.log("Error fetching categories:", _error);
-        // Fallback to empty if API fails
-        setCategories([]);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+        console.warn("⚠️ Using fallback categories");
+        setCategories(FALLBACK_CATEGORIES);
       }
     };
 
@@ -209,17 +234,41 @@ const Thirdbar = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
+        console.log("📡 Fetching brands from:", `${API}/api/brands`);
         const brandsRes = await axios.get(`${API}/api/brands`);
+        console.log("📥 Brands response:", brandsRes.data);
+        
         const brandsData = brandsRes.data?.data || brandsRes.data || [];
         
-        if (Array.isArray(brandsData)) {
+        if (Array.isArray(brandsData) && brandsData.length > 0) {
+          console.log("✅ Brands loaded:", brandsData.length);
           setBrands(brandsData);
         } else {
-          setBrands([]);
+          console.warn("⚠️ No brands found, using fallback");
+          setBrands([
+            { id: 1, name: 'Syngenta' },
+            { id: 2, name: 'Bayer' },
+            { id: 3, name: 'BASF' },
+            { id: 4, name: 'IFFCO' },
+            { id: 5, name: 'Godrej' },
+            { id: 6, name: 'Tata Rallis' },
+            { id: 7, name: 'UPL' },
+            { id: 8, name: 'PI Industries' },
+          ]);
         }
-      } catch (_error) {
-        console.log("Error fetching brands:", _error);
-        setBrands([]);
+      } catch (error) {
+        console.error("❌ Error fetching brands:", error);
+        console.warn("⚠️ Using fallback brands");
+        setBrands([
+          { id: 1, name: 'Syngenta' },
+          { id: 2, name: 'Bayer' },
+          { id: 3, name: 'BASF' },
+          { id: 4, name: 'IFFCO' },
+          { id: 5, name: 'Godrej' },
+          { id: 6, name: 'Tata Rallis' },
+          { id: 7, name: 'UPL' },
+          { id: 8, name: 'PI Industries' },
+        ]);
       }
     };
 

@@ -153,11 +153,51 @@ async function initializeDatabase() {
   try {
     const db = require("./config/db");
     
-    // Check if categories table has data
-    const [categories] = await db.query("SELECT COUNT(*) as count FROM categories");
+    console.log("\n🔄 Checking database tables...");
     
-    if (categories[0]?.count > 0) {
-      console.log("✅ Categories already exist in database");
+    // ===== CREATE CATEGORIES TABLE if it doesn't exist =====
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS \`categories\` (
+        \`id\` int NOT NULL AUTO_INCREMENT,
+        \`name\` varchar(255) NOT NULL,
+        \`description\` text,
+        \`parent_id\` int DEFAULT NULL,
+        \`icon\` varchar(255),
+        \`slug\` varchar(255) UNIQUE,
+        \`image\` varchar(255),
+        \`sort_order\` int DEFAULT 0,
+        \`created_at\` timestamp DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        FOREIGN KEY (\`parent_id\`) REFERENCES \`categories\` (\`id\`) ON DELETE SET NULL,
+        KEY \`idx_parent_id\` (\`parent_id\`),
+        KEY \`idx_slug\` (\`slug\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+    `);
+    console.log("✅ Categories table exists/created");
+    
+    // ===== CREATE BRANDS TABLE if it doesn't exist =====
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS \`brands\` (
+        \`id\` int NOT NULL AUTO_INCREMENT,
+        \`name\` varchar(255) NOT NULL,
+        \`description\` text,
+        \`logo\` varchar(255),
+        \`slug\` varchar(255) UNIQUE,
+        \`created_at\` timestamp DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        KEY \`idx_slug\` (\`slug\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+    `);
+    console.log("✅ Brands table exists/created");
+    
+    // ===== CHECK if categories have data =====
+    const [countResult] = await db.query("SELECT COUNT(*) as count FROM categories");
+    const categoryCount = countResult[0]?.count || 0;
+    
+    if (categoryCount > 0) {
+      console.log(`✅ Categories already exist in database (${categoryCount} categories)`);
       return;
     }
     
@@ -167,12 +207,12 @@ async function initializeDatabase() {
     const parentCategories = [
       ['Fertilizers', 'All types of fertilizers and soil nutrients', null, '🌾', 'fertilizers', 1],
       ['Seeds', 'Quality agricultural seeds', null, '🌱', 'seeds', 2],
-      ['Pesticides & Fungicides', 'Crop protection products', null, '🔬', 'pesticides', 3],
-      ['Farm Equipment', 'Agricultural tools and equipment', null, '🛠️', 'equipment', 4],
-      ['Irrigation', 'Irrigation systems and parts', null, '💧', 'irrigation', 5],
-      ['Cattle Feeds', 'Feed and supplements for livestock', null, '🐄', 'cattle-feeds', 6],
-      ['Pulses', 'Various pulses and legumes', null, '🌾', 'pulses', 7],
-      ['Tools & Machinery', 'Agricultural machinery and hand tools', null, '⚙️', 'tools', 8]
+      ['Irrigation', 'Irrigation systems and parts', null, '💧', 'irrigation', 3],
+      ['Cattle Feeds', 'Feed and supplements for livestock', null, '🐄', 'cattle-feeds', 4],
+      ['Pulses', 'Various pulses and legumes', null, '🌾', 'pulses', 5],
+      ['Pesticides & Fungicides', 'Crop protection products', null, '🔬', 'pesticides', 6],
+      ['Tools & Machinery', 'Agricultural machinery and hand tools', null, '⚙️', 'tools', 7],
+      ['Farm Equipment', 'Agricultural tools and equipment', null, '🛠️', 'equipment', 8]
     ];
     
     const categoryMap = {};
@@ -204,29 +244,39 @@ async function initializeDatabase() {
     }
     console.log(`  ✅ Added ${subCategories.length} subcategories`);
     
-    // Insert brands
-    const brands = [
-      ['Syngenta', 'Global agricultural company', 'syngenta'],
-      ['Bayer', 'Leading life sciences company', 'bayer'],
-      ['BASF', 'Chemical and agricultural products', 'basf'],
-      ['IFFCO', 'Indian Farmers Fertiliser Cooperative', 'iffco'],
-      ['Godrej Agrovet', 'Indian agricultural solutions', 'godrej'],
-      ['Tata Rallis', 'Agricultural inputs company', 'tata-rallis'],
-      ['UPL', 'Crop protection and specialty seeds', 'upl'],
-      ['PI Industries', 'Specialized chemicals manufacturer', 'pi-industries'],
-    ];
+    // Check if brands exist
+    const [brandCount] = await db.query("SELECT COUNT(*) as count FROM brands");
+    const existingBrands = brandCount[0]?.count || 0;
     
-    for (const brand of brands) {
-      await db.query(
-        'INSERT INTO brands (name, description, slug) VALUES (?, ?, ?)',
-        brand
-      );
+    if (existingBrands === 0) {
+      // Insert brands
+      const brands = [
+        ['Syngenta', 'Global agricultural company', 'syngenta'],
+        ['Bayer', 'Leading life sciences company', 'bayer'],
+        ['BASF', 'Chemical and agricultural products', 'basf'],
+        ['IFFCO', 'Indian Farmers Fertiliser Cooperative', 'iffco'],
+        ['Godrej Agrovet', 'Indian agricultural solutions', 'godrej'],
+        ['Tata Rallis', 'Agricultural inputs company', 'tata-rallis'],
+        ['UPL', 'Crop protection and specialty seeds', 'upl'],
+        ['PI Industries', 'Specialized chemicals manufacturer', 'pi-industries'],
+      ];
+      
+      for (const brand of brands) {
+        await db.query(
+          'INSERT INTO brands (name, description, slug) VALUES (?, ?, ?)',
+          brand
+        );
+      }
+      console.log(`  ✅ Added ${brands.length} brands`);
+    } else {
+      console.log(`  ✅ Brands already exist (${existingBrands} brands)`);
     }
-    console.log(`  ✅ Added ${brands.length} brands`);
+    
     console.log("✅ Database initialization complete!\n");
     
   } catch (error) {
     console.error("⚠️ Database initialization error:", error.message);
+    console.error("Stack:", error.stack);
     // Don't crash - app can still work without categories
   }
 }
