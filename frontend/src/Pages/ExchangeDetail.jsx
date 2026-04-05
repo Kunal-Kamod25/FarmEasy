@@ -192,17 +192,13 @@ const ExchangeDetail = () => {
 
   return (
     <div 
-      className="min-h-screen p-6 relative overflow-hidden"
-      style={{
-        backgroundImage: `linear-gradient(135deg, rgba(5, 150, 105, 0.9), rgba(16, 185, 129, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="farm" patternUnits="userSpaceOnUse" width="200" height="200"><path d="M50,150 Q100,50 150,150" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/><circle cx="70" cy="180" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="130" cy="170" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="1200" height="600" fill="url(%23farm)"/></svg>')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
+      className="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600 p-6 relative"
     >
-      {/* Animated background blobs */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      {/* Subtle background pattern overlay */}
+      <div className="absolute inset-0 opacity-5" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+        backgroundSize: '50px 50px'
+      }}></div>
       
       <div className="max-w-6xl mx-auto relative z-10">
         {/* ERROR NOTIFICATION */}
@@ -217,7 +213,7 @@ const ExchangeDetail = () => {
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate("/exchange")}
-          className="mb-6 text-emerald-100 hover:text-white font-bold transition-colors flex items-center gap-2"
+          className="mb-6 text-white/90 hover:text-white font-bold transition-colors flex items-center gap-2"
         >
           ← Back to Marketplace
         </button>
@@ -226,22 +222,22 @@ const ExchangeDetail = () => {
           {/* LEFT: LISTING DETAILS */}
           <div className="lg:col-span-2">
             {/* FARMER CARD - Glass Morphism */}
-            <div className="backdrop-blur-xl bg-white/20 rounded-3xl shadow-2xl p-8 mb-6 border border-white/30 hover:bg-white/25 transition-all duration-300">
+            <div className="bg-white/15 backdrop-blur-md rounded-3xl shadow-xl p-8 mb-6 border border-white/25 hover:bg-white/20 transition-all duration-300">
               <div className="flex items-start gap-4 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-300 to-teal-300 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white/50">
+                <div className="w-20 h-20 bg-gradient-to-br from-white/40 to-white/20 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white/40">
                   <User size={40} className="text-white" />
                 </div>
                 <div className="flex-1">
                   <h2 className="text-3xl font-bold text-white">
                     {listing.full_name}
                   </h2>
-                  <p className="text-emerald-100 text-lg">{listing.city}, {listing.state}</p>
-                  <p className="text-emerald-50 mt-2 font-medium">
+                  <p className="text-white/80 text-lg">{listing.city}, {listing.state}</p>
+                  <p className="text-white/90 mt-2 font-medium">
                     📞 {listing.phone_number}
                   </p>
                 </div>
                 {isOwner && (
-                  <div className="backdrop-blur-md bg-yellow-400/40 text-yellow-100 px-4 py-2 rounded-full text-sm font-bold border border-yellow-300/50">
+                  <div className="bg-white/25 text-white px-4 py-2 rounded-full text-sm font-bold border border-white/40">
                     ⭐ Your Listing
                   </div>
                 )}
@@ -255,17 +251,17 @@ const ExchangeDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* OFFERING */}
                 <div>
-                  <p className="text-xs font-bold text-emerald-100 mb-3 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-white mb-3 uppercase tracking-wider">
                     ✅ You Offer
                   </p>
-                  <div className="glass-card backdrop-blur-md bg-gradient-to-br from-emerald-400/30 to-emerald-300/20 p-6 rounded-2xl border border-emerald-300/50 hover:border-emerald-300 transition-all">
+                  <div className="bg-white/15 backdrop-blur-md p-6 rounded-2xl border border-white/25 hover:bg-white/20 transition-all">
                     <p className="text-4xl font-bold text-white">
                       {listing.offering_crop}
                     </p>
-                    <p className="text-xl text-emerald-50 mt-3 font-semibold">
+                    <p className="text-xl text-white/90 mt-3 font-semibold">
                       {listing.offering_quantity} {listing.offering_unit}
                     </p>
-                    <p className="text-sm text-emerald-100 mt-4 leading-relaxed">
+                    <p className="text-sm text-white/80 mt-4 leading-relaxed">
                       {listing.description || "Premium quality produce"}
                     </p>
                   </div>
@@ -273,18 +269,18 @@ const ExchangeDetail = () => {
 
                 {/* SEEKING */}
                 <div>
-                  <p className="text-xs font-bold text-emerald-100 mb-3 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-white mb-3 uppercase tracking-wider">
                     👀 You Seek
                   </p>
-                  <div className="glass-card backdrop-blur-md bg-gradient-to-br from-teal-400/30 to-cyan-400/20 p-6 rounded-2xl border border-cyan-300/50 hover:border-cyan-300 transition-all">
+                  <div className="bg-white/15 backdrop-blur-md p-6 rounded-2xl border border-white/25 hover:bg-white/20 transition-all">
                     <p className="text-4xl font-bold text-white">
                       {listing.seeking_crop}
                     </p>
-                    <p className="text-xl text-teal-50 mt-3 font-semibold">
+                    <p className="text-xl text-white/90 mt-3 font-semibold">
                       {listing.seeking_quantity || "Any quantity"}{" "}
                       {listing.seeking_unit}
                     </p>
-                    <p className="text-sm text-teal-100 mt-4">
+                    <p className="text-sm text-white/80 mt-4">
                       Search radius: {listing.radius_km}km 📍
                     </p>
                   </div>
@@ -294,11 +290,11 @@ const ExchangeDetail = () => {
               {/* IMAGES GALLERY */}
               {listing.exchange_images && listing.exchange_images.length > 0 && (
                 <div className="mt-8">
-                  <p className="text-sm font-bold text-emerald-100 mb-4 uppercase tracking-wider">📸 Farm Images</p>
+                  <p className="text-sm font-bold text-white mb-4 uppercase tracking-wider">📸 Farm Images</p>
                   <div className="grid grid-cols-3 gap-4">
                     {listing.exchange_images.map((img, idx) => (
                       <div key={idx} className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-white rounded-xl opacity-0 group-hover:opacity-10 transition-opacity"></div>
                         <img
                           src={img}
                           alt="crop"
@@ -315,19 +311,19 @@ const ExchangeDetail = () => {
           {/* RIGHT: ACTIONS & PROPOSALS */}
           <div className="lg:col-span-1">
             {isOwner ? (
-              <div className="backdrop-blur-xl bg-white/15 rounded-3xl shadow-2xl p-8 border border-white/30 sticky top-6 max-h-[600px] overflow-y-auto">
+              <div className="bg-white/15 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-white/25 sticky top-6 max-h-[600px] overflow-y-auto">
                 <h3 className="text-xl font-bold text-white mb-6">💌 Proposals</h3>
 
                 {matches.length === 0 ? (
-                  <p className="text-emerald-100 text-center py-8">No proposals yet</p>
+                  <p className="text-white/70 text-center py-8">No proposals yet</p>
                 ) : (
                   <div className="space-y-3">
                     {matches.map((match) => (
                       <div
                         key={match.id}
-                        className={`backdrop-blur-md p-4 rounded-xl border cursor-pointer transition-all ${
+                        className={`backdrop-blur-sm p-4 rounded-xl border cursor-pointer transition-all ${
                           selectedMatch?.id === match.id
-                            ? "bg-emerald-300/30 border-emerald-300/70 shadow-lg"
+                            ? "bg-white/25 border-white/50 shadow-lg"
                             : "bg-white/10 border-white/20 hover:bg-white/15 hover:border-white/30"
                         }`}
                         onClick={() => setSelectedMatch(match)}
@@ -335,7 +331,7 @@ const ExchangeDetail = () => {
                         <p className="font-bold text-white text-sm">
                           {match.proposer_name}
                         </p>
-                        <p className="text-xs text-emerald-100 mt-1">
+                        <p className="text-xs text-white/70 mt-1">
                           {match.proposer_city}, {match.state}
                         </p>
 
@@ -347,7 +343,7 @@ const ExchangeDetail = () => {
                                 handleAcceptProposal(match.id);
                               }}
                               disabled={processingMatch}
-                              className="flex-1 bg-emerald-400/80 hover:bg-emerald-300 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
+                              className="flex-1 bg-white/30 hover:bg-white/40 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
                             >
                               <Check size={14} />
                               Accept
@@ -358,7 +354,7 @@ const ExchangeDetail = () => {
                                 handleRejectProposal(match.id);
                               }}
                               disabled={processingMatch}
-                              className="flex-1 bg-red-400/80 hover:bg-red-300 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
+                              className="flex-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all active:scale-95 backdrop-blur-sm"
                             >
                               <X size={14} />
                               Reject
@@ -367,7 +363,7 @@ const ExchangeDetail = () => {
                         )}
 
                         {match.status === "accepted" && (
-                          <div className="mt-3 bg-emerald-400/40 text-white text-xs font-bold px-3 py-1.5 rounded-lg inline-block border border-emerald-300/50 backdrop-blur-sm">
+                          <div className="mt-3 bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg inline-block border border-white/40 backdrop-blur-sm">
                             ✅ Accepted - Chat to finalize
                           </div>
                         )}
@@ -377,7 +373,7 @@ const ExchangeDetail = () => {
                 )}
               </div>
             ) : (
-              <div className="backdrop-blur-xl bg-white/15 rounded-3xl shadow-2xl p-8 border border-white/30 sticky top-6">
+              <div className="bg-white/15 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-white/25 sticky top-6">
                 <h3 className="text-xl font-bold text-white mb-6">💬 Propose Exchange</h3>
 
                 <textarea
@@ -385,13 +381,13 @@ const ExchangeDetail = () => {
                   value={proposalReason}
                   onChange={(e) => setProposalReason(e.target.value)}
                   rows="4"
-                  className="w-full px-4 py-3 backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl text-white placeholder-emerald-100/50 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:bg-white/30 mb-4 transition-all"
+                  className="w-full px-4 py-3 backdrop-blur-sm bg-white/20 border border-white/25 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/25 mb-4 transition-all"
                 ></textarea>
 
                 <button
                   onClick={handleProposals}
                   disabled={submittingProposal}
-                  className="w-full bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg backdrop-blur-sm border border-white/30"
+                  className="w-full bg-white/30 hover:bg-white/40 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg backdrop-blur-sm border border-white/25"
                 >
                   {submittingProposal ? (
                     <>
@@ -406,7 +402,7 @@ const ExchangeDetail = () => {
                   )}
                 </button>
 
-                <p className="text-xs text-emerald-100 mt-4 text-center">
+                <p className="text-xs text-white/70 mt-4 text-center">
                   ⏰ Farmer will review within 24 hours
                 </p>
               </div>
@@ -427,19 +423,14 @@ const ExchangeDetail = () => {
       </div>
 
       <style>{`
-        .glass-card {
-          backdrop-filter: blur(10px) saturate(180%);
-          -webkit-backdrop-filter: blur(10px) saturate(180%);
-        }
-        
         @supports not (backdrop-filter: blur(10px)) {
-          .glass-card {
-            background-color: rgba(16, 185, 129, 0.1);
+          .bg-white\/15 {
+            background-color: rgba(255, 255, 255, 0.1);
           }
         }
         
         textarea::placeholder {
-          color: rgba(209, 250, 229, 0.5);
+          color: rgba(255, 255, 255, 0.5);
         }
       `}</style>
     </div>
