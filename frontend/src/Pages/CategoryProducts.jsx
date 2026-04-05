@@ -36,9 +36,6 @@ const CategoryProducts = () => {
           {
             params: {
               category_id: categoryId,
-              sort: sortBy === "price_asc" ? "price_asc" : 
-                    sortBy === "price_desc" ? "price_desc" : 
-                    sortBy === "oldest" ? "oldest" : "newest",
               limit: 50,
             },
           }
@@ -101,7 +98,7 @@ const CategoryProducts = () => {
     if (categoryId) {
       fetchCategoryDetails();
     }
-  }, [categoryId, sortBy, subFilter]);
+  }, [categoryId, subFilter]);
 
   // ===== HANDLE SUBCATEGORY FILTER (local, no API call needed) =====
   const handleSubcategoryClick = (subName) => {
