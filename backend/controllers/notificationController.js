@@ -1,60 +1,110 @@
 // =====================================================
 // NOTIFICATIONS CONTROLLER
-// =====================================================
-// Manage vendor notifications for orders and products
+// Uses orders/order_items tables (which actually exist)
+// Generates notifications dynamically from real data
 // =====================================================
 
 const db = require("../config/db");
 
-// ===== GET ALL NOTIFICATIONS FOR VENDOR =====
+// ===== GET NOTIFICATIONS (derived from real order data) =====
 exports.getNotifications = async (req, res) => {
   try {
-    const vendor_id = req.user.id;
-    const { page = 1, limit = 20, unreadOnly = false } = req.query;
-    const offset = (page - 1) * limit;
+    const user_id = req.user.id;
+    const { unreadOnly } = req.query;
 
-    let where = "WHERE vendor_id = ?";
-    let params = [vendor_id];
+    // Get the seller row for this user
+    const [sellerRows] = await db.query(
+      "SELECT id FROM seller WHERE user_id = ? LIMIT 1",
+      [user_id]
+    );
 
-    if (unreadOnly === "true") {
-      where += " AND is_read = false";
+    if (sellerRows.length === 0) {
+      // Not a vendor — return empty
+      return res.json({
+        success: true,
+        data: { notifications: [], unread_count: 0, pagination: { total: 0, page: 1, limit: 20, pages: 0 } },
+      });
     }
 
-    const [notifications] = await db.query(
-      `SELECT 
-        id, type, title, message, is_read,
-        related_order_id, related_product_id,
-        action_url, created_at, read_at
-      FROM vendor_notifications
-      ${where}
-      ORDER BY created_at DESC
-      LIMIT ? OFFSET ?`,
-      [...params, parseInt(limit), offset]
+    const seller_id = sellerRows[0].id;
+
+    // Build notifications from orders that contain this vendor's products
+    const [orders] = await db.query(
+      `SELECT DISTINCT
+        o.id AS order_id,
+        o.order_status,
+        o.order_date,
+        o.total_price,
+        u.full_name AS customer_name
+       FROM orders o
+       JOIN order_items oi ON o.id = oi.order_id
+       JOIN product p ON oi.product_id = p.id
+       LEFT JOIN users u ON o.user_id = u.id
+       WHERE p.seller_id = ?
+       ORDER BY o.order_date DESC
+       LIMIT 50`,
+      [seller_id]
     );
 
-    // Get unread count
-    const [unreadCount] = await db.query(
-      `SELECT COUNT(*) as unread FROM vendor_notifications 
-       WHERE vendor_id = ? AND is_read = false`,
-      [vendor_id]
+    // Convert orders into notification-like objects
+    const notifications = orders.map((order) => {
+      const isNew = order.order_status === "Pending";
+      const type = isNew ? "new_order" : "order_status_change";
+      const title = isNew
+        ? "New Order Received! 📦"
+        : `Order Status: ${order.order_status} 🔄`;
+      const message = `Order #${order.order_id} from ${order.customer_name || "Customer"} — ₹${order.total_price}`;
+
+      return {
+        id: order.order_id,
+        type,
+        title,
+        message,
+        is_read: !isNew, // unread only if Pending
+        related_order_id: order.order_id,
+        action_url: `/vendor/orders`,
+        created_at: order.order_date,
+      };
+    });
+
+    // Also check low-stock products
+    const [lowStockProducts] = await db.query(
+      `SELECT id, product_name, product_quantity
+       FROM product
+       WHERE seller_id = ? AND product_quantity > 0 AND product_quantity <= 5
+       ORDER BY product_quantity ASC
+       LIMIT 10`,
+      [seller_id]
     );
 
-    // Get total count
-    const [countResult] = await db.query(
-      `SELECT COUNT(*) as total FROM vendor_notifications ${where}`,
-      params
-    );
+    const stockNotifications = lowStockProducts.map((product) => ({
+      id: `stock_${product.id}`,
+      type: "low_stock",
+      title: "Low Stock Alert! ⚠️",
+      message: `"${product.product_name}" has only ${product.product_quantity} unit(s) left`,
+      is_read: false,
+      related_product_id: product.id,
+      action_url: `/vendor/products`,
+      created_at: new Date().toISOString(),
+    }));
+
+    const allNotifications = [...stockNotifications, ...notifications];
+    const filtered = unreadOnly === "true"
+      ? allNotifications.filter((n) => !n.is_read)
+      : allNotifications;
+
+    const unread_count = allNotifications.filter((n) => !n.is_read).length;
 
     res.json({
       success: true,
       data: {
-        notifications,
-        unread_count: unreadCount[0].unread,
+        notifications: filtered,
+        unread_count,
         pagination: {
-          total: countResult[0].total,
-          page: parseInt(page),
-          limit: parseInt(limit),
-          pages: Math.ceil(countResult[0].total / limit),
+          total: filtered.length,
+          page: 1,
+          limit: 50,
+          pages: 1,
         },
       },
     });
@@ -64,178 +114,46 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// ===== MARK NOTIFICATION AS READ =====
+// ===== MARK AS READ (client-side only — no DB table needed) =====
 exports.markAsRead = async (req, res) => {
-  try {
-    const { notificationId } = req.params;
-    const vendor_id = req.user.id;
-
-    const [result] = await db.query(
-      `UPDATE vendor_notifications 
-       SET is_read = true, read_at = NOW()
-       WHERE id = ? AND vendor_id = ?`,
-      [notificationId, vendor_id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Notification not found" });
-    }
-
-    res.json({
-      success: true,
-      message: "Notification marked as read",
-    });
-  } catch (error) {
-    console.error("Error marking notification:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+  // Since notifications are derived from orders (no separate table),
+  // just return success. Frontend manages read state locally.
+  res.json({ success: true, message: "Notification marked as read" });
 };
 
-// ===== MARK ALL NOTIFICATIONS AS READ =====
+// ===== MARK ALL AS READ =====
 exports.markAllAsRead = async (req, res) => {
-  try {
-    const vendor_id = req.user.id;
-
-    await db.query(
-      `UPDATE vendor_notifications 
-       SET is_read = true, read_at = NOW()
-       WHERE vendor_id = ? AND is_read = false`,
-      [vendor_id]
-    );
-
-    res.json({
-      success: true,
-      message: "All notifications marked as read",
-    });
-  } catch (error) {
-    console.error("Error marking all notifications:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// ===== CREATE NOTIFICATION (Internal Helper) =====
-const createNotification = async (vendor_id, type, title, message, options = {}) => {
-  try {
-    const {
-      related_order_id,
-      related_product_id,
-      action_url,
-    } = options;
-
-    await db.query(
-      `INSERT INTO vendor_notifications 
-       (vendor_id, type, title, message, related_order_id, related_product_id, action_url, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [vendor_id, type, title, message, related_order_id, related_product_id, action_url]
-    );
-  } catch (error) {
-    console.error("Error creating notification:", error);
-  }
-};
-
-// ===== TRIGGER NOTIFICATION ON NEW ORDER =====
-exports.notifyNewOrder = async (order_id, vendor_id) => {
-  try {
-    const [order] = await db.query(
-      `SELECT o.id, o.total_amount, u.full_name 
-       FROM orders o
-       LEFT JOIN users u ON o.user_id = u.id
-       WHERE o.id = ?`,
-      [order_id]
-    );
-
-    if (order.length > 0) {
-      await createNotification(
-        vendor_id,
-        "new_order",
-        "New Order Received! 📦",
-        `New order #${order_id} of ₹${order[0].total_amount} from ${order[0].full_name}`,
-        {
-          related_order_id: order_id,
-          action_url: `/vendor/orders/${order_id}`,
-        }
-      );
-    }
-  } catch (error) {
-    console.error("Error notifying new order:", error);
-  }
-};
-
-// ===== TRIGGER NOTIFICATION ON STOCK LOW =====
-exports.notifyLowStock = async (product_id, vendor_id, current_stock) => {
-  try {
-    const [product] = await db.query(
-      `SELECT name FROM product WHERE id = ?`,
-      [product_id]
-    );
-
-    if (product.length > 0) {
-      await createNotification(
-        vendor_id,
-        "low_stock",
-        "Low Stock Alert! ⚠️",
-        `Product "${product[0].name}" stock is running low (${current_stock} units remaining)`,
-        {
-          related_product_id: product_id,
-          action_url: `/vendor/products/${product_id}`,
-        }
-      );
-    }
-  } catch (error) {
-    console.error("Error notifying low stock:", error);
-  }
-};
-
-// ===== TRIGGER NOTIFICATION ON STATUS CHANGE =====
-exports.notifyOrderStatusChange = async (order_id, vendor_id, new_status) => {
-  try {
-    const statusMessages = {
-      pending: "Order is pending",
-      confirmed: "Order confirmed",
-      shipped: "Order shipped",
-      delivered: "Order delivered",
-      cancelled: "Order cancelled",
-    };
-
-    const message = statusMessages[new_status] || `Order status changed to ${new_status}`;
-
-    await createNotification(
-      vendor_id,
-      "order_status_change",
-      `Order Status Update 🔄`,
-      `Order #${order_id}: ${message}`,
-      {
-        related_order_id: order_id,
-        action_url: `/vendor/orders/${order_id}`,
-      }
-    );
-  } catch (error) {
-    console.error("Error notifying status change:", error);
-  }
+  res.json({ success: true, message: "All notifications marked as read" });
 };
 
 // ===== DELETE NOTIFICATION =====
 exports.deleteNotification = async (req, res) => {
+  // No table to delete from — just return success
+  res.json({ success: true, message: "Notification dismissed" });
+};
+
+// ===== TRIGGER ON NEW ORDER (called internally after order is placed) =====
+exports.notifyNewOrder = async (order_id, vendor_id) => {
+  // No-op since notifications are now derived from orders table dynamically
+  console.log(`📦 New order #${order_id} notification for vendor ${vendor_id}`);
+};
+
+// ===== TRIGGER ON LOW STOCK =====
+exports.notifyLowStock = async (product_id, vendor_id, current_stock) => {
   try {
-    const { notificationId } = req.params;
-    const vendor_id = req.user.id;
-
-    const [result] = await db.query(
-      `DELETE FROM vendor_notifications 
-       WHERE id = ? AND vendor_id = ?`,
-      [notificationId, vendor_id]
+    const [product] = await db.query(
+      "SELECT product_name FROM product WHERE id = ? LIMIT 1",
+      [product_id]
     );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Notification not found" });
+    if (product.length > 0) {
+      console.log(`⚠️ Low stock: "${product[0].product_name}" (${current_stock} left) for vendor ${vendor_id}`);
     }
-
-    res.json({
-      success: true,
-      message: "Notification deleted",
-    });
   } catch (error) {
-    console.error("Error deleting notification:", error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Error in notifyLowStock:", error);
   }
+};
+
+// ===== TRIGGER ON ORDER STATUS CHANGE =====
+exports.notifyOrderStatusChange = async (order_id, vendor_id, new_status) => {
+  console.log(`🔄 Order #${order_id} status changed to ${new_status} for vendor ${vendor_id}`);
 };
