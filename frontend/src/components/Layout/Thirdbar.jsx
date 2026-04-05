@@ -276,13 +276,22 @@ const Thirdbar = () => {
   }, []);
 
   // build brand dropdown items from database brands
-  const brandItems = useMemo(
-    () => brands.map((brand) => ({
-      name: brand.name,
-      path: `/products?search=${encodeURIComponent(brand.name)}`,
-    })),
-    [brands]
-  );
+  // Map new categories to product_category table IDs for navigation
+  // This ensures category links work correctly with existing products
+  const categoryIdMap = {
+    'Fertilizers': 1,
+    'Seeds': 2,
+    'Irrigation': 3,
+    'Cattle Feeds': 4,
+    'Pulses': 5,
+    'Pesticides & Fungicides': 6,
+    'Tools & Machinery': 1, // fallback
+    'Farm Equipment': 1     // fallback
+  };
+
+  const getProductCategoryId = (categoryName) => {
+    return categoryIdMap[categoryName] || 1;
+  };
 
   return (
     <div className="bg-gradient-to-r from-[#0a5e43] via-[#0b6e4f] to-[#0a5e43] text-white shadow-md">
@@ -340,28 +349,31 @@ const Thirdbar = () => {
           />
 
           {/* Dynamic Categories from Database — subcategories inside each dropdown */}
-          {categories.map((category) => (
-            <NavItem
-              key={category.id}
-              title={category.name || category.product_cat_name}
-              isOpen={openIndex === category.id}
-              onMouseEnter={() => setOpenIndex(category.id)}
-              onClick={() => navigate(`/category/${category.id}`)}
-              onToggle={() => toggleDropdown(category.id)}
-              onItemSelect={closeMenu}
-              isMobileLayout={navOpen}
-              useTapInteraction={navOpen || isTouchDevice}
-              items={
-                category.subcategories && category.subcategories.length > 0
-                  ? category.subcategories.map((sub) => ({
-                    name: sub.name || sub.subcategory_name,
-                    // Navigate to parent category page filtered by subcategory name
-                    path: `/category/${category.id}?sub=${encodeURIComponent(sub.name || sub.subcategory_name)}`,
-                  }))
-                  : null
-              }
-            />
-          ))}
+          {categories.map((category) => {
+            const productCatId = getProductCategoryId(category.name || category.product_cat_name);
+            return (
+              <NavItem
+                key={category.id}
+                title={category.name || category.product_cat_name}
+                isOpen={openIndex === category.id}
+                onMouseEnter={() => setOpenIndex(category.id)}
+                onClick={() => navigate(`/category/${productCatId}`)}
+                onToggle={() => toggleDropdown(category.id)}
+                onItemSelect={closeMenu}
+                isMobileLayout={navOpen}
+                useTapInteraction={navOpen || isTouchDevice}
+                items={
+                  category.subcategories && category.subcategories.length > 0
+                    ? category.subcategories.map((sub) => ({
+                      name: sub.name || sub.subcategory_name,
+                      // Navigate to parent category page filtered by subcategory name
+                      path: `/category/${productCatId}?sub=${encodeURIComponent(sub.name || sub.subcategory_name)}`,
+                    }))
+                    : null
+                }
+              />
+            );
+          })}
         </div>
 
         {/* Delivery info banner */}
