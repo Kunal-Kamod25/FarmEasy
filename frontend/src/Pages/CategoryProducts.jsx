@@ -2,16 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import {
-  Loader,
-  Grid3X3,
-  List,
-  SlidersHorizontal,
-  ChevronRight,
-  Package,
-} from "lucide-react";
-import AllProductsProductCard from "../components/Products/AllProductsProductCard";
+import { Loader, ChevronDown } from "lucide-react";
+import { ProductCard, LoadingSkeleton, EmptyState } from "../components/HomeSections/HomeProductCard";
 import { useWishlist } from "../context/WishlistContext";
+import { useCart } from "../context/CartContext";
 
 const CategoryProducts = () => {
   const { categoryId } = useParams();
@@ -26,9 +20,9 @@ const CategoryProducts = () => {
   const [category, setCategory] = useState(null);
   const [subcategories, setSubcategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid");
-  const [sortBy, setSortBy] = useState("newest");
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [subDropdownOpen, setSubDropdownOpen] = useState(false);
+  const { addToCart } = useCart();
 
   // ===== FETCH CATEGORY DETAILS =====
   useEffect(() => {
@@ -177,117 +171,85 @@ const CategoryProducts = () => {
           </div>
         </div>
 
-        {/* SUBCATEGORIES FILTER */}
+        {/* SUBCATEGORIES DROPDOWN FILTER */}
         {subcategories.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              Filter by Type
-            </h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="relative inline-block w-full md:w-80">
               <button
-                onClick={handleResetSubcategory}
-                className={`px-4 py-2 rounded-full font-semibold transition ${
-                  !selectedSubcategory
-                    ? "bg-emerald-600 text-white"
-                    : "bg-white border-2 border-gray-200 text-gray-700 hover:border-emerald-600"
-                }`}
+                onClick={() => setSubDropdownOpen(!subDropdownOpen)}
+                className="w-full px-4 py-3 bg-white border-2 border-emerald-500 rounded-lg font-semibold text-emerald-700 hover:bg-emerald-50 transition flex items-center justify-between"
               >
-                All {category?.name || category?.product_cat_name}
+                <span>
+                  {selectedSubcategory
+                    ? `Showing: ${selectedSubcategory}`
+                    : `All ${category?.name || category?.product_cat_name}`}
+                </span>
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform ${
+                    subDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
-              {subcategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => handleSubcategoryClick(sub.name || sub.subcategory_name)}
-                  className={`px-4 py-2 rounded-full font-semibold transition ${
-                    selectedSubcategory === (sub.name || sub.subcategory_name)
-                      ? "bg-emerald-600 text-white"
-                      : "bg-white border-2 border-gray-200 text-gray-700 hover:border-emerald-600"
-                  }`}
-                >
-                  {sub.name || sub.subcategory_name}
-                </button>
-              ))}
+              {/* Dropdown Menu */}
+              {subDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-emerald-500 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {/* All Products Option */}
+                  <button
+                    onClick={() => {
+                      handleResetSubcategory();
+                      setSubDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-emerald-50 border-b border-gray-200 font-semibold text-emerald-700 transition"
+                  >
+                    ✓ All {category?.name || category?.product_cat_name}
+                  </button>
+
+                  {/* Subcategory Options */}
+                  {subcategories.map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => {
+                        handleSubcategoryClick(sub.name || sub.subcategory_name);
+                        setSubDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 hover:bg-emerald-50 border-b border-gray-200 transition ${
+                        selectedSubcategory === (sub.name || sub.subcategory_name)
+                          ? "bg-emerald-100 text-emerald-700 font-semibold"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {selectedSubcategory === (sub.name || sub.subcategory_name)
+                        ? "✓ "
+                        : ""}
+                      {sub.name || sub.subcategory_name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* CONTROLS */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* SORT */}
-            <div className="flex items-center gap-2">
-              <label className="font-semibold text-gray-700">Sort by:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
-              >
-                <option value="newest">Newest</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="popular">Most Popular</option>
-              </select>
-            </div>
-
-            {/* VIEW MODE */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded transition ${
-                  viewMode === "grid"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                <Grid3X3 size={20} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded transition ${
-                  viewMode === "list"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                <List size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* PRODUCTS */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="w-8 h-8 animate-spin text-emerald-600" />
-          </div>
+          <LoadingSkeleton count={8} />
         ) : products.length > 0 ? (
-          <div
-            className={`grid gap-6 ${
-              viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                : "grid-cols-1"
-            }`}
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
             {products.map((product) => (
-              <AllProductsProductCard
+              <ProductCard
                 key={product.id}
                 product={product}
+                onAddToCart={addToCart}
+                onToggleWishlist={toggleWishlist}
                 isWishlisted={isWishlisted(product.id)}
-                onWishlistToggle={() => toggleWishlist(product.id)}
+                onViewDetail={() => navigate(`/product/${product.id}`)}
               />
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-lg p-12 text-center">
-            <Package size={48} className="mx-auto text-gray-300 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-600 mb-2">
-              No products found
-            </h2>
-            <p className="text-gray-500">
-              Try selecting a different category or checking back soon.
-            </p>
-          </div>
+          <EmptyState message={`No products found in ${selectedSubcategory ? selectedSubcategory : category?.name || "this category"}. Try selecting a different type or check back soon.`} />
         )}
       </div>
     </div>
