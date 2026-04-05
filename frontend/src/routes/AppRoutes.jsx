@@ -34,6 +34,7 @@ const AdminRoute = lazy(() => import("./AdminRoute"));
 /* Products */
 const Wishlist = lazy(() => import("../components/Products/wishlist"));
 const AllProductsPage = lazy(() => import("../components/Products/AllProductsPage"));
+const CategoryProducts = lazy(() => import("../Pages/CategoryProducts"));
 
 /* Crop Exchange */
 const ExchangeMarketplace = lazy(() => import("../Pages/ExchangeMarketplace"));
@@ -46,6 +47,9 @@ const DriverDeliveryApp = lazy(() => import("../Pages/DriverDeliveryApp"));
 
 /* Pages */
 const ProductDetailPage = lazy(() => import("../Pages/ProductDetails"));
+const ProductDetail = lazy(() => import("../Pages/ProductDetail"));
+const VendorChat = lazy(() => import("../Pages/VendorChat"));
+const VendorNotifications = lazy(() => import("../Pages/VendorNotifications"));
 const CheckoutPage = lazy(() => import("../Pages/Checkout"));
 const OrderSuccessPage = lazy(() => import("../Pages/OrderSuccess"));
 const MyOrdersPage = lazy(() => import("../Pages/MyOrdersPage"));
@@ -75,8 +79,16 @@ const AppRoutes = () => {
           {/* All products page with filters - this is the "View All" page */}
           <Route path="/products" element={<AllProductsPage />} />
 
+          {/* Category products page - shows products for a specific category */}
+          <Route path="/category/:categoryId" element={<CategoryProducts />} />
+
           {/* Single product detail */}
           <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/products/:productId" element={<ProductDetail />} />
+
+          {/* Vendor Chat & Notifications */}
+          <Route path="/chat/:conversationId?" element={<VendorChat />} />
+          <Route path="/vendor/notifications" element={<VendorNotifications />} />
 
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/support" element={<Support />} />

@@ -164,44 +164,44 @@ const Thirdbar = () => {
     };
   }, []);
 
-  // fetch categories + their products from backend on mount
+  // Fetch parent categories (category_id = null) from database
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        // Avoid N+1 requests: fetch categories + products once and group locally.
-        const [categoryRes, productRes] = await Promise.all([
-          axios.get(`${API}/api/categories`),
-          axios.get(`${API}/api/products/all`, {
-            params: {
-              sort: "newest",
-              limit: 500,
-            },
-          }),
-        ]);
+        const categoryRes = await axios.get(`${API}/api/categories`);
+        
+        // categoryRes.data structure: { success: true, data: { categories: [...] } }
+        const categoryData = categoryRes.data?.data?.categories || categoryRes.data || [];
 
-        const categoryData = categoryRes.data || [];
-        const allProducts = productRes.data || [];
+        // Filter only parent categories (parent_id is null/undefined)
+        const parentCategories = categoryData.filter(cat => !cat.parent_id);
 
-        const productsByCategory = allProducts.reduce((acc, product) => {
-          const key = product.category_id;
-          if (!key) return acc;
-          if (!acc[key]) acc[key] = [];
-          acc[key].push(product);
-          return acc;
-        }, {});
+        // For each parent category, fetch its subcategories
+        const categoriesWithSubs = await Promise.all(
+          parentCategories.map(async (parentCat) => {
+            try {
+              const subsRes = await axios.get(
+                `${API}/api/categories/${parentCat.id}/subcategories`
+              );
+              return {
+                ...parentCat,
+                subcategories: subsRes.data?.data?.subcategories || [],
+              };
+            } catch (err) {
+              return { ...parentCat, subcategories: [] };
+            }
+          })
+        );
 
-        const updatedCategories = categoryData.map((category) => ({
-          ...category,
-          products: productsByCategory[category.id] || [],
-        }));
-
-        setCategories(updatedCategories);
+        setCategories(categoriesWithSubs);
       } catch (error) {
-        console.log("Error fetching data:", error);
+        console.log("Error fetching categories:", error);
+        // Fallback to empty if API fails
+        setCategories([]);
       }
     };
 
-    fetchData();
+    fetchCategories();
   }, []);
 
   // build brand dropdown items — each brand searches by name in /products
@@ -265,23 +265,23 @@ const Thirdbar = () => {
             useTapInteraction={navOpen || isTouchDevice}
           />
 
-          {/* Dynamic Categories from Database — products inside each dropdown */}
+          {/* Dynamic Categories from Database — subcategories inside each dropdown */}
           {categories.map((category) => (
             <NavItem
               key={category.id}
-              title={category.product_cat_name}
+              title={category.name || category.product_cat_name}
               isOpen={openIndex === category.id}
               onMouseEnter={() => setOpenIndex(category.id)}
-              onClick={() => navigate(`/products?category=${category.id}`)}
+              onClick={() => navigate(`/category/${category.id}`)}
               onToggle={() => toggleDropdown(category.id)}
               onItemSelect={closeMenu}
               isMobileLayout={navOpen}
               useTapInteraction={navOpen || isTouchDevice}
               items={
-                category.products?.length > 0
-                  ? category.products.slice(0, 20).map((product) => ({
-                    name: product.product_name,
-                    path: `/product/${product.id}`,
+                category.subcategories && category.subcategories.length > 0
+                  ? category.subcategories.map((sub) => ({
+                    name: sub.name,
+                    path: `/category/${sub.id}`,
                   }))
                   : null
               }
