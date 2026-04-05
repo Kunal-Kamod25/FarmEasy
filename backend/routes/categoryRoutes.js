@@ -1,45 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const categoryController = require("../controllers/categoryController");
 
-// GET all product categories
-router.get("/", async (req, res) => {
-    try {
-        const [rows] = await db.query(
-            "SELECT * FROM product_category"
-        );
-        res.json(rows);
+// ===== GET ALL CATEGORIES WITH HIERARCHY =====
+router.get("/", categoryController.getAllCategories);
 
-    } catch (error) {
-        console.error("❌ Error fetching categories:", error.message, error.code);
-        return res.status(500).json({ 
-            message: "Database error fetching categories",
-            error: error.message,
-            code: error.code
-        });
-    }
-});
+// ===== GET CATEGORY WITH PRODUCTS =====
+router.get("/:categoryId/products", categoryController.getCategoryWithProducts);
 
-// GET subcategories based on category id
-router.get("/:id/subcategories", async (req, res) => {
-    try {
-        const categoryId = req.params.id;
+// ===== GET SUBCATEGORIES FOR PARENT =====
+router.get("/:parentId/subcategories", categoryController.getSubcategories);
 
-        const [rows] = await db.query(
-            "SELECT * FROM product_subcategory WHERE category_id = ?",
-            [categoryId]
-        );
-
-        res.json(rows);
-
-    } catch (error) {
-        console.error("❌ Error fetching subcategories:", error.message, error.code);
-        return res.status(500).json({ 
-            message: "Database error fetching subcategories",
-            error: error.message,
-            code: error.code
-        });
-    }
-});
+// ===== GET PRODUCTS WITH FILTERS =====
+router.get("/filters/search", categoryController.getProductsByFilters);
 
 module.exports = router;
