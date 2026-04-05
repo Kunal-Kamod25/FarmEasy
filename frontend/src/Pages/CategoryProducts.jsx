@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import {
@@ -16,14 +16,17 @@ import { useWishlist } from "../context/WishlistContext";
 const CategoryProducts = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const subFilter = searchParams.get("sub"); // e.g. ?sub=Pesticides
   const { isWishlisted, toggleWishlist } = useWishlist();
 
   // ===== STATE =====
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]); // full list before sub-filter
   const [category, setCategory] = useState(null);
   const [subcategories, setSubcategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
 
@@ -46,7 +49,20 @@ const CategoryProducts = () => {
         );
 
         setCategory(catRes.data?.data?.category);
-        setProducts(catRes.data?.data?.products || []);
+        const fetchedProducts = catRes.data?.data?.products || [];
+        setAllProducts(fetchedProducts);
+        // Apply sub-filter from URL param if present
+        if (subFilter) {
+          const filtered = fetchedProducts.filter(p =>
+            (p.product_name || p.name || "").toLowerCase().includes(subFilter.toLowerCase()) ||
+            (p.product_description || "").toLowerCase().includes(subFilter.toLowerCase()) ||
+            (p.product_type || "").toLowerCase().includes(subFilter.toLowerCase())
+          );
+          setProducts(filtered);
+          setSelectedSubcategory(subFilter);
+        } else {
+          setProducts(fetchedProducts);
+        }
 
         // Get subcategories
         try {
@@ -69,29 +85,21 @@ const CategoryProducts = () => {
     }
   }, [categoryId, sortBy]);
 
-  // ===== HANDLE SUBCATEGORY FILTER =====
-  const handleSubcategoryClick = async (subId) => {
-    try {
-      setLoading(true);
-      setSelectedSubcategory(subId);
+  // ===== HANDLE SUBCATEGORY FILTER (local, no API call needed) =====
+  const handleSubcategoryClick = (subName) => {
+    setSelectedSubcategory(subName);
+    // Filter locally from the full product list by name/description/type match
+    const filtered = allProducts.filter(p =>
+      (p.product_name || p.name || "").toLowerCase().includes(subName.toLowerCase()) ||
+      (p.product_description || "").toLowerCase().includes(subName.toLowerCase()) ||
+      (p.product_type || "").toLowerCase().includes(subName.toLowerCase())
+    );
+    setProducts(filtered);
+  };
 
-      const res = await axios.get(
-        `${API_URL}/api/categories/${subId}`,
-        {
-          params: {
-            limit: 50,
-            page: 1,
-            sortBy: sortBy,
-          },
-        }
-      );
-
-      setProducts(res.data?.data?.products || []);
-    } catch (error) {
-      console.error("Error fetching subcategory products:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleResetSubcategory = () => {
+    setSelectedSubcategory(null);
+    setProducts(allProducts);
   };
 
   if (loading && !category) {
@@ -115,7 +123,7 @@ const CategoryProducts = () => {
           </button>
           <ChevronRight size={18} />
           <span className="font-semibold text-gray-900">
-            {category?.name}
+            {category?.name || category?.product_cat_name}
           </span>
         </div>
 
@@ -124,11 +132,11 @@ const CategoryProducts = () => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                {category?.name}
+                {category?.name || category?.product_cat_name}
               </h1>
               <p className="text-gray-600 max-w-2xl">
                 {category?.description ||
-                  `Browse our collection of ${category?.name.toLowerCase()}`}
+                  `Browse our collection of ${(category?.name || category?.product_cat_name || "").toLowerCase()}`}
               </p>
             </div>
             {category?.image && (
@@ -153,32 +161,27 @@ const CategoryProducts = () => {
             </h2>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => {
-                  setSelectedSubcategory(null);
-                  setProducts([]);
-                  // Re-fetch parent category products
-                  window.location.reload();
-                }}
+                onClick={handleResetSubcategory}
                 className={`px-4 py-2 rounded-full font-semibold transition ${
                   !selectedSubcategory
                     ? "bg-emerald-600 text-white"
                     : "bg-white border-2 border-gray-200 text-gray-700 hover:border-emerald-600"
                 }`}
               >
-                All {category?.name}
+                All {category?.name || category?.product_cat_name}
               </button>
 
               {subcategories.map((sub) => (
                 <button
                   key={sub.id}
-                  onClick={() => handleSubcategoryClick(sub.id)}
+                  onClick={() => handleSubcategoryClick(sub.name || sub.subcategory_name)}
                   className={`px-4 py-2 rounded-full font-semibold transition ${
-                    selectedSubcategory === sub.id
+                    selectedSubcategory === (sub.name || sub.subcategory_name)
                       ? "bg-emerald-600 text-white"
                       : "bg-white border-2 border-gray-200 text-gray-700 hover:border-emerald-600"
                   }`}
                 >
-                  {sub.name}
+                  {sub.name || sub.subcategory_name}
                 </button>
               ))}
             </div>
