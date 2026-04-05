@@ -34,11 +34,13 @@ const VendorAddProduct = () => {
     product_type: "",
     price: "",
     category_id: "",
+    subcategory_id: "",
     color: "",
     product_quantity: "",
   });
 
   const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -55,12 +57,31 @@ const VendorAddProduct = () => {
     }
   }, [productsByCategory]);
 
-  // Fetch categories on mount
+  // Fetch categories on mount — API returns { success, data: [...] }
   useEffect(() => {
     axios.get(`${API_URL}/api/categories`)
-      .then(res => setCategories(res.data))
+      .then(res => {
+        const data = res.data?.data || res.data || [];
+        setCategories(Array.isArray(data) ? data : []);
+      })
       .catch(() => setCategories([]));
   }, []);
+
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    if (formData.category_id) {
+      axios.get(`${API_URL}/api/categories/${formData.category_id}/subcategories`)
+        .then(res => {
+          const subs = res.data?.data?.subcategories || [];
+          setSubcategories(Array.isArray(subs) ? subs : []);
+        })
+        .catch(() => setSubcategories([]));
+    } else {
+      setSubcategories([]);
+    }
+    // Reset subcategory_id when category changes
+    setFormData(prev => ({ ...prev, subcategory_id: '' }));
+  }, [formData.category_id]);
 
   // Fetch products when category changes
   useEffect(() => {
@@ -206,10 +227,34 @@ const VendorAddProduct = () => {
                   >
                     <option value="">Select category</option>
                     {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.product_cat_name}</option>
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name || cat.product_cat_name}
+                      </option>
                     ))}
                   </select>
                 </div>
+
+                {/* Subcategory — shown only when category has subcategories */}
+                {subcategories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Sub-Category
+                  </label>
+                  <select
+                    name="subcategory_id"
+                    value={formData.subcategory_id}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                  >
+                    <option value="">Select sub-category (optional)</option>
+                    {subcategories.map(sub => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.name || sub.subcategory_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
