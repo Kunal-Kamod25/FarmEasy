@@ -56,6 +56,7 @@ const sellerRoutes = require("./routes/seller");          // seller registration
 const authRoutes = require("./routes/authRoutes");        // login & register for all users
 const profileRoutes = require("./routes/profileRoutes");  // basic user profile (not vendor-specific)
 const categoryRoutes = require("./routes/categoryRoutes");// product categories dropdown data
+const brandsRoutes = require("./routes/brandsRoutes");    // brands dropdown data
 const productRoutes = require("./routes/productRoutes");  // public product listing, search, filters
 const vendorRoutes = require("./routes/vendorRoutes");    // vendor dashboard, products CRUD, profile
 const wishlistRoutes = require("./routes/wishlistRoutes");// save/remove products to wishlist
@@ -78,6 +79,7 @@ app.use("/api/authentication", authRoutes);
 app.use("/api/translations", translationRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandsRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/wishlist", wishlistRoutes);
@@ -145,6 +147,90 @@ app.use((req, res) => {
   });
 });
 
+// ================= DATABASE INITIALIZATION =================
+// Auto-seed categories and brands on startup if they don't exist
+async function initializeDatabase() {
+  try {
+    const db = require("./config/db");
+    
+    // Check if categories table has data
+    const [categories] = await db.query("SELECT COUNT(*) as count FROM categories");
+    
+    if (categories[0]?.count > 0) {
+      console.log("✅ Categories already exist in database");
+      return;
+    }
+    
+    console.log("\n🌱 Initializing database with categories and brands...");
+    
+    // Insert parent categories
+    const parentCategories = [
+      ['Fertilizers', 'All types of fertilizers and soil nutrients', null, '🌾', 'fertilizers', 1],
+      ['Seeds', 'Quality agricultural seeds', null, '🌱', 'seeds', 2],
+      ['Pesticides & Fungicides', 'Crop protection products', null, '🔬', 'pesticides', 3],
+      ['Farm Equipment', 'Agricultural tools and equipment', null, '🛠️', 'equipment', 4],
+      ['Irrigation', 'Irrigation systems and parts', null, '💧', 'irrigation', 5],
+      ['Cattle Feeds', 'Feed and supplements for livestock', null, '🐄', 'cattle-feeds', 6],
+      ['Pulses', 'Various pulses and legumes', null, '🌾', 'pulses', 7],
+      ['Tools & Machinery', 'Agricultural machinery and hand tools', null, '⚙️', 'tools', 8]
+    ];
+    
+    const categoryMap = {};
+    for (const cat of parentCategories) {
+      const [result] = await db.query(
+        'INSERT INTO categories (name, description, parent_id, icon, slug, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        cat
+      );
+      categoryMap[cat[4]] = result.insertId; // Store by slug
+      console.log(`  ✅ Added category: ${cat[0]}`);
+    }
+    
+    // Insert subcategories
+    const subCategories = [
+      ['Urea Based', 'Urea and nitrogen-based fertilizers', categoryMap['fertilizers'], '🧪', 'fertilizers-urea', 10],
+      ['NPK Fertilizers', 'Complete NPK formulations', categoryMap['fertilizers'], '⚗️', 'fertilizers-npk', 11],
+      ['Organic Fertilizers', 'Natural and organic fertilizers', categoryMap['fertilizers'], '♻️', 'fertilizers-organic', 12],
+      ['Vegetable Seeds', 'Seeds for vegetables', categoryMap['seeds'], '🥬', 'seeds-vegetables', 20],
+      ['Crop Seeds', 'Seeds for field crops', categoryMap['seeds'], '🌾', 'seeds-crops', 21],
+      ['Insecticides', 'Insect control products', categoryMap['pesticides'], '🦟', 'pesticides-insecticides', 30],
+      ['Fungicides', 'Fungal disease control', categoryMap['pesticides'], '🍄', 'pesticides-fungicides', 31],
+    ];
+    
+    for (const sub of subCategories) {
+      await db.query(
+        'INSERT INTO categories (name, description, parent_id, icon, slug, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        sub
+      );
+    }
+    console.log(`  ✅ Added ${subCategories.length} subcategories`);
+    
+    // Insert brands
+    const brands = [
+      ['Syngenta', 'Global agricultural company', 'syngenta'],
+      ['Bayer', 'Leading life sciences company', 'bayer'],
+      ['BASF', 'Chemical and agricultural products', 'basf'],
+      ['IFFCO', 'Indian Farmers Fertiliser Cooperative', 'iffco'],
+      ['Godrej Agrovet', 'Indian agricultural solutions', 'godrej'],
+      ['Tata Rallis', 'Agricultural inputs company', 'tata-rallis'],
+      ['UPL', 'Crop protection and specialty seeds', 'upl'],
+      ['PI Industries', 'Specialized chemicals manufacturer', 'pi-industries'],
+    ];
+    
+    for (const brand of brands) {
+      await db.query(
+        'INSERT INTO brands (name, description, slug) VALUES (?, ?, ?)',
+        brand
+      );
+    }
+    console.log(`  ✅ Added ${brands.length} brands`);
+    console.log("✅ Database initialization complete!\n");
+    
+  } catch (error) {
+    console.error("⚠️ Database initialization error:", error.message);
+    // Don't crash - app can still work without categories
+  }
+}
+
 // ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 
@@ -157,7 +243,10 @@ console.log("✓ DB_NAME:", process.env.DB_NAME ? "SET" : "❌ MISSING");
 console.log("✓ DB_PORT:", process.env.DB_PORT ? "SET" : "❌ MISSING");
 console.log("✓ JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "❌ MISSING");
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log("🌍 CORS enabled for: https://farmeasy-one.vercel.app");
+// Initialize database and start server
+initializeDatabase().then(() => {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+    console.log("🌍 CORS enabled for: https://farmeasy-one.vercel.app");
+  });
 });
