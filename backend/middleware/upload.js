@@ -1,12 +1,12 @@
 // ===========================================================================
-// Upload Middleware - Multer + Cloudinary v2 Configuration for File Uploads
+// Upload Middleware - Multer + AWS S3 Configuration for File Uploads
 // ===========================================================================
 //
 // HOW IT WORKS:
 // 1. Multer uses memory storage to buffer the file in RAM
-// 2. A custom StorageEngine streams the buffer directly to Cloudinary using upload_stream
-// 3. After upload, req.file.path contains the full Cloudinary HTTPS URL
-//    - req.file.path = "https://res.cloudinary.com/.../farmeasy/filename.jpg"
+// 2. Custom StorageEngine uploads buffer directly to S3 using putObject
+// 3. After upload, req.file.path contains the full S3 HTTPS URL
+//    - req.file.path = "https://farmeasy-uploads.s3.amazonaws.com/farmeasy/filename.jpg"
 //
 // USED IN ROUTES LIKE:
 //   upload.single("product_image")  -> handles one product image upload
@@ -15,46 +15,82 @@
 // The field name in .single("field_name") must match the FormData key
 // that the frontend uses: formData.append("product_image", file)
 //
-// REQUIRED ENV VARS (set in Render dashboard):
-//   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+// REQUIRED ENV VARS (set in .env):
+//   AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME
 // ===========================================================================
 
 const multer = require("multer");
-const cloudinary = require("../config/cloudinary");
+const s3 = require("../config/s3");
 
-// Custom multer StorageEngine that streams directly to Cloudinary
-class CloudinaryStorage {
+// Custom multer StorageEngine that uploads directly to S3
+class S3Storage {
   _handleFile(req, file, cb) {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: "farmeasy",
-        allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"],
-        transformation: [{ width: 800, height: 800, crop: "limit" }],
-      },
-      (error, result) => {
-        if (error) return cb(error);
-        cb(null, {
-          fieldname: file.fieldname,
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          path: result.secure_url,   // full Cloudinary HTTPS URL
-          size: result.bytes,
-          filename: result.public_id, // cloudinary public_id for future deletion
-        });
+    // Generate unique filename with timestamp to avoid collisions
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(7);
+    const extension = file.originalname.split('.').pop();
+    const filename = `${process.env.AWS_S3_FOLDER || 'farmeasy'}/${timestamp}-${randomStr}.${extension}`;
+
+    const s3params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: filename,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read', // Make uploaded files public (for display)
+    };
+
+    s3.putObject(s3params, (error, result) => {
+      if (error) {
+        console.error('S3 Upload Error:', error);
+        return cb(error);
       }
-    );
-    file.stream.pipe(uploadStream);
+
+      // Construct full S3 URL
+      const s3Url = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
+
+      cb(null, {
+        fieldname: file.fieldname,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        path: s3Url, // Full HTTPS URL for display in frontend
+        size: file.size,
+        filename: filename, // S3 key for future deletion
+      });
+    });
   }
 
   _removeFile(req, file, cb) {
     if (file.filename) {
-      cloudinary.uploader.destroy(file.filename, cb);
+      const s3params = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: file.filename,
+      };
+
+      s3.deleteObject(s3params, (error) => {
+        if (error) {
+          console.error('S3 Delete Error:', error);
+          return cb(error);
+        }
+        cb(null);
+      });
     } else {
       cb(null);
     }
   }
 }
 
-const upload = multer({ storage: new CloudinaryStorage() });
+// Configure multer with memory storage + our custom S3 storage engine
+const upload = multer({
+  storage: new S3Storage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG, PNG, WebP, and AVIF images are allowed'), false);
+    }
+  },
+});
 
 module.exports = upload;
