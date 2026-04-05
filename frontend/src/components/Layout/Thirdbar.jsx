@@ -6,17 +6,6 @@ import { API_URL } from '../../config';
 
 const API = `${API_URL}`;
 
-// ═══════════════════════════════════════════════════════════
-// BRANDS LIST — real Indian agricultural brands farmers recognize
-// clicking a brand navigates to products page filtered by that brand name
-// ═══════════════════════════════════════════════════════════
-const BRAND_LIST = [
-  "Bayer", "Syngenta", "UPL", "Tata Rallis", "Dhanuka",
-  "IFFCO", "Godrej Agrovet", "PI Industries", "Jain Irrigation",
-  "Coromandel", "Chambal", "Kaveri Seeds", "Mahyco", "Netafim",
-];
-
-
 // single nav item with hover/click dropdown
 const NavItem = ({
   title,
@@ -122,6 +111,7 @@ const NavItem = ({
 const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const navigate = useNavigate();
@@ -170,8 +160,18 @@ const Thirdbar = () => {
       try {
         const categoryRes = await axios.get(`${API}/api/categories`);
         
-        // categoryRes.data structure: { success: true, data: { categories: [...] } }
-        const categoryData = categoryRes.data?.data?.categories || categoryRes.data || [];
+        // API returns: { success: true, data: [...] } where data is array of categories
+        let categoryData = categoryRes.data?.data || categoryRes.data || [];
+        
+        // If API returns { data: { categories: [...] } }, use that
+        if (Array.isArray(categoryData) === false && categoryData.categories) {
+          categoryData = categoryData.categories;
+        }
+        
+        // Ensure we have an array
+        if (!Array.isArray(categoryData)) {
+          categoryData = [];
+        }
 
         // Filter only parent categories (parent_id is null/undefined)
         const parentCategories = categoryData.filter(cat => !cat.parent_id);
@@ -183,9 +183,10 @@ const Thirdbar = () => {
               const subsRes = await axios.get(
                 `${API}/api/categories/${parentCat.id}/subcategories`
               );
+              const subData = subsRes.data?.data?.subcategories || subsRes.data?.subcategories || [];
               return {
                 ...parentCat,
-                subcategories: subsRes.data?.data?.subcategories || [],
+                subcategories: Array.isArray(subData) ? subData : [],
               };
             } catch {
               return { ...parentCat, subcategories: [] };
@@ -204,11 +205,35 @@ const Thirdbar = () => {
     fetchCategories();
   }, []);
 
-  // build brand dropdown items — each brand searches by name in /products
-  const brandItems = useMemo(() => BRAND_LIST.map((name) => ({
-    name,
-    path: `/products?search=${encodeURIComponent(name)}`,
-  })), []);
+  // Fetch brands from database
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const brandsRes = await axios.get(`${API}/api/brands`);
+        const brandsData = brandsRes.data?.data || brandsRes.data || [];
+        
+        if (Array.isArray(brandsData)) {
+          setBrands(brandsData);
+        } else {
+          setBrands([]);
+        }
+      } catch (_error) {
+        console.log("Error fetching brands:", _error);
+        setBrands([]);
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
+  // build brand dropdown items from database brands
+  const brandItems = useMemo(
+    () => brands.map((brand) => ({
+      name: brand.name,
+      path: `/products?search=${encodeURIComponent(brand.name)}`,
+    })),
+    [brands]
+  );
 
   return (
     <div className="bg-gradient-to-r from-[#0a5e43] via-[#0b6e4f] to-[#0a5e43] text-white shadow-md">
