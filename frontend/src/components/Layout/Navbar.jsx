@@ -316,9 +316,9 @@ const Navbar = () => {
                     <Link
                       to="/exchange"
                       onClick={() => setProfileOpen(false)}
-                      className="block px-4 py-2 text-sm hover:bg-gray-100 font-semibold text-emerald-600 border-b border-slate-100"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100 font-semibold text-black border-b border-slate-100"
                     >
-                      🌾 Crop Exchange
+                      Crop Exchange
                     </Link>
                     <Link
                       to="/profile"
