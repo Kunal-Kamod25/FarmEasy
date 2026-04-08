@@ -189,7 +189,6 @@ async function initializeDatabase() {
         KEY \`idx_slug\` (\`slug\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
     `);
-    console.log("✅ Brands table exists/created");
     
     // ===== CHECK if categories have data =====
     const [countResult] = await db.query("SELECT COUNT(*) as count FROM categories");
