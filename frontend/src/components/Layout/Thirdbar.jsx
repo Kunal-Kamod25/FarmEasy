@@ -165,7 +165,7 @@ const Thirdbar = () => {
     };
   }, []);
 
-  // Fetch parent categories (category_id = null) from database
+  // Fetch categories with subcategories from database
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -174,6 +174,7 @@ const Thirdbar = () => {
         console.log("📥 Categories response:", categoryRes.data);
         
         // API returns: { success: true, data: [...] } where data is array of categories
+        // Each category object includes subcategories array
         let categoryData = categoryRes.data?.data || categoryRes.data || [];
         
         // If API returns { data: { categories: [...] } }, use that
@@ -187,38 +188,17 @@ const Thirdbar = () => {
         }
         
         console.log("🔍 Parsed category data:", categoryData);
+        console.log("📋 Categories found:", categoryData.length);
 
-        // Filter only parent categories (parent_id is null/undefined)
-        const parentCategories = categoryData.filter(cat => !cat.parent_id);
-        
-        console.log("📋 Parent categories found:", parentCategories.length);
-
-        if (parentCategories.length === 0) {
+        if (categoryData.length === 0) {
           console.warn("⚠️ No categories found from API, using fallback");
           setCategories(FALLBACK_CATEGORIES);
           return;
         }
 
-        // For each parent category, fetch its subcategories
-        const categoriesWithSubs = await Promise.all(
-          parentCategories.map(async (parentCat) => {
-            try {
-              const subsRes = await axios.get(
-                `${API}/api/categories/${parentCat.id}/subcategories`
-              );
-              const subData = subsRes.data?.data?.subcategories || subsRes.data?.subcategories || [];
-              return {
-                ...parentCat,
-                subcategories: Array.isArray(subData) ? subData : [],
-              };
-            } catch {
-              return { ...parentCat, subcategories: [] };
-            }
-          })
-        );
-
-        console.log("✅ Categories loaded successfully:", categoriesWithSubs.length);
-        setCategories(categoriesWithSubs);
+        // API response already includes subcategories - use them directly
+        console.log("✅ Categories loaded successfully:", categoryData.length);
+        setCategories(categoryData);
       } catch (error) {
         console.error("❌ Error fetching categories:", error);
         console.warn("⚠️ Using fallback categories");
@@ -280,22 +260,8 @@ const Thirdbar = () => {
     path: `/products?search=${encodeURIComponent(brand.name)}`,
   }));
 
-  // Map new categories to product_category table IDs for navigation
-  // This ensures category links work correctly with existing products
-  const categoryIdMap = {
-    'Fertilizers': 1,
-    'Seeds': 2,
-    'Irrigation': 3,
-    'Cattle Feeds': 4,
-    'Pulses': 5,
-    'Pesticides & Fungicides': 6,
-    'Tools & Machinery': 1, // fallback
-    'Farm Equipment': 1     // fallback
-  };
-
-  const getProductCategoryId = (categoryName) => {
-    return categoryIdMap[categoryName] || 1;
-  };
+  // Map categories to navigation items
+  // No longer need hardcoded mapping since we're using real category IDs from database
 
   return (
     <div className="bg-gradient-to-r from-[#0a5e43] via-[#0b6e4f] to-[#0a5e43] text-white shadow-md">
@@ -353,31 +319,28 @@ const Thirdbar = () => {
           />
 
           {/* Dynamic Categories from Database — subcategories inside each dropdown */}
-          {categories.map((category) => {
-            const productCatId = getProductCategoryId(category.name || category.product_cat_name);
-            return (
-              <NavItem
-                key={category.id}
-                title={category.name || category.product_cat_name}
-                isOpen={openIndex === category.id}
-                onMouseEnter={() => setOpenIndex(category.id)}
-                onClick={() => navigate(`/category/${productCatId}`)}
-                onToggle={() => toggleDropdown(category.id)}
-                onItemSelect={closeMenu}
-                isMobileLayout={navOpen}
-                useTapInteraction={navOpen || isTouchDevice}
-                items={
-                  category.subcategories && category.subcategories.length > 0
-                    ? category.subcategories.map((sub) => ({
-                      name: sub.name || sub.subcategory_name,
-                      // Navigate to parent category page filtered by subcategory name
-                      path: `/category/${productCatId}?sub=${encodeURIComponent(sub.name || sub.subcategory_name)}`,
-                    }))
-                    : null
-                }
-              />
-            );
-          })}
+          {categories.map((category) => (
+            <NavItem
+              key={category.id}
+              title={category.name}
+              isOpen={openIndex === category.id}
+              onMouseEnter={() => setOpenIndex(category.id)}
+              onClick={() => navigate(`/category/${category.id}`)}
+              onToggle={() => toggleDropdown(category.id)}
+              onItemSelect={closeMenu}
+              isMobileLayout={navOpen}
+              useTapInteraction={navOpen || isTouchDevice}
+              items={
+                category.subcategories && category.subcategories.length > 0
+                  ? category.subcategories.map((sub) => ({
+                    name: sub.name,
+                    // Navigate to subcategory page
+                    path: `/category/${sub.id}`,
+                  }))
+                  : null
+              }
+            />
+          ))}
         </div>
 
         {/* Delivery info banner */}
