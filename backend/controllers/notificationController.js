@@ -6,89 +6,143 @@
 
 const db = require("../config/db");
 
-// ===== GET NOTIFICATIONS (derived from real order data) =====
+// ===== GET NOTIFICATIONS (derived from real order data and messages) =====
 exports.getNotifications = async (req, res) => {
   try {
     const user_id = req.user.id;
     const { unreadOnly } = req.query;
 
-    // Get the seller row for this user
+    let allNotifications = [];
+
+    // ============================================
+    // 1. VENDOR NOTIFICATIONS
+    // ============================================
     const [sellerRows] = await db.query(
       "SELECT id FROM seller WHERE user_id = ? LIMIT 1",
       [user_id]
     );
 
-    if (sellerRows.length === 0) {
-      // Not a vendor — return empty
-      return res.json({
-        success: true,
-        data: { notifications: [], unread_count: 0, pagination: { total: 0, page: 1, limit: 20, pages: 0 } },
+    if (sellerRows.length > 0) {
+      const seller_id = sellerRows[0].id;
+
+      // Build notifications from orders that contain this vendor's products
+      const [orders] = await db.query(
+        `SELECT DISTINCT
+          o.id AS order_id,
+          o.order_status,
+          o.order_date,
+          o.total_price,
+          u.full_name AS customer_name
+         FROM orders o
+         JOIN order_items oi ON o.id = oi.order_id
+         JOIN product p ON oi.product_id = p.id
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE p.seller_id = ?
+         ORDER BY o.order_date DESC
+         LIMIT 50`,
+        [seller_id]
+      );
+
+      const vendorOrders = orders.map((order) => {
+        const isNew = order.order_status === "Pending";
+        const type = isNew ? "new_order" : "order_status_change";
+        const title = isNew
+          ? "New Order Received! 📦"
+          : `Order Status: ${order.order_status} 🔄`;
+        const message = `Order #${order.order_id} from ${order.customer_name || "Customer"} — ₹${order.total_price}`;
+
+        return {
+          id: `vendor_ord_${order.order_id}_${order.order_status}`,
+          type,
+          title,
+          message,
+          is_read: !isNew, // unread only if Pending
+          related_order_id: order.order_id,
+          action_url: `/vendor/orders`,
+          created_at: order.order_date,
+        };
       });
+
+      // Also check low-stock products
+      const [lowStockProducts] = await db.query(
+        `SELECT id, product_name, product_quantity
+         FROM product
+         WHERE seller_id = ? AND product_quantity > 0 AND product_quantity <= 5
+         ORDER BY product_quantity ASC
+         LIMIT 10`,
+        [seller_id]
+      );
+
+      const stockNotifications = lowStockProducts.map((product) => ({
+        id: `stock_${product.id}`,
+        type: "low_stock",
+        title: "Low Stock Alert! ⚠️",
+        message: `"${product.product_name}" has only ${product.product_quantity} unit(s) left`,
+        is_read: false,
+        related_product_id: product.id,
+        action_url: `/vendor/products`,
+        created_at: new Date().toISOString(),
+      }));
+
+      allNotifications = [...allNotifications, ...vendorOrders, ...stockNotifications];
     }
 
-    const seller_id = sellerRows[0].id;
-
-    // Build notifications from orders that contain this vendor's products
-    const [orders] = await db.query(
-      `SELECT DISTINCT
-        o.id AS order_id,
-        o.order_status,
-        o.order_date,
-        o.total_price,
-        u.full_name AS customer_name
-       FROM orders o
-       JOIN order_items oi ON o.id = oi.order_id
-       JOIN product p ON oi.product_id = p.id
-       LEFT JOIN users u ON o.user_id = u.id
-       WHERE p.seller_id = ?
-       ORDER BY o.order_date DESC
-       LIMIT 50`,
-      [seller_id]
+    // ============================================
+    // 2. FARMER/CUSTOMER NOTIFICATIONS
+    // ============================================
+    // My unread chats/messages
+    const [unreadMessages] = await db.query(
+      `SELECT 
+        vm.id as msg_id, 
+        vm.conversation_id, 
+        vm.created_at,
+        u.full_name as sender_name
+       FROM vendor_messages vm
+       LEFT JOIN users u ON vm.sender_id = u.id
+       WHERE vm.receiver_id = ? AND vm.is_read = false
+       ORDER BY vm.created_at DESC LIMIT 20`,
+      [user_id]
     );
 
-    // Convert orders into notification-like objects
-    const notifications = orders.map((order) => {
-      const isNew = order.order_status === "Pending";
-      const type = isNew ? "new_order" : "order_status_change";
-      const title = isNew
-        ? "New Order Received! 📦"
-        : `Order Status: ${order.order_status} 🔄`;
-      const message = `Order #${order.order_id} from ${order.customer_name || "Customer"} — ₹${order.total_price}`;
-
-      return {
-        id: order.order_id,
-        type,
-        title,
-        message,
-        is_read: !isNew, // unread only if Pending
-        related_order_id: order.order_id,
-        action_url: `/vendor/orders`,
-        created_at: order.order_date,
-      };
-    });
-
-    // Also check low-stock products
-    const [lowStockProducts] = await db.query(
-      `SELECT id, product_name, product_quantity
-       FROM product
-       WHERE seller_id = ? AND product_quantity > 0 AND product_quantity <= 5
-       ORDER BY product_quantity ASC
-       LIMIT 10`,
-      [seller_id]
-    );
-
-    const stockNotifications = lowStockProducts.map((product) => ({
-      id: `stock_${product.id}`,
-      type: "low_stock",
-      title: "Low Stock Alert! ⚠️",
-      message: `"${product.product_name}" has only ${product.product_quantity} unit(s) left`,
+    const messageNotifications = unreadMessages.map(msg => ({
+      id: `msg_${msg.msg_id}`,
+      type: "new_message",
+      title: `New Message from ${msg.sender_name || 'User'} 💬`,
+      message: `You have an unread message to respond to.`,
       is_read: false,
-      related_product_id: product.id,
-      action_url: `/vendor/products`,
-      created_at: new Date().toISOString(),
+      related_order_id: null,
+      action_url: `/chat/${msg.conversation_id}`,
+      created_at: msg.created_at,
     }));
 
-    const allNotifications = [...stockNotifications, ...notifications];
+    // My order updates
+    const [myOrderUpdates] = await db.query(
+      `SELECT id as order_id, order_status, order_date, total_price 
+       FROM orders 
+       WHERE user_id = ? AND order_status IN ('Confirmed', 'Shipped', 'Delivered')
+       ORDER BY order_date DESC LIMIT 20`,
+      [user_id]
+    );
+
+    const customerOrderNotifications = myOrderUpdates.map(o => ({
+      id: `cust_ord_${o.order_id}_${o.order_status}`,
+      type: "order_update",
+      title: `Order ${o.order_status}! 📦`,
+      message: `Your order #${o.order_id} for ₹${o.total_price} is now ${o.order_status}.`,
+      is_read: false, // For customer dynamic alerts, we don't track read state in DB, consider them unread if recent. Let's just pass false.
+      related_order_id: o.order_id,
+      action_url: `/track-order/${o.order_id}`,
+      created_at: o.order_date
+    }));
+
+    allNotifications = [...allNotifications, ...messageNotifications, ...customerOrderNotifications];
+
+    // Sort all combined notifications by newest first
+    allNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // ============================================
+    // 3. APPLY FILTERS AND RETURN
+    // ============================================
     const filtered = unreadOnly === "true"
       ? allNotifications.filter((n) => !n.is_read)
       : allNotifications;
