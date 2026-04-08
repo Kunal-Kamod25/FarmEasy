@@ -10,6 +10,7 @@ import {
     Menu,
     X,
     ShoppingBag,
+    MessageCircle,
 } from "lucide-react";
 
 const VendorSidebar = () => {
@@ -64,6 +65,7 @@ const VendorSidebar = () => {
                     <SidebarLink to="/vendor/products" icon={<Package size={22} />} label="My Products" />
                     <SidebarLink to="/vendor/orders" icon={<ShoppingCart size={22} />} label="Orders" />
                     <SidebarLink to="/vendor/sales" icon={<BarChart3 size={22} />} label="Sales" />
+                    <SidebarLink to="/vendor/messages" icon={<MessageCircle size={22} />} label="Messages" />
                     <SidebarLink to="/vendor/profile" icon={<User size={22} />} label="Profile" />
 
                     <div className="border-t border-white/5 my-4 mx-4" />
