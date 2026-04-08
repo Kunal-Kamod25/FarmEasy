@@ -174,7 +174,6 @@ async function initializeDatabase() {
         KEY \`idx_slug\` (\`slug\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
     `);
-    console.log("✅ Categories table exists/created");
     
     // ===== CREATE BRANDS TABLE if it doesn't exist =====
     await db.query(`
@@ -197,7 +196,6 @@ async function initializeDatabase() {
     const categoryCount = countResult[0]?.count || 0;
     
     if (categoryCount > 0) {
-      console.log(`✅ Categories already exist in database (${categoryCount} categories)`);
       return;
     }
     
