@@ -46,7 +46,6 @@ const OrderTracking = lazy(() => import("../Pages/OrderTracking"));
 const DriverDeliveryApp = lazy(() => import("../Pages/DriverDeliveryApp"));
 
 /* Pages */
-const ProductDetailPage = lazy(() => import("../Pages/ProductDetails"));
 const ProductDetail = lazy(() => import("../Pages/ProductDetail"));
 const VendorChat = lazy(() => import("../Pages/VendorChat"));
 const VendorNotifications = lazy(() => import("../Pages/VendorNotifications"));
@@ -83,8 +82,7 @@ const AppRoutes = () => {
           <Route path="/category/:categoryId" element={<CategoryProducts />} />
 
           {/* Single product detail */}
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/products/:productId" element={<ProductDetail />} />
+          <Route path="/product/:productId" element={<ProductDetail />} />
 
           {/* Vendor Chat & Notifications */}
           <Route path="/chat/:conversationId?" element={<VendorChat />} />
