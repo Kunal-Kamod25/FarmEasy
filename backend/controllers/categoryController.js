@@ -8,26 +8,31 @@ const db = require("../config/db");
 // ===== GET ALL CATEGORIES WITH SUBCATEGORIES =====
 exports.getAllCategories = async (req, res) => {
   try {
-    // Query the actual product_category table
+    // Query the NEW categories table with parent-child hierarchy
     const [categories] = await db.query(`
       SELECT 
-        pc.id,
-        pc.product_cat_name,
-        pc.product_cat_name AS name,
-        (SELECT COUNT(*) FROM product WHERE category_id = pc.id) AS product_count,
-        (SELECT COUNT(*) FROM product_subcategory WHERE category_id = pc.id) AS subcategory_count
-      FROM product_category pc
-      ORDER BY pc.id ASC
+        c.id,
+        c.name,
+        c.description,
+        c.parent_id,
+        c.icon,
+        c.slug,
+        c.image,
+        (SELECT COUNT(*) FROM product WHERE category_id = c.id) AS product_count,
+        (SELECT COUNT(*) FROM categories WHERE parent_id = c.id) AS subcategory_count
+      FROM categories c
+      WHERE c.parent_id IS NULL
+      ORDER BY c.sort_order ASC, c.name ASC
     `);
 
     // Fetch subcategories for each parent category
     const categoriesWithSubs = await Promise.all(
       categories.map(async (cat) => {
         const [subs] = await db.query(
-          `SELECT id, subcategory_name AS name, subcategory_name, category_id
-           FROM product_subcategory
-           WHERE category_id = ?
-           ORDER BY subcategory_name ASC`,
+          `SELECT id, name, description, parent_id, icon, slug
+           FROM categories
+           WHERE parent_id = ?
+           ORDER BY sort_order ASC, name ASC`,
           [cat.id]
         );
         return { ...cat, subcategories: subs };
@@ -48,9 +53,9 @@ exports.getCategoryWithProducts = async (req, res) => {
     const { page = 1, limit = 50, sortBy = "newest" } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    // Get category details from product_category
+    // Get category details from NEW categories table
     const [cat] = await db.query(
-      `SELECT id, product_cat_name AS name, product_cat_name FROM product_category WHERE id = ?`,
+      `SELECT id, name, description, parent_id, icon, slug FROM categories WHERE id = ?`,
       [categoryId]
     );
 
@@ -58,12 +63,12 @@ exports.getCategoryWithProducts = async (req, res) => {
       return res.status(404).json({ error: "Category not found" });
     }
 
-    const category = { ...cat[0], parent_id: null };
+    const category = cat[0];
 
-    // Get subcategories from product_subcategory
+    // Get subcategories if this is a parent category
     const [subs] = await db.query(
-      `SELECT id, subcategory_name AS name, subcategory_name, category_id
-       FROM product_subcategory WHERE category_id = ? ORDER BY subcategory_name`,
+      `SELECT id, name, description, parent_id, icon, slug
+       FROM categories WHERE parent_id = ? ORDER BY sort_order ASC, name ASC`,
       [categoryId]
     );
 
@@ -72,7 +77,7 @@ exports.getCategoryWithProducts = async (req, res) => {
     if (sortBy === "price_asc") orderBy = "p.price ASC";
     else if (sortBy === "price_desc") orderBy = "p.price DESC";
 
-    // Get products for this category
+    // Get products for this category (including products in subcategories if parent category)
     const [products] = await db.query(
       `SELECT
         p.id,
@@ -87,20 +92,25 @@ exports.getCategoryWithProducts = async (req, res) => {
         p.product_type,
         s.shop_name AS vendor_name,
         u.full_name AS seller_name,
-        pc.product_cat_name AS category_name
+        c.name AS category_name
       FROM product p
       LEFT JOIN seller s ON p.seller_id = s.id
       LEFT JOIN users u ON s.user_id = u.id
-      LEFT JOIN product_category pc ON p.category_id = pc.id
-      WHERE p.category_id = ?
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.category_id = ? OR p.category_id IN (
+        SELECT id FROM categories WHERE parent_id = ?
+      )
       ORDER BY ${orderBy}
       LIMIT ? OFFSET ?`,
-      [categoryId, parseInt(limit), offset]
+      [categoryId, categoryId, parseInt(limit), offset]
     );
 
     const [countResult] = await db.query(
-      `SELECT COUNT(*) as total FROM product WHERE category_id = ?`,
-      [categoryId]
+      `SELECT COUNT(*) as total FROM product p
+       WHERE p.category_id = ? OR p.category_id IN (
+        SELECT id FROM categories WHERE parent_id = ?
+       )`,
+      [categoryId, categoryId]
     );
 
     res.json({
@@ -129,10 +139,10 @@ exports.getSubcategories = async (req, res) => {
     const { parentId } = req.params;
 
     const [subcategories] = await db.query(
-      `SELECT id, subcategory_name AS name, subcategory_name, category_id
-       FROM product_subcategory
-       WHERE category_id = ?
-       ORDER BY subcategory_name ASC`,
+      `SELECT id, name, description, parent_id, icon, slug
+       FROM categories
+       WHERE parent_id = ?
+       ORDER BY sort_order ASC, name ASC`,
       [parentId]
     );
 

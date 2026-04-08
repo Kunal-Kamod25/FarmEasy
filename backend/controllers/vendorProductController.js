@@ -59,9 +59,9 @@ exports.getProducts = async (req, res) => {
     const [products] = await db.query(`
       SELECT 
         p.*,
-        pc.product_cat_name AS category_name
+        c.name AS category_name
       FROM product p
-      LEFT JOIN product_category pc ON p.category_id = pc.id
+      LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.seller_id = ?
       ORDER BY p.created_at DESC
     `, [sellerId]);
