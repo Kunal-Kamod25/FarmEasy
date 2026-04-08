@@ -36,7 +36,7 @@ class S3Storage {
       Key: filename,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: 'public-read', // Make uploaded files public (for display)
+      // ACL disabled - bucket has ACL blocking enabled
     };
 
     s3.putObject(s3params, (error, result) => {
