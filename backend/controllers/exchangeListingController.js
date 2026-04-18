@@ -8,6 +8,34 @@
 const CropExchange = require("../models/CropExchange");
 const s3 = require("../config/s3");
 
+// ===== UPLOAD EXCHANGE IMAGE TO S3 =====
+// POST /api/exchange/upload-image
+// Frontend uploads image, backend returns S3 URL
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No image file provided",
+      });
+    }
+
+    // req.file.path is the full S3 HTTPS URL from S3Storage middleware
+    const imageUrl = req.file.path;
+
+    res.json({
+      success: true,
+      imageUrl, // Return S3 URL to frontend
+    });
+  } catch (error) {
+    console.error("Image upload error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to upload image",
+    });
+  }
+};
+
 // ===== CREATE A NEW EXCHANGE LISTING =====
 // POST /api/exchange/create
 // Farmer creates a "I have X, I want Y" listing
