@@ -110,3 +110,66 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+// ===== REFRESH TOKEN ENDPOINT =====
+// POST /api/auth/refresh
+// Frontend sends old token, backend generates new token if user still exists
+exports.refresh = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET missing in .env");
+      return res.status(500).json({ message: "JWT configuration error." });
+    }
+
+    // Verify old token (ignore expiration temporarily)
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      // Even if expired, we can decode without verify to extract payload
+      if (err.name === "TokenExpiredError") {
+        decoded = jwt.decode(token);
+        if (!decoded) {
+          return res.status(401).json({ message: "Invalid token format" });
+        }
+      } else {
+        return res.status(401).json({ message: "Invalid token signature" });
+      }
+    }
+
+    // Check if user still exists in database
+    const db = require("../config/db");
+    const [user] = await db.execute("SELECT id, role FROM users WHERE id = ?", [decoded.id]);
+
+    if (user.length === 0) {
+      return res.status(401).json({ message: "User no longer exists. Please login again." });
+    }
+
+    // Create new token
+    const newToken = jwt.sign(
+      {
+        id: decoded.id,
+        role: user[0].role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      success: true,
+      token: newToken,
+      message: "Token refreshed successfully",
+    });
+  } catch (error) {
+    console.error("Token Refresh Error:", error);
+    res.status(500).json({ message: "Server error during token refresh" });
+  }
+};
