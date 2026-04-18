@@ -256,3 +256,30 @@ exports.deleteMessage = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+// ===== MARK MESSAGE AS READ =====
+exports.markAsRead = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const receiver_id = req.user.id;
+
+    const [result] = await db.query(
+      `UPDATE vendor_messages 
+       SET is_read = true 
+       WHERE id = ? AND receiver_id = ?`,
+      [messageId, receiver_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Message marked as read",
+    });
+  } catch (error) {
+    console.error("Error marking message as read:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
