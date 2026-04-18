@@ -8,22 +8,21 @@
 // 3. Routes that need login protection use the `verifyToken` middleware
 //    which checks the JWT token from the Authorization header
 // 4. Controllers talk to MySQL through the db.js pool
-// 5. Multer middleware handles file uploads (product images, profile pics)
-//    and saves them to /backend/uploads/ folder
-// 6. The /uploads route serves those saved images as static files
+// 5. Multer middleware handles file uploads (product images, profile pics, exchange images)
+//    and uploads them directly to AWS S3 bucket
+// 6. S3 returns HTTPS URLs which are stored in MySQL for display in frontend
 //
-// REQUEST FLOW EXAMPLE (vendor adds a product with image):
+// IMAGE UPLOAD FLOW:
 //   Frontend sends POST /api/vendor/products with FormData (fields + image file)
 //   -> Express parses it
-//   -> verifyToken middleware checks JWT, puts user info in req.user
-//   -> multer middleware saves the image file to /uploads/
-//   -> vendorController.addProduct reads req.body for text, req.file for image
-//   -> saves to MySQL product table
-//   -> responds with success
-//   -> frontend shows the image via http://localhost:5000/uploads/filename.jpg
+//   -> verifyToken middleware checks JWT
+//   -> multer middleware with S3Storage uploads to AWS S3
+//   -> S3 returns full HTTPS URL: https://farmeasy-uploads.s3.amazonaws.com/farmeasy/timestamp-id.jpg
+//   -> Backend stores this S3 URL in MySQL
+//   -> Frontend displays image using the S3 URL directly
 // ===========================================================================
 
-require("dotenv").config();   // loads .env variables (DB credentials, JWT secret)
+require("dotenv").config();   // loads .env variables (DB credentials, JWT secret, AWS credentials)
 
 const express = require("express");
 const cors = require("cors");
@@ -46,7 +45,7 @@ const corsOptions = {
 app.use(cors(corsOptions));              // CORS with specific origins
 app.use(express.json());      // parses JSON request bodies
 
-// Images are now stored on Cloudinary — no local /uploads directory needed
+// Images are now stored on AWS S3 — automatic handling via multer + S3Storage middleware
 
 // ================= ROUTES =================
 // each route file handles one area of the app
