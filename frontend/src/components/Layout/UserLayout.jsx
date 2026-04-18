@@ -87,8 +87,11 @@ import Navbar from "./Navbar";
 import Thirdbar from "./Thirdbar";
 import Footer from "../Common/Footer";
 import { Outlet } from "react-router-dom";
+import { useAuthInterceptor } from "../../hooks/useAuthInterceptor";
 
 const UserLayout = () => {
+    // Setup axios auth interceptor with navigate
+    useAuthInterceptor();
     return (
         <div className="min-h-screen flex flex-col">
             <header className="sticky top-0 z-[100] bg-white shadow-md">
