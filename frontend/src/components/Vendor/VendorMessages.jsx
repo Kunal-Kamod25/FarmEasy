@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
-import { API_URL } from "../config";
+import { API_URL } from "../../config";
 import { Send, Loader, X, ArrowLeft, MessageCircle, Search } from "lucide-react";
 
 const VendorMessages = () => {
@@ -21,14 +21,7 @@ const VendorMessages = () => {
   const [isMobileView, setIsMobileView] = useState(false);
 
   // ===== LOAD CONVERSATIONS =====
-  useEffect(() => {
-    fetchConversations();
-    const handleResize = () => setIsMobileView(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(
@@ -45,7 +38,14 @@ const VendorMessages = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchConversations();
+    const handleResize = () => setIsMobileView(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [fetchConversations]);
 
   // ===== FETCH MESSAGES FOR CONVERSATION =====
   useEffect(() => {
