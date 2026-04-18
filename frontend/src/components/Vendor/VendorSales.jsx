@@ -15,6 +15,7 @@ import {
 import { IndianRupee, TrendingUp, ShoppingBag, ArrowUpRight } from "lucide-react";
 import { API_URL } from "../../config";
 import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";
+import { AutoCloseTooltipContent } from "../../hooks/useAutoCloseTooltip";
 
 const VendorSales = () => {
     const [loading, setLoading] = useState(true);
@@ -156,8 +157,11 @@ const VendorSales = () => {
                                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#9ca3af" }} />
                                 <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
                                 <Tooltip
-                                    contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-                                    formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
+                                    content={<AutoCloseTooltipContent 
+                                        contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                                        formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
+                                        duration={3000}
+                                    />}
                                 />
                                 <Area
                                     type="monotone"
@@ -182,7 +186,10 @@ const VendorSales = () => {
                                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9ca3af" }} />
                                 <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} />
                                 <Tooltip
-                                    contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                                    content={<AutoCloseTooltipContent 
+                                        contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+                                        duration={3000}
+                                    />}
                                 />
                                 <Bar dataKey="orders" radius={[6, 6, 0, 0]}>
                                     {(summary.monthlySales || []).map((_, idx) => (
