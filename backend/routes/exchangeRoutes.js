@@ -7,11 +7,21 @@
 
 const express = require("express");
 const auth = require("../middleware/auth");
+const upload = require("../middleware/upload");
 const exchangeListingController = require("../controllers/exchangeListingController");
 const exchangeMatchController = require("../controllers/exchangeMatchController");
 const exchangeMessageController = require("../controllers/exchangeMessageController");
 
 const router = express.Router();
+
+// ===== IMAGE UPLOAD (Protected) =====
+
+/**
+ * Upload single exchange listing image to S3
+ * POST /api/exchange/upload-image
+ * Field name: "exchange_image"
+ */
+router.post("/upload-image", auth, upload.single("exchange_image"), exchangeListingController.uploadImage);
 
 // ===== PUBLIC ROUTES (No login required) =====
 
