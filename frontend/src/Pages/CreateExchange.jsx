@@ -77,7 +77,7 @@ const CreateExchange = () => {
     setImages([...images, ...files]);
   };
 
-  // ===== UPLOAD IMAGES TO CLOUDINARY =====
+  // ===== UPLOAD IMAGES TO AWS S3 VIA BACKEND =====
   const handleUploadImages = async () => {
     if (images.length === 0) {
       setGeneralError("Please select images first");
@@ -88,18 +88,27 @@ const CreateExchange = () => {
       setUploadingImages(true);
       setGeneralError("");
 
-      // Upload each image to Cloudinary
+      // Upload each image to backend S3
       const uploadPromises = images.map(async (image) => {
         const formDataImg = new FormData();
-        formDataImg.append("file", image);
-        formDataImg.append("upload_preset", "farmeasy_exchange"); // from Cloudinary settings
+        formDataImg.append("exchange_image", image); // Field name matches backend multer config
 
         const res = await axios.post(
-          "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload", // Replace with your Cloudinary URL
-          formDataImg
+          `${API_URL}/api/exchange/upload-image`,
+          formDataImg,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
 
-        return res.data.secure_url;
+        if (res.data.success) {
+          return res.data.imageUrl; // S3 URL returned from backend
+        } else {
+          throw new Error(res.data.error || "Upload failed");
+        }
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -107,7 +116,7 @@ const CreateExchange = () => {
       setImages([]); // Clear file input
     } catch (err) {
       console.error("Image upload error:", err);
-      setGeneralError("Failed to upload images");
+      setGeneralError(err.response?.data?.error || "Failed to upload images. Check backend logs.");
     } finally {
       setUploadingImages(false);
     }
