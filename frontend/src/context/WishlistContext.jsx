@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { API_URL } from '../config';
+import { isTokenExpired, clearAuthData } from '../utils/tokenUtils';
 
 const WishlistContext = createContext();
 
@@ -10,7 +11,16 @@ export const useWishlist = () => useContext(WishlistContext);
 export const WishlistProvider = ({ children }) => {
     const [wishlistItems, setWishlistItems] = useState([]);
 
-    const getToken = () => localStorage.getItem("token");
+    const getToken = () => {
+        const token = localStorage.getItem("token");
+        // Check if token has expired
+        if (token && isTokenExpired(token)) {
+            console.warn("✅ Token expired, clearing auth data");
+            clearAuthData();
+            return null;
+        }
+        return token;
+    };
     const toPidKey = (id) => (id === undefined || id === null ? null : String(id));
     const notifyAuthRequired = (message) => {
         if (typeof window !== "undefined") {
