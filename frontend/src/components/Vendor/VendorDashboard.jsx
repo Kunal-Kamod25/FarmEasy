@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";
+import { AutoCloseTooltipContent } from "../../hooks/useAutoCloseTooltip";
 
 const PIE_COLORS = ["#16a34a", "#f59e0b", "#6366f1", "#ef4444", "#06b6d4", "#8b5cf6"];
 
@@ -203,10 +204,13 @@ export default function VendorDashboard() {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8", fontWeight: 600 }} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 20, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", padding: '12px 16px' }}
-                  itemStyle={{ fontWeight: 700, fontSize: 13 }}
-                  labelStyle={{ fontWeight: 800, marginBottom: 4, color: '#1e293b' }}
-                  formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
+                  content={<AutoCloseTooltipContent 
+                    contentStyle={{ borderRadius: 20, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", padding: '12px 16px' }}
+                    itemStyle={{ fontWeight: 700, fontSize: 13 }}
+                    labelStyle={{ fontWeight: 800, marginBottom: 4, color: '#1e293b' }}
+                    formatter={(val) => [`₹${Number(val).toLocaleString()}`, "Revenue"]}
+                    duration={3000}
+                  />}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={4}
                   fill="url(#colorRev)" dot={{ r: 6, fill: "#10b981", strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 8, strokeWidth: 0 }} />
@@ -238,7 +242,12 @@ export default function VendorDashboard() {
                         <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }} />
+                    <Tooltip 
+                      content={<AutoCloseTooltipContent 
+                        contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+                        duration={3000}
+                      />}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -279,9 +288,12 @@ export default function VendorDashboard() {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8", fontWeight: 600 }} />
                 <Tooltip
+                  content={<AutoCloseTooltipContent 
+                    contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
+                    formatter={(val) => [val, "Orders"]}
+                    duration={3000}
+                  />}
                   cursor={{ fill: '#f8fafc', radius: 10 }}
-                  contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
-                  formatter={(val) => [val, "Orders"]}
                 />
                 <Bar dataKey="orders" fill="#3b82f6" radius={[10, 10, 0, 0]} barSize={24} />
               </BarChart>
@@ -313,8 +325,11 @@ export default function VendorDashboard() {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} domain={[0, 5]} tick={{ fontSize: 11, fill: "#94a3b8", fontWeight: 600 }} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
-                  formatter={(val) => [`${val} ⭐`, "Rating"]}
+                  content={<AutoCloseTooltipContent 
+                    contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
+                    formatter={(val) => [`${val} ⭐`, "Rating"]}
+                    duration={3000}
+                  />}
                 />
                 <Area type="monotone" dataKey="rating" stroke="#f59e0b" strokeWidth={4} fill="url(#colorRating)"
                   dot={{ r: 6, fill: "#f59e0b", strokeWidth: 3, stroke: '#fff' }} />
