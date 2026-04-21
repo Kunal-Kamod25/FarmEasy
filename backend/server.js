@@ -26,8 +26,14 @@ require("dotenv").config();   // loads .env variables (DB credentials, JWT secre
 
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { initSocket } = require("./socketManager");
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initSocket(server);
 
 // ================= MIDDLEWARE =================
 // CORS configuration for production
@@ -398,7 +404,7 @@ console.log("✓ JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "❌ MISSING");
 
 // Initialize database and start server
 initializeDatabase().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`\n🚀 Server running on http://localhost:${PORT}`);
     console.log("🌍 CORS enabled for: https://farmeasy-one.vercel.app");
   });

@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
-import { Send, Loader, X, ArrowLeft, MessageCircle, Search } from "lucide-react";
+import { 
+  Send, Loader, X, ArrowLeft, MessageCircle, Search, 
+  Sprout, Sparkles, User, UserCircle2, Clock, Check
+} from "lucide-react";
 
 const VendorMessages = () => {
   const token = localStorage.getItem("token");
@@ -18,9 +21,8 @@ const VendorMessages = () => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [selectedConvId, setSelectedConvId] = useState(null);
-  const [isMobileView, setIsMobileView] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
-  // ===== LOAD CONVERSATIONS =====
   const fetchConversations = useCallback(async () => {
     try {
       setLoading(true);
@@ -47,7 +49,6 @@ const VendorMessages = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [fetchConversations]);
 
-  // ===== FETCH MESSAGES FOR CONVERSATION =====
   useEffect(() => {
     if (!selectedConvId) return;
 
@@ -60,21 +61,16 @@ const VendorMessages = () => {
           }
         );
         setMessages(res.data.data?.messages || []);
-        scrollToBottom();
       } catch (err) {
         console.error("Error fetching messages:", err);
-        setError("Failed to load messages");
       }
     };
 
     fetchMessages();
-
-    // Poll for new messages every 3 seconds
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, [selectedConvId, token]);
 
-  // ===== AUTO-SCROLL =====
   const scrollToBottom = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,7 +81,6 @@ const VendorMessages = () => {
     scrollToBottom();
   }, [messages]);
 
-  // ===== SEND MESSAGE =====
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageText.trim() || !selectedConvId) return;
@@ -106,7 +101,6 @@ const VendorMessages = () => {
 
       setMessages([...messages, res.data.data?.message]);
       setMessageText("");
-      scrollToBottom();
     } catch (err) {
       console.error("Error sending message:", err);
       setError("Failed to send message");
@@ -115,23 +109,17 @@ const VendorMessages = () => {
     }
   };
 
-  // ===== MARK AS READ =====
   const handleSelectConversation = async (conv) => {
     setCurrentConversation(conv);
     setSelectedConvId(conv.conversation_id);
-    setIsMobileView(false);
-
-    // Mark conversation messages as read
+    
     if (conv.unread_count > 0) {
       try {
         await axios.put(
           `${API_URL}/api/vendor/messages/${conv.conversation_id}/read`,
           {},
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        // Update unread count
         setConversations(
           conversations.map((c) =>
             c.conversation_id === conv.conversation_id
@@ -145,202 +133,267 @@ const VendorMessages = () => {
     }
   };
 
-  // ===== FILTER CONVERSATIONS =====
   const filteredConversations = conversations.filter((conv) =>
     (conv.other_user_name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  const fieldShell =
+    "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-emerald-300/60 focus:bg-white/10 focus:ring-2 focus:ring-emerald-200/20";
+
+  if (loading && conversations.length === 0) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-3">
-          <Loader className="w-8 h-8 animate-spin text-emerald-600" />
-          <p className="text-gray-600">Loading conversations...</p>
+      <div className="flex h-screen items-center justify-center bg-[#04110d] font-Lora">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="h-10 w-10 animate-spin text-emerald-400" />
+          <p className="text-white/60 animate-pulse">Establishing secure connection...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* ===== CONVERSATIONS LIST ===== */}
+    <div className="flex h-screen bg-[#04110d] font-Lora text-white overflow-hidden relative">
+      {/* BACKGROUND DECORATIONS */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:64px_64px]" />
+      <div className="absolute -left-20 top-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
+
+      {/* ===== SIDEBAR: CONVERSATIONS ===== */}
       <div
         className={`${
-          isMobileView && selectedConvId ? "hidden" : "w-full md:w-80"
-        } bg-white border-r border-gray-200 flex flex-col`}
+          isMobileView && selectedConvId ? "hidden" : "w-full md:w-[380px]"
+        } z-10 flex flex-col border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-all duration-300 shadow-2xl`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 bg-emerald-600 text-white">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            Customer Messages
-          </h2>
-          <p className="text-sm text-emerald-100 mt-1">
-            {conversations.length} conversation{conversations.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+        <div className="p-6 border-b border-white/5">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
+              <MessageCircle size={20} />
+            </div>
+            <h2 className="text-xl font-bold tracking-tight">Inbox</h2>
+          </div>
 
-        {/* Search */}
-        <div className="p-3 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 group-focus-within:text-emerald-300 transition" />
             <input
               type="text"
               placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className={`${fieldShell} pl-11`}
             />
           </div>
         </div>
 
-        {/* Conversations */}
-        <div className="flex-1 overflow-y-auto">
+        {/* List */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
           {filteredConversations.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No conversations yet</p>
+            <div className="flex flex-col items-center justify-center h-64 text-center p-6 bg-white/2 rounded-3xl mt-4 mx-2">
+              <div className="p-4 rounded-full bg-white/5 mb-4">
+                <MessageCircle className="h-8 w-8 text-white/20" />
+              </div>
+              <p className="text-white/40 text-sm">No customers found</p>
             </div>
           ) : (
-            filteredConversations.map((conv) => (
-              <div
-                key={conv.conversation_id}
-                onClick={() => handleSelectConversation(conv)}
-                className={`p-3 border-b border-gray-100 cursor-pointer transition ${
-                  selectedConvId === conv.conversation_id
-                    ? "bg-emerald-50 border-l-4 border-l-emerald-600"
-                    : "hover:bg-gray-50"
-                } ${conv.unread_count > 0 ? "bg-blue-50" : ""}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm truncate">
-                      {conv.other_user_name || "Unknown User"}
-                    </h3>
-                    <p className="text-xs text-gray-600 truncate">
-                      {conv.last_message || "No messages yet"}
+            <div className="space-y-1">
+              {filteredConversations.map((conv) => (
+                <button
+                  key={conv.conversation_id}
+                  onClick={() => handleSelectConversation(conv)}
+                  className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border border-transparent ${
+                    selectedConvId === conv.conversation_id
+                      ? "bg-emerald-500/10 border-emerald-500/20 shadow-lg"
+                      : "hover:bg-white/5 hover:border-white/5"
+                  }`}
+                >
+                  {selectedConvId === conv.conversation_id && (
+                    <div className="absolute left-0 top-4 bottom-4 w-1 bg-emerald-400 rounded-full" />
+                  )}
+                  
+                  <div className="relative">
+                    <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-300 font-bold uppercase overflow-hidden">
+                      {conv.other_user_pic ? (
+                        <img src={conv.other_user_pic} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        conv.other_user_name?.charAt(0)
+                      )}
+                    </div>
+                    {conv.unread_count > 0 && (
+                      <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full ring-2 ring-[#04110d]" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <h3 className="font-semibold text-white/90 truncate">
+                        {conv.other_user_name || "Unknown"}
+                      </h3>
+                      <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                        {conv.last_message_time ? new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/40 truncate leading-relaxed">
+                      {conv.last_message || "Start conversation..."}
                     </p>
                   </div>
-                  {conv.unread_count > 0 && (
-                    <span className="bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center ml-2 flex-shrink-0">
-                      {conv.unread_count}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* ===== MESSAGE VIEW ===== */}
-      {selectedConvId && currentConversation ? (
-        <div className="flex-1 flex flex-col bg-white">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-lg">
-                {currentConversation.other_user_name || "Customer"}
-              </h3>
-              <p className="text-sm text-emerald-100">
-                Chat with customer
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setSelectedConvId(null);
-                setCurrentConversation(null);
-                setMessages([]);
-              }}
-              className="md:hidden p-2 hover:bg-emerald-700 rounded-lg transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-            {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-gray-500">
-                <p>No messages yet. Start the conversation!</p>
-              </div>
-            ) : (
-              messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${
-                    msg.sender_id === user.id ? "justify-end" : "justify-start"
-                  }`}
+      {/* ===== CHAT VIEW ===== */}
+      <div className={`flex-1 z-10 flex flex-col bg-white/2 backdrop-blur-md transition-all ${isMobileView && !selectedConvId ? "hidden md:flex" : "flex"}`}>
+        {selectedConvId && currentConversation ? (
+          <>
+            {/* Header */}
+            <div className="p-4 md:p-6 border-b border-white/5 flex items-center justify-between bg-emerald-900/10">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => {
+                    setSelectedConvId(null);
+                    setCurrentConversation(null);
+                  }}
+                  className="md:hidden p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition"
                 >
-                  <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
-                      msg.sender_id === user.id
-                        ? "bg-emerald-600 text-white rounded-br-none"
-                        : "bg-gray-300 text-gray-900 rounded-bl-none"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.message_text}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        msg.sender_id === user.id
-                          ? "text-emerald-100"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {new Date(msg.created_at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                  <ArrowLeft size={18} />
+                </button>
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 font-bold border border-emerald-500/30">
+                  {currentConversation.other_user_name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg leading-none mb-1">
+                    {currentConversation.other_user_name}
+                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] text-emerald-400/80 uppercase tracking-widest font-semibold font-sans">Active Session</span>
                   </div>
                 </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              </div>
+            </div>
 
-          {/* Message Input */}
-          <form
-            onSubmit={handleSendMessage}
-            className="p-4 border-t border-gray-200 bg-white flex gap-2"
-          >
-            <input
-              type="text"
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Type your message..."
-              disabled={sending}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={sending || !messageText.trim()}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
-            >
-              {sending ? (
-                <Loader className="w-4 h-4 animate-spin" />
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar scroll-smooth">
+              {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-white/30 space-y-4">
+                  <div className="p-6 rounded-full bg-white/5 border border-white/5">
+                    <Sparkles className="h-8 w-8 text-emerald-400/40" />
+                  </div>
+                  <p className="text-center max-w-xs text-sm">Send a message to start dealing with {currentConversation.other_user_name}!</p>
+                </div>
               ) : (
-                <Send className="w-4 h-4" />
+                messages.map((msg, idx) => {
+                  const isSentByMe = msg.sender_id === user.id;
+                  return (
+                    <div key={idx} className={`flex ${isSentByMe ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                      <div className={`max-w-[85%] md:max-w-[70%] group`}>
+                        <div className={`px-5 py-3.5 rounded-3xl shadow-xl ${
+                          isSentByMe 
+                            ? "bg-emerald-600/90 text-white rounded-br-none backdrop-blur-xl border border-emerald-400/30 shadow-emerald-900/20"
+                            : "bg-white/10 text-white/90 rounded-bl-none backdrop-blur-xl border border-white/10 shadow-black/20"
+                        }`}>
+                          <p className="text-sm leading-relaxed">{msg.message_text}</p>
+                        </div>
+                        <div className={`flex items-center gap-2 mt-2 px-1 ${isSentByMe ? "flex-row-reverse" : "flex-row"}`}>
+                          <span className="text-[10px] text-white/20 uppercase font-sans tracking-tighter">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isSentByMe && <Check size={10} className="text-emerald-400/60" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div className="hidden md:flex flex-1 items-center justify-center text-gray-500">
-          <div className="text-center">
-            <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-20" />
-            <p className="text-lg">Select a conversation to start messaging</p>
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Form */}
+            <div className="p-4 md:p-6 border-t border-white/5 bg-black/20 backdrop-blur-3xl">
+              <form onSubmit={handleSendMessage} className="flex gap-3 max-w-5xl mx-auto items-center">
+                <div className="flex-1 relative group">
+                  <input
+                    type="text"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Write a message..."
+                    disabled={sending}
+                    className={`${fieldShell} !bg-white/5 !rounded-full pr-12 focus:!bg-white/10 transition-all duration-300 border-white/5 focus:border-emerald-500/40`}
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full transition-all duration-500 ${messageText.trim() ? "bg-emerald-400 scale-100 shadow-lg shadow-emerald-400/50" : "bg-white/10 scale-50"}`} />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={sending || !messageText.trim()}
+                  className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-white/5 disabled:text-white/10 text-white h-12 w-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95"
+                >
+                  {sending ? (
+                    <Loader className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send size={20} className="ml-1" />
+                  )}
+                </button>
+              </form>
+              <p className="text-[10px] text-center text-white/20 mt-4 uppercase tracking-[0.2em]">Secure End-To-End Communication</p>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden">
+             {/* ANIMATED BG FOR EMPTY STATE */}
+            <div className="absolute inset-0 z-0 overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 blur-[120px] rounded-full animate-pulse" />
+            </div>
+
+            <div className="z-10 relative space-y-6 max-w-sm">
+                <div className="mx-auto w-24 h-24 rounded-[2.5rem] bg-white/5 border border-white/5 flex items-center justify-center backdrop-blur-xl shadow-2xl animate-in zoom-in duration-700">
+                    <MessageCircle className="h-10 w-10 text-emerald-400/40" />
+                </div>
+                <div>
+                   <h3 className="text-2xl font-bold mb-2">Connect with Farmers</h3>
+                   <p className="text-white/40 text-sm leading-relaxed">
+                    Select a conversation from the left to manage your customer interactions and close deals.
+                   </p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
+                    <Sparkles size={12} /> Live Marketplace Sync
+                </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ERROR TOAST */}
+      {error && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-right duration-500">
+          <div className="bg-rose-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10 backdrop-blur-xl">
+             <div className="bg-white/20 p-1.5 rounded-lg">
+                <X size={16} />
+             </div>
+             <p className="text-sm font-semibold">{error}</p>
+             <button onClick={() => setError("")} className="ml-4 text-white/50 hover:text-white transition">Dismiss</button>
           </div>
         </div>
       )}
 
-      {/* Error Toast */}
-      {error && (
-        <div className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg flex items-center gap-2">
-          <X className="w-4 h-4" />
-          {error}
-        </div>
-      )}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      `}</style>
     </div>
   );
 };

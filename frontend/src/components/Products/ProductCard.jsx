@@ -73,7 +73,9 @@ const ProductCard = ({ product }) => {
         <img
           src={
             product.product_image
-              ? `${API_URL}${product.product_image}`
+              ? product.product_image.startsWith('http') 
+                ? product.product_image 
+                : `${API_URL}${product.product_image}`
               : product.img || product.image || `https://placehold.co/200x200/e8f5e9/16a34a?text=${encodeURIComponent(product.product_name || product.name || 'Product')}`
           }
           alt={product.name || product.product_name}

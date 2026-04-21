@@ -219,7 +219,7 @@ const VendorProducts = () => {
                             <td className="px-4 py-5">
                               <div className="w-12 h-12 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 flex-shrink-0">
                                 {p.product_image ? (
-                                  <img src={getImageUrl(p.product_image)} alt="" className="w-full h-full object-cover" />
+                                  <img src={getImageUrl(p.product_image)} alt="" className="w-full h-full object-contain" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-gray-200">
                                     <Package size={20} />

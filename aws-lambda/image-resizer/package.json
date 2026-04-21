@@ -1,0 +1,9 @@
+{
+  "name": "farmeasy-image-resizer",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to resize images for FarmEasy",
+  "main": "index.js",
+  "dependencies": {
+    "sharp": "^0.32.6"
+  }
+}

@@ -7,6 +7,7 @@ const loginController = require('../controllers/loginController');
 
 router.post('/register', registerController.register);
 router.post('/login', loginController.login);
+router.post('/google', loginController.google);
 router.post('/refresh', loginController.refresh);
 
 module.exports = router;

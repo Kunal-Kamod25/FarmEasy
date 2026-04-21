@@ -1,278 +1,38 @@
-// import React, { useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { API_URL } from "../../config";
-
-// const Login = () => {
-//   // selected role (farmer or vendor)
-//   const [loginAs, setLoginAs] = useState("farmer");
-
-//   // form fields
-//   const [email, setEmail] = useState("");
-//   const [phone, setPhone] = useState("");
-//   const [password, setPassword] = useState("");
-
-//   // login method: email or phone
-//   const [loginType, setLoginType] = useState("email");
-
-//   // remember me checkbox
-//   const [remember, setRemember] = useState(false);
-
-//   const navigate = useNavigate();
-
-//   // change role and reset inputs
-//   const handleRoleChange = (role) => {
-//     setLoginAs(role);
-//     setEmail("");
-//     setPhone("");
-//   };
-
-//   // change login type and reset inputs
-//   const handleLoginTypeChange = (type) => {
-//     setLoginType(type);
-//     setEmail("");
-//     setPhone("");
-//   };
-
-//   // submit login form
-//   const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   const identifier =
-//     loginType === "email" ? email.trim() : phone.trim();
-
-//   if (!identifier || !password) {
-//     alert("Identifier (email or phone) and password are required.");
-//     return;
-//   }
-
-//   try {
-//     const response = await fetch(`${API_URL}/api/authentication/login`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({
-//         identifier,
-//         password,
-//       }),
-//     });
-
-//     const data = await response.json();
-
-//     if (response.ok) {
-//       // ✅ STORE TOKEN
-//       localStorage.setItem("token", data.token);
-
-//       // ✅ STORE USER
-//       localStorage.setItem("user", JSON.stringify(data.user));
-
-//       // Redirect based on role
-//       if (data.user.role === "vendor") {
-//         navigate("/vendor/products");
-//       } else if (data.user.role === "admin") {
-//         navigate("/admin");
-//       } else {
-//         navigate("/");
-//       }
-//     } else {
-//       alert(data.message || "Login failed");
-//     }
-
-//   } catch (err) {
-//     alert("Server not responding");
-//   }
-// };
-//   return (
-//     <div className="min-h-screen grid grid-cols-2 font-Lora">
-//       {/* LEFT SIDE */}
-//       <div className="bg-gradient-to-br from-green-700 to-green-900 text-white flex items-center justify-center">
-//         <div className="max-w-sm text-center">
-//           <div className="text-6xl mb-5">🌱</div>
-//           <h2 className="text-4xl font-bold mb-4">Join FarmEasy</h2>
-//           <p className="text-green-100 text-base">
-//             India’s trusted agricultural marketplace for farmers and vendors.
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* RIGHT LOGIN */}
-//       <div className="flex items-center justify-center">
-//         <div className="w-[360px] p-10 rounded-xl shadow-xl">
-//           <h2 className="text-center text-2xl font-bold mb-1">Welcome</h2>
-//           <p className="text-center text-gray-500 mb-5">
-//             Log in to your account
-//           </p>
-
-//           <p className="font-semibold mb-2">Login as</p>
-//           <div className="flex gap-4 mb-6">
-//             <label
-//               className={` px-4 py-3 cursor-pointer flex items-center gap-2
-//               ${loginAs === "farmer"
-//                   ? " text-green-700"
-//                   : "text-gray-500 hover:text-black"
-//                 }`}
-//             >
-//               <input
-//                 type="radio"
-//                 checked={loginAs === "farmer"}
-//                 onChange={() => handleRoleChange("farmer")}
-//               />
-//               Farmer
-//             </label>
-
-//             <label
-//               className={`px-4 py-2 flex items-center gap-2 
-//                 ${loginAs === "vendor"
-//                   ? "text-green-700"
-//                   : "text-gray-500 hover:text-black"
-//                 }`}
-//             >
-//               <input
-//                 type="radio"
-//                 checked={loginAs === "vendor"}
-//                 onChange={() => handleRoleChange("vendor")}
-//               />
-//               Vendor
-//             </label>
-//           </div>
-
-//           <form onSubmit={handleSubmit} className="space-y-3">
-//             {/* login method dropdown */}
-//             <div>
-//               <label className="block mb-1 font-medium">Login using</label>
-//               <select
-//                 value={loginType}
-//                 onChange={(e) => handleLoginTypeChange(e.target.value)}
-//                 className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-//               >
-//                 <option value="email">Email</option>
-//                 <option value="phone">Phone Number</option>
-//               </select>
-//             </div>
-
-//             {/* email OR phone input */}
-//             {loginType === "email" ? (
-//               <div>
-//                 <label className="block mb-1">Email</label>
-//                 <input
-//                   type="email"
-//                   placeholder={
-//                     loginAs === "farmer"
-//                       ? "farmer@gmail.com"
-//                       : "vendor@gmail.com"
-//                   }
-//                   value={email}
-//                   onChange={(e) => setEmail(e.target.value)}
-//                   required
-//                   className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-//                 />
-//               </div>
-//             ) : (
-//               <div>
-//                 <label className="block mb-1">Phone Number</label>
-//                 <input
-//                   type="tel"
-//                   placeholder="Enter phone number"
-//                   value={phone}
-//                   onChange={(e) => setPhone(e.target.value)}
-//                   required
-//                   className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-//                 />
-//               </div>
-//             )}
-
-//             {/* password */}
-//             <div>
-//               <label className="block mb-1">Password</label>
-//               <input
-//                 type="password"
-//                 placeholder="Enter password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 required
-//                 className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
-//               />
-//             </div>
-
-//             <div className="flex justify-between items-center my-2">
-//               <label className="flex items-center gap-2">
-//                 <input
-//                   type="checkbox"
-//                   checked={remember}
-//                   onChange={(e) => setRemember(e.target.checked)}
-//                 />
-//                 Remember me
-//               </label>
-
-//               <Link
-//                 to="/forgot-password"
-//                 className="relative text-green-600 font-medium after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
-//               >
-//                 Forgot password?
-//               </Link>
-//             </div>
-
-//             <button
-//               type="submit"
-//               className="w-full bg-green-700 text-white py-3 rounded-md hover:bg-green-800 transition"
-//             >
-//               Log In
-//             </button>
-//           </form>
-
-//           <p className="text-center mt-5">
-//             Don’t have an account?{" "}
-//             <Link
-//               to="/register"
-//               className="relative text-green-600 font-semibold after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
-//             >
-//               Sign Up
-//             </Link>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;
-
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
 import { useLanguage } from "../../context/language/LanguageContext";
+import {
+  ArrowRight,
+  Eye,
+  Leaf,
+  Lock,
+  Mail,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  Sprout,
+} from "lucide-react";
+import GoogleOAuthButton from "./GoogleOAuthButton";
 
-// ─────────────────────────────────────────
-//  REGEX PATTERNS
-// ─────────────────────────────────────────
 const REGEX = {
-  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,         // valid email format
-  phone: /^[6-9]\d{9}$/,                        // 10 digits, starts with 6-9
-  specialChar: /[!@#$%^&*]/,                    // at least one special character
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  phone: /^[6-9]\d{9}$/,
+  specialChar: /[!@#$%^&*]/,
 };
 
 const Login = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
-  // selected role (customer or vendor)
   const [loginAs, setLoginAs] = useState("customer");
-
-  // form fields
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-
-  // login method: email or phone
   const [loginType, setLoginType] = useState("email");
-
-  // remember me checkbox
   const [remember, setRemember] = useState(false);
-
-  // ── validation errors ──
   const [errors, setErrors] = useState({});
 
-  const navigate = useNavigate();
-
-  // change role and reset inputs
   const handleRoleChange = (role) => {
     setLoginAs(role);
     setEmail("");
@@ -280,7 +40,6 @@ const Login = () => {
     setErrors({});
   };
 
-  // change login type and reset inputs
   const handleLoginTypeChange = (type) => {
     setLoginType(type);
     setEmail("");
@@ -288,7 +47,6 @@ const Login = () => {
     setErrors({});
   };
 
-  // ── validate before submit ──
   const validate = () => {
     const newErrors = {};
 
@@ -298,12 +56,10 @@ const Login = () => {
       } else if (!REGEX.email.test(email.trim())) {
         newErrors.email = t("login.validation.emailInvalid");
       }
-    } else {
-      if (!phone.trim()) {
-        newErrors.phone = t("login.validation.phoneRequired");
-      } else if (!REGEX.phone.test(phone.trim())) {
-        newErrors.phone = t("login.validation.phoneInvalid");
-      }
+    } else if (!phone.trim()) {
+      newErrors.phone = t("login.validation.phoneRequired");
+    } else if (!REGEX.phone.test(phone.trim())) {
+      newErrors.phone = t("login.validation.phoneInvalid");
     }
 
     if (!password) {
@@ -315,7 +71,28 @@ const Login = () => {
     return newErrors;
   };
 
-  // submit login form
+  const redirectByRole = (role) => {
+    const normalizedRole = String(role || "").toLowerCase();
+
+    if (["vendor", "seller"].includes(normalizedRole)) {
+      navigate("/vendor/products");
+      return;
+    }
+
+    if (normalizedRole === "admin") {
+      navigate("/admin");
+      return;
+    }
+
+    navigate("/");
+  };
+
+  const persistSession = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    redirectByRole(data.user?.role);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -325,220 +102,286 @@ const Login = () => {
       return;
     }
 
-    const identifier =
-      loginType === "email" ? email.trim() : phone.trim();
+    const identifier = loginType === "email" ? email.trim() : phone.trim();
 
-  if (!identifier || !password) {
-    alert(t("login.error.identifierRequired"));
-    return;
-  }
+    if (!identifier || !password) {
+      alert(t("login.error.identifierRequired"));
+      return;
+    }
 
-  try {
-    const response = await fetch(`${API_URL}/api/authentication/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        identifier,
-        password,
-        loginAs,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/authentication/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, password, loginAs }),
+      });
 
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ STORE TOKEN
-        localStorage.setItem("token", data.token);
-
-        // ✅ STORE USER
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        // Redirect based on role
-        if (["vendor", "seller"].includes(String(data.user.role).toLowerCase())) {
-          navigate("/vendor/products");
-        } else if (data.user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        persistSession(data);
       } else {
         alert(data.message || t("login.error.failed"));
       }
-
     } catch {
       alert(t("login.error.server"));
     }
   };
+
+  const handleGoogleCredential = async (credential) => {
+    try {
+      const response = await fetch(`${API_URL}/api/authentication/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential, role: loginAs }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        persistSession(data);
+      } else {
+        alert(data.message || t("login.error.failed"));
+      }
+    } catch {
+      alert(t("login.error.server"));
+    }
+  };
+
+  const fieldShell =
+    "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-emerald-300/60 focus:bg-white/10 focus:ring-2 focus:ring-emerald-200/20";
+
+  const roleButtonClass = (active) =>
+    `flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+      active
+        ? "border-emerald-300/60 bg-emerald-300/15 text-white shadow-lg shadow-emerald-950/20"
+        : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
+    }`;
+
   return (
-    <div className="min-h-screen grid grid-cols-2 font-Lora">
-      {/* LEFT SIDE */}
-      <div className="bg-gradient-to-br from-green-700 to-green-900 text-white flex items-center justify-center">
-        <div className="max-w-sm text-center">
-          <div className="text-6xl mb-5">🌱</div>
-          <h2 className="text-4xl font-bold mb-4">{t("login.joinTitle")}</h2>
-          <p className="text-green-100 text-base">
-            {t("login.marketplaceSubtitle")}
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#04110d] lg:grid lg:grid-cols-[1.05fr_0.95fr] font-Lora">
+      <aside className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.18),_transparent_32%),radial-gradient(circle_at_80%_18%,_rgba(45,212,191,0.16),_transparent_28%),linear-gradient(135deg,_#02110b_0%,_#041b13_45%,_#0a2a1d_100%)] px-6 py-10 text-white lg:min-h-screen lg:border-b-0 lg:border-r lg:px-12 lg:py-12">
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute -left-20 top-8 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-teal-300/10 blur-3xl" />
 
-      {/* RIGHT LOGIN */}
-      <div className="flex items-center justify-center">
-        <div className="w-[360px] p-10 rounded-xl shadow-xl">
-          <h2 className="text-center text-2xl font-bold mb-1">{t("login.welcome")}</h2>
-          <p className="text-center text-gray-500 mb-5">
-            {t("login.subtitle")}
-          </p>
-
-          <p className="font-semibold mb-2">{t("login.loginAs")}</p>
-          <div className="flex gap-4 mb-6">
-            <label
-              className={` px-4 py-3 cursor-pointer flex items-center gap-2
-              ${loginAs === "customer"
-                  ? " text-green-700"
-                  : "text-gray-500 hover:text-black"
-                }`}
-            >
-              <input
-                type="radio"
-                checked={loginAs === "customer"}
-                onChange={() => handleRoleChange("customer")}
-              />
-              {t("login.customer")}
-            </label>
-
-            <label
-              className={`px-4 py-2 flex items-center gap-2 
-                ${loginAs === "vendor"
-                  ? "text-green-700"
-                  : "text-gray-500 hover:text-black"
-                }`}
-            >
-              <input
-                type="radio"
-                checked={loginAs === "vendor"}
-                onChange={() => handleRoleChange("vendor")}
-              />
-              {t("login.vendor")}
-            </label>
+        <div className="relative flex min-h-[280px] flex-col justify-between lg:min-h-[calc(100vh-6rem)]">
+          <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/80 backdrop-blur-xl">
+            <Sprout className="h-4 w-4 text-emerald-200" />
+            FarmEasy
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {/* login method dropdown */}
+          <div className="max-w-xl pt-16 lg:pt-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100/80 backdrop-blur-xl">
+              <Sparkles className="h-4 w-4" />
+              Smart marketplace access
+            </div>
+
+            <h1 className="mt-6 text-4xl font-semibold leading-tight text-white sm:text-5xl">
+              {t("login.joinTitle")}
+            </h1>
+            <p className="mt-4 max-w-lg text-base leading-7 text-white/70 sm:text-lg">
+              {t("login.marketplaceSubtitle")}
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              {[
+                {
+                  icon: Leaf,
+                  title: "Verified supply",
+                  text: "Access trusted seeds, fertilizers, and tools.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Secure access",
+                  text: "Your login stays protected with token sessions.",
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/8 p-5 backdrop-blur-xl">
+                    <Icon className="h-5 w-5 text-emerald-200" />
+                    <h3 className="mt-4 text-lg font-semibold text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/65">{item.text}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <p className="hidden max-w-md text-sm leading-6 text-white/55 lg:block">
+            Fast checkout, vendor tools, and role-aware access continue to work exactly as before.
+          </p>
+        </div>
+      </aside>
+
+      <main className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+        <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-emerald-950/25 backdrop-blur-2xl sm:p-10">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-100/70">
+              Welcome back
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">
+              {t("login.welcome")}
+            </h2>
+            <p className="mt-2 text-sm text-white/60 sm:text-base">
+              {t("login.subtitle")}
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-white/45">
+              {t("login.loginAs")}
+            </p>
+            <div className="flex gap-3">
+              <label className={roleButtonClass(loginAs === "customer")}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  checked={loginAs === "customer"}
+                  onChange={() => handleRoleChange("customer")}
+                />
+                {t("login.customer")}
+              </label>
+
+              <label className={roleButtonClass(loginAs === "vendor")}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  checked={loginAs === "vendor"}
+                  onChange={() => handleRoleChange("vendor")}
+                />
+                {t("login.vendor")}
+              </label>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             <div>
-              <label className="block mb-1 font-medium">{t("login.loginUsing")}</label>
+              <label className="mb-2 block text-sm font-semibold text-white/80">
+                {t("login.loginUsing")}
+              </label>
               <select
                 value={loginType}
                 onChange={(e) => handleLoginTypeChange(e.target.value)}
-                className="w-full p-2 border rounded-md focus:outline-none focus:border-green-700"
+                className={`${fieldShell} appearance-none text-white`}
               >
                 <option value="email">{t("login.email")}</option>
                 <option value="phone">{t("login.phone")}</option>
               </select>
             </div>
 
-            {/* email OR phone input */}
             {loginType === "email" ? (
               <div>
-                <label className="block mb-1">{t("login.email")}</label>
-                <input
-                  type="email"
-                  placeholder={
-                    loginAs === "customer"
-                      ? "customer@gmail.com"
-                      : "vendor@gmail.com"
-                  }
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (errors.email) setErrors({ ...errors, email: "" });
-                  }}
-                  className={`w-full p-2 border rounded-md focus:outline-none focus:border-green-700
-                    ${errors.email ? "border-red-500" : ""}`}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">⚠ {errors.email}</p>
-                )}
+                <label className="mb-2 block text-sm font-semibold text-white/80">
+                  {t("login.email")}
+                </label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                  <input
+                    type="email"
+                    placeholder={loginAs === "customer" ? "customer@gmail.com" : "vendor@gmail.com"}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors.email) setErrors({ ...errors, email: "" });
+                    }}
+                    className={`${fieldShell} pl-11 ${errors.email ? "border-rose-300/60" : ""}`}
+                  />
+                </div>
+                {errors.email && <p className="mt-2 text-xs text-rose-200">{errors.email}</p>}
               </div>
             ) : (
               <div>
-                <label className="block mb-1">{t("login.phone")}</label>
-                <input
-                  type="tel"
-                  placeholder={t("login.phonePlaceholder")}
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    if (errors.phone) setErrors({ ...errors, phone: "" });
-                  }}
-                  className={`w-full p-2 border rounded-md focus:outline-none focus:border-green-700
-                    ${errors.phone ? "border-red-500" : ""}`}
-                />
-                {errors.phone && (
-                  <p className="text-red-500 text-xs mt-1">⚠ {errors.phone}</p>
-                )}
+                <label className="mb-2 block text-sm font-semibold text-white/80">
+                  {t("login.phone")}
+                </label>
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                  <input
+                    type="tel"
+                    placeholder={t("login.phonePlaceholder")}
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (errors.phone) setErrors({ ...errors, phone: "" });
+                    }}
+                    className={`${fieldShell} pl-11 ${errors.phone ? "border-rose-300/60" : ""}`}
+                  />
+                </div>
+                {errors.phone && <p className="mt-2 text-xs text-rose-200">{errors.phone}</p>}
               </div>
             )}
 
-            {/* password */}
             <div>
-              <label className="block mb-1">{t("login.password")}</label>
-              <input
-                type="password"
-                placeholder={t("login.passwordPlaceholder")}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: "" });
-                }}
-                className={`w-full p-2 border rounded-md focus:outline-none focus:border-green-700
-                  ${errors.password ? "border-red-500" : ""}`}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">⚠ {errors.password}</p>
-              )}
+              <label className="mb-2 block text-sm font-semibold text-white/80">
+                {t("login.password")}
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                <input
+                  type="password"
+                  placeholder={t("login.passwordPlaceholder")}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                  }}
+                  className={`${fieldShell} pl-11 ${errors.password ? "border-rose-300/60" : ""}`}
+                />
+                <Eye className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+              </div>
+              {errors.password && <p className="mt-2 text-xs text-rose-200">{errors.password}</p>}
             </div>
 
-            <div className="flex justify-between items-center my-2">
-              <label className="flex items-center gap-2">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <label className="flex items-center gap-2 text-sm text-white/70">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-transparent text-emerald-500 accent-emerald-500"
                 />
                 {t("login.rememberMe")}
               </label>
 
-              <Link
-                to="/forgot-password"
-                className="relative text-green-600 font-medium after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
-              >
+              <Link to="/forgot-password" className="text-sm font-semibold text-emerald-100 transition hover:text-white">
                 {t("login.forgotPassword")}
               </Link>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-green-700 text-white py-3 rounded-md hover:bg-green-800 transition"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-emerald-400"
             >
               {t("login.loginButton")}
+              <ArrowRight className="h-4 w-4" />
             </button>
           </form>
 
-          <p className="text-center mt-5">
-            {t("login.noAccount")}{" "}
-            <Link
-              to="/register"
-              className="relative text-green-600 font-semibold after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-green-600 after:transition-all hover:after:w-full"
-            >
+          <div className="my-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-white/30">
+            <span className="h-px flex-1 bg-white/10" />
+            <span>or</span>
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <GoogleOAuthButton
+            onCredential={handleGoogleCredential}
+            buttonText="signin_with"
+            className="w-full"
+          />
+
+          <p className="mt-6 text-center text-sm text-white/65">
+            {t("login.noAccount")} {" "}
+            <Link to="/register" className="font-semibold text-emerald-100 transition hover:text-white">
               {t("login.signUp")}
             </Link>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
 
 export default Login;
- 

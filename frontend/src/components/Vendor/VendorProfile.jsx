@@ -189,10 +189,10 @@ const VendorProfile = () => {
 
   if (fetching) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-[#04110d] p-6">
         <div className="max-w-4xl mx-auto space-y-5">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-32 bg-white rounded-2xl animate-pulse border border-gray-100" />
+            <div key={i} className="h-32 bg-white/10 rounded-2xl animate-pulse border border-white/10" />
           ))}
         </div>
       </div>
@@ -200,16 +200,16 @@ const VendorProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[#04110d] p-6 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.14),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(45,212,191,0.14),_transparent_28%),linear-gradient(145deg,_#03110c_0%,_#072117_45%,_#0b2d20_100%)]">
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vendor Profile</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Manage your store details and account information</p>
+          <h1 className="text-3xl font-bold text-white">Vendor Profile</h1>
+          <p className="text-white/65 text-sm mt-0.5">Manage your store details and account information</p>
         </div>
         {saved && (
-          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-200 text-sm font-semibold">
+          <div className="flex items-center gap-2 bg-emerald-400/15 text-emerald-100 px-4 py-2 rounded-xl border border-emerald-300/25 text-sm font-semibold">
             <CheckCircle size={16} />
             Profile saved!
           </div>
@@ -223,9 +223,9 @@ const VendorProfile = () => {
           <div className="space-y-5">
 
             {/* Profile Picture */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
+            <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-6 flex flex-col items-center text-center backdrop-blur-xl">
               <div className="relative mb-4">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-emerald-50 flex items-center justify-center shadow-md">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-emerald-300/10 flex items-center justify-center shadow-md border border-white/10">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
@@ -239,76 +239,76 @@ const VendorProfile = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User size={36} className="text-emerald-400" />
+                    <User size={36} className="text-emerald-200" />
                   )}
                 </div>
-                <label className="absolute -bottom-2 -right-2 bg-emerald-600 hover:bg-emerald-700 p-2 rounded-xl shadow-md cursor-pointer transition">
+                <label className="absolute -bottom-2 -right-2 bg-emerald-500 hover:bg-emerald-400 p-2 rounded-xl shadow-md cursor-pointer transition">
                   <Camera size={14} className="text-white" />
                   <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
                 </label>
               </div>
 
-              <h3 className="font-bold text-gray-800 text-lg">
+              <h3 className="font-bold text-white text-lg">
                 {profile.vendor_name || "Your Name"}
               </h3>
-              <p className="text-emerald-600 text-sm font-medium">
+              <p className="text-emerald-100 text-sm font-medium">
                 {profile.store_name || "Store Name"}
               </p>
-              <p className="text-gray-400 text-xs mt-1">
+              <p className="text-white/50 text-xs mt-1">
                 {profile.city && profile.state ? `${profile.city}, ${profile.state}` : "Location"}
               </p>
               {profile.joined_at && (
-                <p className="text-gray-400 text-[11px] mt-1">
+                <p className="text-white/45 text-[11px] mt-1">
                   Joined {new Date(profile.joined_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
                 </p>
               )}
 
-              <div className="mt-4 w-full pt-4 border-t border-gray-100 space-y-2 text-left">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Mail size={13} className="text-emerald-500" />
+              <div className="mt-4 w-full pt-4 border-t border-white/10 space-y-2 text-left">
+                <div className="flex items-center gap-2 text-xs text-white/65">
+                  <Mail size={13} className="text-emerald-100" />
                   <span className="truncate">{profile.email || "—"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Phone size={13} className="text-emerald-500" />
+                <div className="flex items-center gap-2 text-xs text-white/65">
+                  <Phone size={13} className="text-emerald-100" />
                   <span>{profile.phone || "—"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Store size={13} className="text-emerald-500" />
+                <div className="flex items-center gap-2 text-xs text-white/65">
+                  <Store size={13} className="text-emerald-100" />
                   <span>{Number(profile.total_orders || 0)} orders as customer</span>
                 </div>
               </div>
             </div>
 
             {/* Account Status */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-              <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Shield size={15} className="text-emerald-600" />
+            <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-5 backdrop-blur-xl">
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <Shield size={15} className="text-emerald-100" />
                 Account Status
               </h3>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Profile</span>
+                  <span className="text-white/60">Profile</span>
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.profile_verified
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
+                    ? "bg-emerald-300/20 text-emerald-100"
+                    : "bg-amber-300/20 text-amber-100"
                     }`}>
                     {profile.account_status?.profile_verified ? "Verified" : "Incomplete"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Email</span>
+                  <span className="text-white/60">Email</span>
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.email_verified
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
+                    ? "bg-emerald-300/20 text-emerald-100"
+                    : "bg-amber-300/20 text-amber-100"
                     }`}>
                     {profile.account_status?.email_verified ? "Verified" : "Pending"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">GST</span>
+                  <span className="text-white/60">GST</span>
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.gst_submitted
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
+                    ? "bg-emerald-300/20 text-emerald-100"
+                    : "bg-amber-300/20 text-amber-100"
                     }`}>
                     {profile.account_status?.gst_submitted ? "Submitted" : "Pending"}
                   </span>
@@ -322,9 +322,9 @@ const VendorProfile = () => {
           <div className="lg:col-span-2 space-y-5">
 
             {/* Personal Info */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <User size={16} className="text-emerald-600" />
+            <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-6 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-5 pb-3 border-b border-white/10 flex items-center gap-2">
+                <User size={16} className="text-emerald-100" />
                 Personal Information
               </h2>
 
@@ -359,7 +359,7 @@ const VendorProfile = () => {
                   placeholder="+91 XXXXX XXXXX"
                 />
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
                     About / Bio
                   </label>
                   <textarea
@@ -368,16 +368,16 @@ const VendorProfile = () => {
                     onChange={handleChange}
                     rows="3"
                     placeholder="Tell customers about your farm and products..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition resize-none"
+                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition resize-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Address */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <MapPin size={16} className="text-emerald-600" />
+            <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-6 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-5 pb-3 border-b border-white/10 flex items-center gap-2">
+                <MapPin size={16} className="text-emerald-100" />
                 Address Details
               </h2>
 
@@ -423,9 +423,9 @@ const VendorProfile = () => {
             </div>
 
             {/* Business Info */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <CreditCard size={16} className="text-emerald-600" />
+            <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-6 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-5 pb-3 border-b border-white/10 flex items-center gap-2">
+                <CreditCard size={16} className="text-emerald-100" />
                 Business & Bank Details
               </h2>
 
@@ -459,7 +459,7 @@ const VendorProfile = () => {
               <button
                 type="button"
                 onClick={fetchProfile}
-                className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold rounded-xl transition text-sm"
+                className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-white/80 hover:bg-white/10 font-semibold rounded-xl transition text-sm"
               >
                 <X size={15} />
                 Reset
@@ -467,7 +467,7 @@ const VendorProfile = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm"
+                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm"
               >
                 {loading ? (
                   <>
@@ -496,14 +496,14 @@ const VendorProfile = () => {
 /* ── Reusable Form Field ── */
 const FormField = ({ label, name, value, onChange, placeholder, type = "text" }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+    <label className="block text-sm font-semibold text-white/80 mb-1.5">{label}</label>
     <input
       type={type}
       name={name}
       value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+      className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-2.5 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
     />
   </div>
 );
