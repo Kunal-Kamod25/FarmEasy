@@ -3,16 +3,19 @@ import axios from "axios";
 import { API_URL } from "../../config";
 import { 
   Send, Loader, X, ArrowLeft, MessageCircle, Search, 
-  Sprout, Sparkles, User, UserCircle2, Clock, Check
+  Sprout, Sparkles, User, UserCircle2, Clock, Check,
+  Users, Store
 } from "lucide-react";
+import { useSocket } from "../../context/SocketContext";
 
 const VendorMessages = () => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const messagesEndRef = useRef(null);
 
-  // ===== STATE =====
-  const [conversations, setConversations] = useState([]);
+  const { socket } = useSocket();
+  const [activeTab, setActiveTab] = useState("chats"); // "chats" or "vendors"
+  const [allVendors, setAllVendors] = useState([]);
   const [messages, setMessages] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,12 +45,42 @@ const VendorMessages = () => {
     }
   }, [token]);
 
+  const fetchAllVendors = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/vendor/list`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAllVendors(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching vendor list:", err);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchConversations();
+    fetchAllVendors();
     const handleResize = () => setIsMobileView(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [fetchConversations]);
+  }, [fetchConversations, fetchAllVendors]);
+
+  // Socket setup
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("message received", (newMessage) => {
+      if (!selectedConvId || selectedConvId !== newMessage.conversation_id) {
+        // Notification logic if not in the current chat
+        fetchConversations();
+      } else {
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    });
+
+    return () => {
+      socket.off("message received");
+    };
+  }, [socket, selectedConvId, fetchConversations]);
 
   useEffect(() => {
     if (!selectedConvId) return;
@@ -67,8 +100,7 @@ const VendorMessages = () => {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
+    // No more manual polling - socket handles real-time!
   }, [selectedConvId, token]);
 
   const scrollToBottom = () => {
@@ -173,70 +205,149 @@ const VendorMessages = () => {
             <h2 className="text-xl font-bold tracking-tight">Inbox</h2>
           </div>
 
-          <div className="relative group">
+          <div className="relative group mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 group-focus-within:text-emerald-300 transition" />
             <input
               type="text"
-              placeholder="Search customers..."
+              placeholder={activeTab === 'chats' ? "Search customers..." : "Search vendors..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`${fieldShell} pl-11`}
             />
           </div>
+
+          <div className="flex p-1 bg-white/5 rounded-xl border border-white/5">
+            <button
+              onClick={() => setActiveTab("chats")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition ${activeTab === 'chats' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white/60'}`}
+            >
+              <MessageCircle size={14} />
+              Conversations
+            </button>
+            <button
+              onClick={() => setActiveTab("vendors")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition ${activeTab === 'vendors' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white/60'}`}
+            >
+              <Users size={14} />
+              All Vendors
+            </button>
+          </div>
         </div>
 
         {/* List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-          {filteredConversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-center p-6 bg-white/2 rounded-3xl mt-4 mx-2">
-              <div className="p-4 rounded-full bg-white/5 mb-4">
-                <MessageCircle className="h-8 w-8 text-white/20" />
+          {activeTab === "chats" ? (
+            filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-center p-6 bg-white/2 rounded-3xl mt-4 mx-2">
+                <div className="p-4 rounded-full bg-white/5 mb-4">
+                  <MessageCircle className="h-8 w-8 text-white/20" />
+                </div>
+                <p className="text-white/40 text-sm">No customers found</p>
               </div>
-              <p className="text-white/40 text-sm">No customers found</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {filteredConversations.map((conv) => (
-                <button
-                  key={conv.conversation_id}
-                  onClick={() => handleSelectConversation(conv)}
-                  className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border border-transparent ${
-                    selectedConvId === conv.conversation_id
-                      ? "bg-emerald-500/10 border-emerald-500/20 shadow-lg"
-                      : "hover:bg-white/5 hover:border-white/5"
-                  }`}
-                >
-                  {selectedConvId === conv.conversation_id && (
-                    <div className="absolute left-0 top-4 bottom-4 w-1 bg-emerald-400 rounded-full" />
-                  )}
-                  
-                  <div className="relative">
-                    <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-300 font-bold uppercase overflow-hidden">
-                      {conv.other_user_pic ? (
-                        <img src={conv.other_user_pic} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        conv.other_user_name?.charAt(0)
+            ) : (
+              <div className="space-y-1">
+                {filteredConversations.map((conv) => (
+                  <button
+                    key={conv.conversation_id}
+                    onClick={() => handleSelectConversation(conv)}
+                    className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border border-transparent ${
+                      selectedConvId === conv.conversation_id
+                        ? "bg-emerald-500/10 border-emerald-500/20 shadow-lg"
+                        : "hover:bg-white/5 hover:border-white/5"
+                    }`}
+                  >
+                    {selectedConvId === conv.conversation_id && (
+                      <div className="absolute left-0 top-4 bottom-4 w-1 bg-emerald-400 rounded-full" />
+                    )}
+                    
+                    <div className="relative">
+                      <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-300 font-bold uppercase overflow-hidden">
+                        {conv.other_user_pic ? (
+                          <img src={conv.other_user_pic} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          conv.other_user_name?.charAt(0)
+                        )}
+                      </div>
+                      {conv.unread_count > 0 && (
+                        <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full ring-2 ring-[#04110d]" />
                       )}
                     </div>
-                    {conv.unread_count > 0 && (
-                      <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full ring-2 ring-[#04110d]" />
-                    )}
-                  </div>
 
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex justify-between items-center mb-0.5">
-                      <h3 className="font-semibold text-white/90 truncate">
-                        {conv.other_user_name || "Unknown"}
-                      </h3>
-                      <span className="text-[10px] text-white/30 uppercase tracking-widest">
-                        {conv.last_message_time ? new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                      </span>
+                    <div className="flex-1 text-left min-w-0">
+                      <div className="flex justify-between items-center mb-0.5">
+                        <h3 className="font-semibold text-white/90 truncate">
+                          {conv.other_user_name || "Unknown"}
+                        </h3>
+                        <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                          {conv.last_message_time ? new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/40 truncate leading-relaxed">
+                        {conv.last_message || "Start conversation..."}
+                      </p>
                     </div>
-                    <p className="text-xs text-white/40 truncate leading-relaxed">
-                      {conv.last_message || "Start conversation..."}
-                    </p>
-                  </div>
-                </button>
+                  </button>
+                ))}
+              </div>
+            )
+          ) : (
+            /* ALL VENDORS TAB */
+            <div className="space-y-1">
+              {allVendors
+                .filter(v => v.vendor_name.toLowerCase().includes(searchTerm.toLowerCase()) || (v.store_name || "").toLowerCase().includes(searchTerm.toLowerCase()))
+                .map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={async () => {
+                      if (v.id === user.id) return;
+                      try {
+                        const res = await axios.post(
+                          `${API_URL}/api/vendor/messages/conversation/start`,
+                          { vendor_id: v.id },
+                          { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        if (res.data.success) {
+                          const convId = res.data.data.conversationId;
+                          setActiveTab("chats");
+                          await fetchConversations();
+                          setSelectedConvId(convId);
+                          setCurrentConversation({
+                            conversation_id: convId,
+                            other_user_id: v.id,
+                            other_user_name: v.store_name || v.vendor_name,
+                            other_user_pic: v.profile_image
+                          });
+                        }
+                      } catch (err) {
+                        console.error("Error starting conversation:", err);
+                        setError("Could not start conversation");
+                      }
+                    }}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border border-transparent hover:bg-white/5 hover:border-white/5 active:scale-[0.98]"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-500/30 text-teal-300 font-bold uppercase overflow-hidden">
+                      {v.profile_image ? (
+                        <img src={v.profile_image} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Store size={20} />
+                      )}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="font-semibold text-white/90 leading-tight mb-1">
+                        {v.store_name || v.vendor_name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-widest">
+                        <User size={10} />
+                        <span>{v.vendor_name}</span>
+                        {v.city && (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-white/10" />
+                            <span>{v.city}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </button>
               ))}
             </div>
           )}
