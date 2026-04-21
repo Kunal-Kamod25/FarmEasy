@@ -43,6 +43,8 @@ router.get("/sales-summary", verifyToken, vendorController.getSalesSummary);
 // ========== PROFILE ==========
 // vendor profile reads from users + seller table joined
 router.get("/profile", verifyToken, vendorController.getProfile);
+// vendor list for messaging discovery
+router.get("/list", verifyToken, vendorController.getVendorList);
 // profile update supports optional profile_image file upload via multer
 router.put("/profile", verifyToken, upload.single("profile_image"), vendorController.updateProfile);
 

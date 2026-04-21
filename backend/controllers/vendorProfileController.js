@@ -72,6 +72,35 @@ exports.getProfile = async (req, res) => {
 };
 
 // ===========================================================================
+// GET ALL VENDORS (List for messaging discovery)
+// ===========================================================================
+exports.getVendorList = async (req, res) => {
+  try {
+    const [vendors] = await db.query(`
+      SELECT 
+        u.id,
+        u.full_name as vendor_name,
+        u.profile_pic as profile_image,
+        s.shop_name as store_name,
+        u.city,
+        u.state
+      FROM users u
+      JOIN seller s ON s.user_id = u.id
+      WHERE u.role = 'vendor'
+      ORDER BY s.shop_name ASC
+    `);
+
+    res.json({
+      success: true,
+      data: vendors
+    });
+  } catch (error) {
+    console.error("getVendorList error:", error);
+    res.status(500).json({ success: false, message: "Server error fetching vendor list" });
+  }
+};
+
+// ===========================================================================
 // UPDATE VENDOR PROFILE
 // ===========================================================================
 exports.updateProfile = async (req, res) => {
