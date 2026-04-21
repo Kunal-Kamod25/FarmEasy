@@ -19,6 +19,7 @@ module.exports = {
 
   // ===== PROFILE MANAGEMENT =====
   getProfile: vendorProfileController.getProfile,
+  getVendorList: vendorProfileController.getVendorList,
   updateProfile: vendorProfileController.updateProfile,
 
   // ===== DASHBOARD & ANALYTICS =====

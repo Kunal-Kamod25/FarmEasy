@@ -6,6 +6,7 @@
 
 const db = require("../config/db");
 const crypto = require("crypto");
+const { emitNewMessage } = require("../socketManager");
 
 // ===== GET CONVERSATIONS LIST =====
 exports.getConversations = async (req, res) => {
@@ -153,13 +154,24 @@ exports.sendMessage = async (req, res) => {
       [conversationId, sender_id, receiver_id, product_id || null, message_text, attachment_url || null]
     );
 
+    const newMessage = {
+      id: result.insertId,
+      conversation_id: conversationId,
+      sender_id,
+      receiver_id,
+      product_id: product_id || null,
+      message_text,
+      attachment_url: attachment_url || null,
+      created_at: new Date()
+    };
+
+    // Emit via socket
+    emitNewMessage(newMessage);
+
     res.json({
       success: true,
       message: "Message sent",
-      data: {
-        messageId: result.insertId,
-        conversationId,
-      },
+      data: newMessage
     });
   } catch (error) {
     console.error("Error sending message:", error);

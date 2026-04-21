@@ -216,6 +216,7 @@
           pc.product_cat_name AS category_name,
           s.shop_name,
           s.id AS seller_table_id,
+          u.id AS vendor_id,
           u.full_name AS seller_name,
           u.city AS seller_city,
           u.state AS seller_state
