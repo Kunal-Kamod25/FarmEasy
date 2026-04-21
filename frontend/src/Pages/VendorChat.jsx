@@ -6,6 +6,7 @@ import {
   Send, Loader, X, ArrowLeft, MessageCircle, Search, 
   Sprout, Sparkles, User, Clock, Check, ShieldCheck
 } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
 
 const VendorChat = () => {
   const { conversationId } = useParams();
@@ -22,6 +23,7 @@ const VendorChat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const { socket } = useSocket();
 
   useEffect(() => {
     if (!token) {
@@ -52,6 +54,24 @@ const VendorChat = () => {
     fetchConversations();
   }, [token, conversationId, navigate]);
 
+  // Socket logic for real-time messages
+  useEffect(() => {
+    if (!socket || !conversationId) return;
+
+    // Join the conversation room
+    socket.emit("join chat", conversationId);
+
+    socket.on("message received", (newMessage) => {
+      if (newMessage.conversation_id === conversationId) {
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    });
+
+    return () => {
+      socket.off("message received");
+    };
+  }, [socket, conversationId]);
+
   useEffect(() => {
     if (!currentConversation || !conversationId) return;
 
@@ -68,8 +88,7 @@ const VendorChat = () => {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
+    // Socket handles real-time updates now!
   }, [currentConversation, conversationId, token]);
 
   const scrollToBottom = () => {

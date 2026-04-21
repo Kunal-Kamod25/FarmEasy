@@ -27,7 +27,7 @@ import { API_URL, getImageUrl } from '../config';
 import {
   ArrowLeft, ShoppingCart, Heart, Store, Package,
   MapPin, Star, CheckCircle, AlertCircle, Truck,
-  Shield, Plus, Minus
+  Shield, Plus, Minus, MessageSquare
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -120,6 +120,29 @@ const ProductDetailPage = () => {
       return;
     }
     toggleWishlist(product);
+  };
+  
+  const handleContactSeller = async () => {
+    if (!token) {
+      setLoginMessage("Please login to message the seller");
+      setShowLoginModal(true);
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/messages/conversation/start`,
+        { vendor_id: product.vendor_id, product_id: product.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        navigate(`/chat/${res.data.data.conversationId}`);
+      }
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError("Could not start conversation with seller");
+    }
   };
 
   const incrementQty = () => {
@@ -486,9 +509,18 @@ const ProductDetailPage = () => {
                 )}
               </div>
             </div>
-            <button className="px-6 py-2 text-emerald-600 font-bold border border-emerald-600 rounded-lg hover:bg-emerald-50 transition">
-              View Store
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleContactSeller}
+                className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2"
+              >
+                <MessageSquare size={16} />
+                Chat with Seller
+              </button>
+              <button className="px-6 py-2 text-emerald-600 font-bold border border-emerald-600 rounded-lg hover:bg-emerald-50 transition">
+                View Store
+              </button>
+            </div>
           </div>
         </div>
 

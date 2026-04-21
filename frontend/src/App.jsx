@@ -3,6 +3,7 @@ import AppRoutes from "./routes/AppRoutes";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { LanguageProvider } from "./context/language/LanguageContext";
+import { SocketProvider } from "./context/SocketContext";
 import { setupAxiosInterceptors } from "./utils/axiosConfig";
 
 const App = () => {
@@ -14,7 +15,9 @@ const App = () => {
     <LanguageProvider>
       <CartProvider>
         <WishlistProvider>
-          <AppRoutes />
+          <SocketProvider>
+            <AppRoutes />
+          </SocketProvider>
         </WishlistProvider>
       </CartProvider>
     </LanguageProvider>
