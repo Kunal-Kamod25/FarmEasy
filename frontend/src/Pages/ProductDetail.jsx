@@ -41,12 +41,21 @@ const ProductDetail = () => {
         const prodRes = await axios.get(`${API_URL}/api/products/${productId}`);
         setProduct(prodRes.data);
 
-        // Fetch reviews
-        const reviewRes = await axios.get(
-          `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=${sortBy}`
-        );
-        setReviews(reviewRes.data.data.reviews || []);
-        setReviewStats(reviewRes.data.data.statistics);
+        // Fetch reviews (separate try-catch so reviews not loading doesn't break product load)
+        try {
+          const reviewRes = await axios.get(
+            `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=${sortBy}`
+          );
+          if (reviewRes.data?.data?.reviews) {
+            setReviews(reviewRes.data.data.reviews);
+            setReviewStats(reviewRes.data.data.statistics);
+          }
+        } catch (reviewErr) {
+          console.warn("Could not load reviews:", reviewErr.message);
+          // Don't fail product load if reviews fail
+          setReviews([]);
+          setReviewStats(null);
+        }
       } catch (err) {
         console.error("Error fetching product:", err);
         setError(err.response?.data?.error || "Failed to load product");
@@ -65,10 +74,13 @@ const ProductDetail = () => {
       const res = await axios.get(
         `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=${newSort}`
       );
-      setReviews(res.data.data.reviews);
-      setCurrentPage(1);
+      if (res.data?.data?.reviews) {
+        setReviews(res.data.data.reviews);
+        setCurrentPage(1);
+      }
     } catch (err) {
-      console.error("Error fetching reviews:", err);
+      console.warn("Error fetching reviews:", err);
+      // Don't fail, just show warning
     }
   };
 
@@ -99,11 +111,17 @@ const ProductDetail = () => {
       );
 
       // Refresh reviews
-      const reviewRes = await axios.get(
-        `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=newest`
-      );
-      setReviews(reviewRes.data.data.reviews);
-      setReviewStats(reviewRes.data.data.statistics);
+      try {
+        const reviewRes = await axios.get(
+          `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=newest`
+        );
+        if (reviewRes.data?.data?.reviews) {
+          setReviews(reviewRes.data.data.reviews);
+          setReviewStats(reviewRes.data.data.statistics);
+        }
+      } catch (err) {
+        console.warn("Could not refresh reviews:", err.message);
+      }
 
       // Reset form
       setUserRating(0);

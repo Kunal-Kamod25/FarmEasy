@@ -2,21 +2,22 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import { Bell, Check, Trash2, Loader, Package, AlertTriangle, TrendingUp } from "lucide-react";
+import { 
+  Bell, Check, Trash2, Loader, Package, AlertTriangle, 
+  TrendingUp, ArrowLeft, MoreVertical, X, Filter, Sparkles, Sprout
+} from "lucide-react";
 
 const VendorNotifications = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // ===== STATE =====
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all"); // all, unread
+  const [filter, setFilter] = useState("all"); 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // ===== FETCH NOTIFICATIONS =====
   useEffect(() => {
     if (!token || user.role !== "vendor") {
       navigate("/login");
@@ -42,14 +43,10 @@ const VendorNotifications = () => {
     };
 
     fetchNotifications();
-
-    // Refresh every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-
     return () => clearInterval(interval);
   }, [token, user, filter, navigate]);
 
-  // ===== MARK AS READ =====
   const handleMarkAsRead = async (notificationId) => {
     try {
       await axios.patch(
@@ -57,12 +54,8 @@ const VendorNotifications = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Update local state
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
       );
       setUnreadCount(Math.max(0, unreadCount - 1));
     } catch (err) {
@@ -70,7 +63,6 @@ const VendorNotifications = () => {
     }
   };
 
-  // ===== MARK ALL AS READ =====
   const handleMarkAllAsRead = async () => {
     try {
       await axios.patch(
@@ -78,31 +70,20 @@ const VendorNotifications = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Update local state
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (err) {
       console.error("Error marking all read:", err);
     }
   };
 
-  // ===== DELETE NOTIFICATION =====
   const handleDelete = async (notificationId) => {
     try {
-      await axios.delete(
-        `${API_URL}/api/notifications/${notificationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Update local state
+      await axios.delete(`${API_URL}/api/notifications/${notificationId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const deleted = notifications.find((n) => n.id === notificationId);
-      setNotifications((prev) =>
-        prev.filter((n) => n.id !== notificationId)
-      );
-
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
       if (deleted && !deleted.is_read) {
         setUnreadCount(Math.max(0, unreadCount - 1));
       }
@@ -111,49 +92,35 @@ const VendorNotifications = () => {
     }
   };
 
-  // ===== GET NOTIFICATION ICON =====
   const getNotificationIcon = (type) => {
     switch (type) {
       case "new_order":
-        return <Package size={24} className="text-blue-600" />;
+        return <div className="p-2.5 rounded-2xl bg-blue-500/20 text-blue-300"><Package size={24} /></div>;
       case "low_stock":
-        return <AlertTriangle size={24} className="text-amber-600" />;
+        return <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-300"><AlertTriangle size={24} /></div>;
       case "order_status_change":
-        return <TrendingUp size={24} className="text-emerald-600" />;
+        return <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300"><TrendingUp size={24} /></div>;
       default:
-        return <Bell size={24} className="text-gray-600" />;
+        return <div className="p-2.5 rounded-2xl bg-white/10 text-white/60"><Bell size={24} /></div>;
     }
   };
 
-  // ===== GET NOTIFICATION COLOR =====
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case "new_order":
-        return "bg-blue-50 border-blue-200";
-      case "low_stock":
-        return "bg-yellow-50 border-yellow-200";
-      case "order_status_change":
-        return "bg-green-50 border-green-200";
-      default:
-        return "bg-gray-50 border-gray-200";
-    }
-  };
-
-  // ===== HANDLE NOTIFICATION CLICK =====
   const handleNotificationClick = async (notification) => {
     if (!notification.is_read) {
       await handleMarkAsRead(notification.id);
     }
-
     if (notification.action_url) {
       navigate(notification.action_url);
     }
   };
 
-  if (loading) {
+  if (loading && notifications.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader className="w-12 h-12 animate-spin text-emerald-600" />
+      <div className="flex min-h-screen items-center justify-center bg-[#04110d]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-12 h-12 animate-spin text-emerald-400" />
+          <p className="text-white/40 text-sm font-Lora tracking-widest uppercase">Fetching Alerts</p>
+        </div>
       </div>
     );
   }
@@ -163,184 +130,143 @@ const VendorNotifications = () => {
     : notifications;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#04110d] font-Lora text-white overflow-x-hidden relative">
+      {/* DECORATIONS */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:64px_64px]" />
+      <div className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute right-0 bottom-40 h-80 w-80 rounded-full bg-teal-500/10 blur-[100px] pointer-events-none" />
+
+      <main className="max-w-4xl mx-auto py-12 px-6 relative z-10">
+        
         {/* HEADER */}
-        <div className="bg-white rounded-t-lg p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Bell size={32} className="text-emerald-600" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                Notifications
-              </h1>
-            </div>
-
-            {unreadCount > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center px-4 py-2 text-lg font-bold bg-emerald-600 text-white rounded-full">
-                  {unreadCount} Unread
-                </span>
-
-                {notifications.some((n) => !n.is_read) && (
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
-                  >
-                    Mark All as Read
-                  </button>
-                )}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <div className="flex items-center gap-4">
+             <button
+              onClick={() => navigate(-1)}
+              className="p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-1">
+                <Sparkles size={12} /> Live Updates
               </div>
-            )}
+              <h1 className="text-4xl font-bold tracking-tight">Notifications</h1>
+            </div>
           </div>
 
-          {/* FILTERS */}
-          <div className="flex gap-4">
-            <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                filter === "all"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-              All ({notifications.length})
-            </button>
-            <button
-              onClick={() => setFilter("unread")}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                filter === "unread"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-              Unread ({unreadCount})
-            </button>
+          <div className="flex items-center gap-3">
+             {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
+                >
+                  Mark all as read
+                </button>
+             )}
           </div>
         </div>
 
-        {/* NOTIFICATIONS LIST */}
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-600 text-red-700 p-4 mb-4">
-            <p className="font-bold">Error</p>
-            <p>{error}</p>
-          </div>
-        )}
+        {/* FILTERS */}
+        <div className="flex items-center gap-3 p-1.5 rounded-2xl bg-white/5 border border-white/5 w-fit mb-8 backdrop-blur-xl">
+           <button
+             onClick={() => setFilter("all")}
+             className={`px-6 py-1.5 rounded-[14px] text-xs font-bold transition-all ${filter === "all" ? "bg-white/10 text-white shadow-xl" : "text-white/40 hover:text-white/70"}`}
+           >
+             All ({notifications.length})
+           </button>
+           <button
+             onClick={() => setFilter("unread")}
+             className={`px-6 py-1.5 rounded-[14px] text-xs font-bold transition-all ${filter === "unread" ? "bg-white/10 text-white shadow-xl" : "text-white/40 hover:text-white/70"}`}
+           >
+             Unread ({unreadCount})
+           </button>
+        </div>
 
-        {displayNotifications && displayNotifications.length > 0 ? (
-          <div className="bg-white rounded-b-lg shadow divide-y">
-            {displayNotifications.map((notification) => (
+        {/* LIST */}
+        <div className="space-y-4">
+          {displayNotifications.length === 0 ? (
+            <div className="rounded-[2.5rem] border border-white/10 bg-white/5 p-16 text-center backdrop-blur-2xl">
+              <div className="mx-auto w-24 h-24 rounded-[3rem] bg-white/5 border border-white/5 flex items-center justify-center mb-6 shadow-2xl">
+                 <Bell size={40} className="text-white/20" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No alerts found</h3>
+              <p className="text-white/40 max-w-xs mx-auto text-sm leading-relaxed">
+                We'll notify you when someone places an order or sends you a query.
+              </p>
+            </div>
+          ) : (
+            displayNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-6 border-2 ${getNotificationColor(
-                  notification.type
-                )} cursor-pointer transition hover:shadow-md ${
-                  !notification.is_read ? "border-l-4 border-emerald-600" : ""
-                }`}
                 onClick={() => handleNotificationClick(notification)}
+                className={`group relative rounded-[2.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl transition-all duration-300 hover:bg-white/8 hover:-translate-y-1 cursor-pointer overflow-hidden ${!notification.is_read ? "border-l-4 border-l-emerald-400" : ""}`}
               >
-                <div className="flex items-start justify-between">
-                  {/* LEFT: ICON + CONTENT */}
-                  <div className="flex items-start gap-4 flex-1">
-                    {getNotificationIcon(notification.type)}
+                  {/* UNREAD GLOW */}
+                  {!notification.is_read && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.5)]" />
+                  )}
 
-                    <div className="flex-1">
-                      <h3
-                        className={`font-bold text-lg ${
-                          !notification.is_read
-                            ? "text-gray-900 text-xl"
-                            : "text-gray-700"
-                        }`}
-                      >
+                <div className="flex items-start gap-6">
+                  {getNotificationIcon(notification.type)}
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className={`font-bold truncate pr-6 ${!notification.is_read ? "text-white text-xl" : "text-white/70"}`}>
                         {notification.title}
                       </h3>
-
-                      <p className="text-gray-600 mt-1 leading-relaxed">
-                        {notification.message}
-                      </p>
-
-                      <p className="text-xs text-gray-500 mt-3">
-                        {new Date(notification.created_at).toLocaleDateString()}{" "}
-                        at{" "}
-                        {new Date(notification.created_at).toLocaleTimeString(
-                          [],
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
-                      </p>
-
-                      {/* RELATED LINK */}
-                      {notification.action_url && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(notification.action_url);
-                          }}
-                          className="mt-3 inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold"
-                        >
-                          View Details →
-                        </button>
-                      )}
+                      <span className="text-[10px] text-white/30 uppercase tracking-widest font-sans flex items-center gap-1.5 shrink-0">
+                         <Clock size={10} /> 
+                         {new Date(notification.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* RIGHT: STATUS & ACTIONS */}
-                  <div className="flex items-center gap-3 ml-4">
-                    {!notification.is_read && (
-                      <div className="flex-shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMarkAsRead(notification.id);
-                          }}
-                          className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition"
-                          title="Mark as read"
-                        >
-                          <Check size={20} />
-                        </button>
-                      </div>
-                    )}
+                    <p className="text-white/50 text-sm leading-relaxed mb-4">
+                      {notification.message}
+                    </p>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(notification.id);
-                      }}
-                      className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition flex-shrink-0"
-                      title="Delete notification"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                    <div className="flex items-center justify-between">
+                       {notification.action_url && (
+                          <span className="text-emerald-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2 group-hover:gap-3 transition-all">
+                             Respond to alert <ArrowRight size={12} />
+                          </span>
+                       )}
+                       
+                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                          {!notification.is_read && (
+                             <button
+                               onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notification.id); }}
+                               className="p-2 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition"
+                               title="Mark as read"
+                             >
+                               <Check size={16} />
+                             </button>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(notification.id); }}
+                            className="p-2 rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                       </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-b-lg p-12 text-center">
-            <Bell size={48} className="text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">
-              No notifications yet
-            </h3>
-            <p className="text-gray-600">
-              {filter === "unread"
-                ? "You are all caught up!"
-                : "Check back later for updates about your orders and products."}
-            </p>
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
-        {/* PAGINATION INFO */}
+        {/* SUMMARY */}
         {displayNotifications.length > 0 && (
-          <div className="mt-6 text-center text-sm text-gray-600 py-4 bg-white rounded">
-            <p>
-              Showing {displayNotifications.length} of {notifications.length}{" "}
-              notifications
-            </p>
+          <div className="mt-12 text-center">
+             <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-white/5 bg-white/2 backdrop-blur-xl text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">
+                Showing {displayNotifications.length} Active System Alerts
+             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

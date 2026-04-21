@@ -155,10 +155,11 @@ const Profile = () => {
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-[#04110d] py-10 px-4 md:px-8 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.14),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(45,212,191,0.14),_transparent_28%),linear-gradient(145deg,_#03110c_0%,_#072117_45%,_#0b2d20_100%)]">
+            <div className="max-w-6xl mx-auto relative">
+                <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:68px_68px]" />
 
-                <div className="mt-10 flex flex-col lg:flex-row gap-8">
+                <div className="mt-10 flex flex-col lg:flex-row gap-8 relative z-10">
 
                     <ProfileSidebar
                         activeTab={activeTab}

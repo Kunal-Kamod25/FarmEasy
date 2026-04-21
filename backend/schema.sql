@@ -140,6 +140,7 @@ CREATE TABLE `product` (
   `product_name` varchar(255) NOT NULL,
   `product_description` text,
   `product_type` varchar(100) DEFAULT NULL,
+  `product_image` varchar(500) DEFAULT NULL,
   `product_quantity` int DEFAULT '0',
   `price` decimal(10,2) DEFAULT NULL,
   `seller_id` int NOT NULL,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_URL } from '../../config';
@@ -90,11 +90,23 @@ const AllProductsPage = () => {
                     axios.get(`${API_URL}/api/products/meta/types`),
                     axios.get(`${API_URL}/api/products/meta/sellers`)
                 ]);
-                setCategories(catRes.data);
-                setProductTypes(typeRes.data);
-                setSellers(sellerRes.data);
+                
+                // Fix: Extract data correctly from the response object
+                const catData = catRes.data?.data || catRes.data || [];
+                setCategories(Array.isArray(catData) ? catData : []);
+
+                const typeData = typeRes.data?.data || typeRes.data || [];
+                setProductTypes(Array.isArray(typeData) ? typeData : []);
+
+                const sellerData = sellerRes.data?.data || sellerRes.data || [];
+                setSellers(Array.isArray(sellerData) ? sellerData : []);
+                
             } catch (err) {
                 console.error("Failed to load filter data:", err);
+                // Fallback to empty arrays on error
+                setCategories([]);
+                setProductTypes([]);
+                setSellers([]);
             }
         };
         fetchFilterMeta();
@@ -137,6 +149,27 @@ const AllProductsPage = () => {
     const hasActiveFilters = Object.entries(filters).some(
         ([key, val]) => key !== "sort" && val !== ""
     );
+
+    const groupedProducts = useMemo(() => {
+        const groups = new Map();
+
+        products.forEach((product) => {
+            const groupKey = product.category_id ?? product.category_name ?? "uncategorized";
+            const groupLabel = td(product.category_name || product.category || "Uncategorized");
+
+            if (!groups.has(groupKey)) {
+                groups.set(groupKey, {
+                    key: groupKey,
+                    label: groupLabel,
+                    items: []
+                });
+            }
+
+            groups.get(groupKey).items.push(product);
+        });
+
+        return Array.from(groups.values());
+    }, [products, td]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-amber-50/20 to-teal-50">
@@ -231,9 +264,9 @@ const AllProductsPage = () => {
                                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
                                 >
                                     <option value="">{t("products.allCategories")}</option>
-                                    {categories.map(cat => (
+                                    {Array.isArray(categories) && categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>
-                                            {td(cat.product_cat_name)}
+                                            {td(cat.name || cat.product_cat_name)}
                                         </option>
                                     ))}
                                 </select>
@@ -382,15 +415,31 @@ const AllProductsPage = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                                {products.map(product => (
-                                    <AllProductsProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onToggleWishlist={toggleWishlist}
-                                        isWishlisted={isWishlisted(product.id)}
-                                        onViewDetail={() => navigate(`/product/${product.id}`)}
-                                    />
+                            <div className="space-y-10">
+                                {groupedProducts.map((group) => (
+                                    <section key={group.key} className="space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <h2 className="text-sm font-black text-emerald-700 uppercase tracking-[0.2em]">
+                                                {group.label}
+                                            </h2>
+                                            <div className="flex-1 h-px bg-gradient-to-r from-emerald-200 to-transparent" />
+                                            <span className="text-[10px] font-bold text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-100 shadow-sm">
+                                                {group.items.length} ITEMS
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                                            {group.items.map((product) => (
+                                                <AllProductsProductCard
+                                                    key={product.id}
+                                                    product={product}
+                                                    onToggleWishlist={toggleWishlist}
+                                                    isWishlisted={isWishlisted(product.id)}
+                                                    onViewDetail={() => navigate(`/product/${product.id}`)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </section>
                                 ))}
                             </div>
                         )}

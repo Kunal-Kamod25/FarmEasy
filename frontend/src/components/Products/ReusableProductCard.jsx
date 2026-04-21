@@ -75,7 +75,7 @@ const ReusableProductCard = ({
               <img
                 src={imageSrc}
                 alt={productName}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 onError={(e) => {
                   e.target.style.display = "none";
                   e.target.nextSibling.style.display = "flex";

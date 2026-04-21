@@ -4,6 +4,34 @@
 
 
   // =====================================================
+  // GET PRODUCTS BY CATEGORY (must come BEFORE /:id)
+  // =====================================================
+  router.get("/category/:id", async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+
+      const [rows] = await db.query(`
+        SELECT 
+          p.*,
+          pc.product_cat_name,
+          s.shop_name,
+          u.full_name AS seller_name
+        FROM product p
+        JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN seller s ON p.seller_id = s.id
+        LEFT JOIN users u ON s.user_id = u.id
+        WHERE p.category_id = ?
+        ORDER BY p.created_at DESC
+      `, [categoryId]);
+
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching category products:", error);
+      res.status(500).json({ message: "Database error" });
+    }
+  });
+
+  // =====================================================
   // GET ALL PRODUCTS - with optional filters
   // 
   // Query params you can use:
@@ -129,85 +157,6 @@
 
 
   // =====================================================
-  // GET SINGLE PRODUCT DETAIL
-  // includes seller info and category, used by product detail page
-  // =====================================================
-  router.get("/:id", async (req, res) => {
-    try {
-      const productId = req.params.id;
-
-      const [rows] = await db.query(`
-        SELECT 
-          p.*,
-          pc.product_cat_name AS category_name,
-          s.shop_name,
-          s.id AS seller_table_id,
-          u.full_name AS seller_name,
-          u.city AS seller_city,
-          u.state AS seller_state
-        FROM product p
-        LEFT JOIN product_category pc ON p.category_id = pc.id
-        LEFT JOIN seller s ON p.seller_id = s.id
-        LEFT JOIN users u ON s.user_id = u.id
-        WHERE p.id = ?
-      `, [productId]);
-
-      if (!rows.length) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-
-      // also get other products from the same seller so we can show "More from this seller" section
-      const product = rows[0];
-      const [moreFromSeller] = await db.query(`
-        SELECT id, product_name, price, product_quantity, product_type, product_image
-        FROM product
-        WHERE seller_id = ? AND id != ?
-        LIMIT 4
-      `, [product.seller_id, productId]);
-
-      res.json({
-        ...product,
-        moreFromSeller
-      });
-
-    } catch (error) {
-      console.error("Error fetching product detail:", error);
-      res.status(500).json({ message: "Database error" });
-    }
-  });
-
-
-  // =====================================================
-  // GET PRODUCTS BY CATEGORY (already existed but keeping it clean)
-  // =====================================================
-  router.get("/category/:id", async (req, res) => {
-    try {
-      const categoryId = req.params.id;
-
-      const [rows] = await db.query(`
-        SELECT 
-          p.*,
-          pc.product_cat_name,
-          s.shop_name,
-          u.full_name AS seller_name
-        FROM product p
-        JOIN product_category pc ON p.category_id = pc.id
-        LEFT JOIN seller s ON p.seller_id = s.id
-        LEFT JOIN users u ON s.user_id = u.id
-        WHERE p.category_id = ?
-        ORDER BY p.created_at DESC
-      `, [categoryId]);
-
-      res.json(rows);
-
-    } catch (error) {
-      console.error("Error fetching products by category:", error);
-      res.status(500).json({ message: "Database error" });
-    }
-  });
-
-
-  // =====================================================
   // GET ALL DISTINCT PRODUCT TYPES
   // frontend can use this to build the filter dropdown dynamically
   // =====================================================
@@ -249,6 +198,58 @@
     } catch (error) {
       console.error("Error fetching sellers:", error);
       res.status(500).json({ message: "Database error" });
+    }
+  });
+
+  // =====================================================
+  // GET SINGLE PRODUCT DETAIL (MUST BE LAST - catch-all)
+  // includes seller info and category, used by product detail page
+  // =====================================================
+  router.get("/:id", async (req, res) => {
+    try {
+      const productId = req.params.id;
+      console.log(`🔍 Fetching product with ID: ${productId}`);
+
+      const [rows] = await db.query(`
+        SELECT 
+          p.*,
+          pc.product_cat_name AS category_name,
+          s.shop_name,
+          s.id AS seller_table_id,
+          u.full_name AS seller_name,
+          u.city AS seller_city,
+          u.state AS seller_state
+        FROM product p
+        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN seller s ON p.seller_id = s.id
+        LEFT JOIN users u ON s.user_id = u.id
+        WHERE p.id = ?
+      `, [productId]);
+
+      if (!rows.length) {
+        console.log(`❌ Product ${productId} not found`);
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      console.log(`✅ Product ${productId} found`);
+      
+      // also get other products from the same seller so we can show "More from this seller" section
+      const product = rows[0];
+      const [moreFromSeller] = await db.query(`
+        SELECT id, product_name, price, product_quantity, product_type, product_image
+        FROM product
+        WHERE seller_id = ? AND id != ?
+        LIMIT 4
+      `, [product.seller_id, productId]);
+
+      res.json({
+        ...product,
+        moreFromSeller
+      });
+
+    } catch (error) {
+      console.error("❌ Error fetching product detail:", error.message);
+      res.status(500).json({ message: "Database error: " + error.message });
     }
   });
 

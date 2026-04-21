@@ -27,11 +27,10 @@ const NavItem = ({
     >
       {/* Title — click goes to category page, hover opens dropdown */}
       <div
-        className={`cursor-pointer text-white ${
-          isMobileLayout
+        className={`cursor-pointer text-white ${isMobileLayout
             ? "flex w-full items-center justify-between py-2.5"
             : "flex items-center gap-1 py-3 md:py-0.5"
-        }`}
+          }`}
         onClick={(e) => {
           e.stopPropagation();
           if (useTapInteraction && items && items.length > 0) {
@@ -44,11 +43,10 @@ const NavItem = ({
           }
         }}
       >
-        <span className={`hover:text-emerald-200 transition-colors text-nowrap ${
-          isMobileLayout
+        <span className={`hover:text-emerald-200 transition-colors text-nowrap ${isMobileLayout
             ? "text-[14px] font-semibold uppercase tracking-[0.03em]"
             : "text-[13px] font-semibold uppercase tracking-wide"
-        }`}>
+          }`}>
           {title}
         </span>
         {items && items.length > 0 && (
@@ -62,11 +60,10 @@ const NavItem = ({
       {/* Dropdown — shows products under this category */}
       {isOpen && items && items.length > 0 && (
         <div
-          className={`${
-            isMobileLayout
+          className={`${isMobileLayout
               ? "mt-1 mb-2 w-full bg-white/95 text-slate-800 rounded-lg shadow-lg max-h-52 overflow-y-auto border border-slate-200"
               : "absolute left-0 top-full w-56 bg-white text-slate-800 rounded-b-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-slate-100"
-          }`}
+            }`}
         >
           {/* first item: "View All" link for this category */}
           {onClick && (
@@ -75,9 +72,8 @@ const NavItem = ({
                 onClick();
                 if (onItemSelect) onItemSelect();
               }}
-              className={`w-full text-left py-2.5 text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-50 border-b border-slate-100 transition-colors ${
-                isMobileLayout ? "px-3" : "px-4"
-              }`}
+              className={`w-full text-left py-2.5 text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-50 border-b border-slate-100 transition-colors ${isMobileLayout ? "px-3" : "px-4"
+                }`}
             >
               View All {title} →
             </button>
@@ -90,11 +86,10 @@ const NavItem = ({
                     navigate(item.path);
                     if (onItemSelect) onItemSelect();
                   }}
-                  className={`w-full text-left hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors ${
-                    isMobileLayout
+                  className={`w-full text-left hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors ${isMobileLayout
                       ? "px-3 py-2 text-[13px] leading-snug font-semibold normal-case"
                       : "px-4 py-2.5 text-xs font-bold uppercase"
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </button>
@@ -172,21 +167,21 @@ const Thirdbar = () => {
         console.log("📡 Fetching categories from:", `${API}/api/categories`);
         const categoryRes = await axios.get(`${API}/api/categories`);
         console.log("📥 Categories response:", categoryRes.data);
-        
+
         // API returns: { success: true, data: [...] } where data is array of categories
         // Each category object includes subcategories array
         let categoryData = categoryRes.data?.data || categoryRes.data || [];
-        
+
         // If API returns { data: { categories: [...] } }, use that
         if (Array.isArray(categoryData) === false && categoryData.categories) {
           categoryData = categoryData.categories;
         }
-        
+
         // Ensure we have an array
         if (!Array.isArray(categoryData)) {
           categoryData = [];
         }
-        
+
         console.log("🔍 Parsed category data:", categoryData);
         console.log("📋 Categories found:", categoryData.length);
 
@@ -216,9 +211,9 @@ const Thirdbar = () => {
         console.log("📡 Fetching brands from:", `${API}/api/brands`);
         const brandsRes = await axios.get(`${API}/api/brands`);
         console.log("📥 Brands response:", brandsRes.data);
-        
+
         const brandsData = brandsRes.data?.data || brandsRes.data || [];
-        
+
         if (Array.isArray(brandsData) && brandsData.length > 0) {
           console.log("✅ Brands loaded:", brandsData.length);
           setBrands(brandsData);
@@ -341,11 +336,6 @@ const Thirdbar = () => {
               }
             />
           ))}
-        </div>
-
-        {/* Delivery info banner */}
-        <div className="hidden md:flex items-center gap-2 text-xs font-bold uppercase text-emerald-200">
-          <span>🚚</span> Free Delivery on orders over ₹3,000
         </div>
       </nav>
     </div>

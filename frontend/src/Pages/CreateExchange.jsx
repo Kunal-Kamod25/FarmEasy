@@ -9,7 +9,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
-import { Loader, MapPin, Upload } from "lucide-react";
+import { 
+  Loader, MapPin, Upload, Sprout, Sparkles, 
+  Leaf, ShieldCheck, ArrowLeft, ArrowRight,
+  Package, Search, Info, CheckCircle2
+} from "lucide-react";
 import ErrorNotification from "../components/Common/ErrorNotification";
 
 const CreateExchange = () => {
@@ -30,7 +34,7 @@ const CreateExchange = () => {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState("");
   const [images, setImages] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]); // Cloudinary URLs
+  const [imageUrls, setImageUrls] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState({});
@@ -38,14 +42,12 @@ const CreateExchange = () => {
 
   const token = localStorage.getItem("token");
 
-  // ===== REDIRECT IF NOT LOGGED IN =====
   useEffect(() => {
     if (!token) {
       navigate("/login");
     }
   }, [token, navigate]);
 
-  // ===== GET GPS LOCATION =====
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported");
@@ -64,20 +66,15 @@ const CreateExchange = () => {
     );
   };
 
-  // ===== HANDLE IMAGE SELECTION =====
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
-
-    // Limit to 3 images
     if (images.length + files.length > 3) {
       setGeneralError("Maximum 3 images allowed");
       return;
     }
-
     setImages([...images, ...files]);
   };
 
-  // ===== UPLOAD IMAGES TO AWS S3 VIA BACKEND =====
   const handleUploadImages = async () => {
     if (images.length === 0) {
       setGeneralError("Please select images first");
@@ -88,10 +85,9 @@ const CreateExchange = () => {
       setUploadingImages(true);
       setGeneralError("");
 
-      // Upload each image to backend S3
       const uploadPromises = images.map(async (image) => {
         const formDataImg = new FormData();
-        formDataImg.append("exchange_image", image); // Field name matches backend multer config
+        formDataImg.append("exchange_image", image);
 
         const res = await axios.post(
           `${API_URL}/api/exchange/upload-image`,
@@ -105,7 +101,7 @@ const CreateExchange = () => {
         );
 
         if (res.data.success) {
-          return res.data.imageUrl; // S3 URL returned from backend
+          return res.data.imageUrl;
         } else {
           throw new Error(res.data.error || "Upload failed");
         }
@@ -113,50 +109,35 @@ const CreateExchange = () => {
 
       const uploadedUrls = await Promise.all(uploadPromises);
       setImageUrls([...imageUrls, ...uploadedUrls]);
-      setImages([]); // Clear file input
+      setImages([]); 
     } catch (err) {
       console.error("Image upload error:", err);
-      setGeneralError(err.response?.data?.error || "Failed to upload images. Check backend logs.");
+      setGeneralError(err.response?.data?.error || "Failed to upload images.");
     } finally {
       setUploadingImages(false);
     }
   };
 
-  // ===== HANDLE FORM INPUT CHANGE =====
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
   };
 
-  // ===== VALIDATE FORM =====
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.offering_crop.trim()) {
-      newErrors.offering_crop = "Please specify crop you're offering";
-    }
-    if (!formData.offering_quantity || formData.offering_quantity <= 0) {
-      newErrors.offering_quantity = "Please enter valid quantity";
-    }
-    if (!formData.seeking_crop.trim()) {
-      newErrors.seeking_crop = "Please specify crop you're seeking";
-    }
-    if (!location) {
-      newErrors.location = "Please enable location to post listing";
-    }
-
+    if (!formData.offering_crop.trim()) newErrors.offering_crop = "Required";
+    if (!formData.offering_quantity || formData.offering_quantity <= 0) newErrors.offering_quantity = "Required";
+    if (!formData.seeking_crop.trim()) newErrors.seeking_crop = "Required";
+    if (!location) newErrors.location = "Enable GPS location";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ===== SUBMIT FORM =====
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       setGeneralError("Please fill in all required fields");
       return;
@@ -166,14 +147,13 @@ const CreateExchange = () => {
       setLoading(true);
       setGeneralError("");
 
-      // ===== CREATE LISTING =====
       const res = await axios.post(
         `${API_URL}/api/exchange/create`,
         {
           ...formData,
           latitude: location.latitude,
           longitude: location.longitude,
-          exchange_images: imageUrls, // Cloudinary URLs
+          exchange_images: imageUrls,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -181,349 +161,276 @@ const CreateExchange = () => {
       );
 
       if (res.data.success) {
-        navigate("/exchange"); // Go back to marketplace
+        navigate("/exchange");
       }
     } catch (err) {
-      console.error("Submit error:", err);
-      setGeneralError(err.response?.data?.error || err.message || "Failed to create listing");
+      setGeneralError(err.response?.data?.error || "Failed to create listing");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* ERROR NOTIFICATION */}
-        {generalError && (
-          <ErrorNotification 
-            message={generalError} 
-            onClose={() => setGeneralError("")} 
-          />
-        )}
+  const fieldShell =
+    "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-emerald-300/60 focus:bg-white/10 focus:ring-2 focus:ring-emerald-200/20";
 
-        {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🌾 Post Crop Exchange Listing
-          </h1>
-          <p className="text-gray-600">
-            Tell other farmers what you're offering and what you need
+  return (
+    <div className="min-h-screen bg-[#04110d] lg:grid lg:grid-cols-[1.05fr_0.95fr] font-Lora text-white">
+      {/* LEFT: DECORATIVE PANEL */}
+      <aside className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.18),_transparent_32%),radial-gradient(circle_at_80%_18%,_rgba(45,212,191,0.16),_transparent_28%),linear-gradient(135deg,_#02110b_0%,_#041b13_45%,_#0a2a1d_100%)] px-6 py-10 text-white lg:min-h-screen lg:border-b-0 lg:border-r lg:px-12 lg:py-12">
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute -left-20 top-8 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-teal-300/10 blur-3xl" />
+
+        <div className="relative flex min-h-[280px] flex-col justify-between lg:min-h-[calc(100vh-6rem)]">
+          <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/80 backdrop-blur-xl">
+            <Sprout className="h-4 w-4 text-emerald-200" />
+            Exchange Hub
+          </div>
+
+          <div className="max-w-xl pt-16 lg:pt-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100/80 backdrop-blur-xl">
+              <Sparkles className="h-4 w-4" />
+              Barter System Reimagined
+            </div>
+
+            <h1 className="mt-6 text-4xl font-semibold leading-tight text-white sm:text-5xl">
+              Swap Your Surplus, Gain What You Need
+            </h1>
+            <p className="mt-4 max-w-lg text-base leading-7 text-white/70 sm:text-lg">
+              Exchange your crops with local farmers within your radius. Save costs and build a stronger agricultural community.
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              {[
+                {
+                  icon: CheckCircle2,
+                  title: "Direct Barter",
+                  text: "Offer rice for wheat or swap any surplus crop easily.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Verified Listings",
+                  text: "Connect with real farmers in your local area securely.",
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/8 p-5 backdrop-blur-xl">
+                    <Icon className="h-5 w-5 text-emerald-200" />
+                    <h3 className="mt-4 text-lg font-semibold text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/65">{item.text}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <p className="hidden max-w-md text-sm leading-6 text-white/55 lg:block">
+            Our geo-location services ensure you find the most convenient matches nearby.
           </p>
         </div>
+      </aside>
 
-        {/* FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-lg p-8 space-y-6 border border-emerald-100"
-        >
-          {/* SECTION 1: OFFERING */}
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              ✅ What are you offering?
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Crop Name */}
-              <div className="md:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Crop Name *
-                </label>
-                <input
-                  type="text"
-                  name="offering_crop"
-                  placeholder="E.g., Wheat, Rice, Corn..."
-                  value={formData.offering_crop}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-                />
-                {errors.offering_crop && (
-                  <p className="text-red-500 text-xs mt-1">{errors.offering_crop}</p>
-                )}
-              </div>
-
-              {/* Quantity */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Quantity *
-                </label>
-                <input
-                  type="number"
-                  name="offering_quantity"
-                  placeholder="100"
-                  value={formData.offering_quantity}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-                />
-                {errors.offering_quantity && (
-                  <p className="text-red-500 text-xs mt-1">{errors.offering_quantity}</p>
-                )}
-              </div>
-
-              {/* Unit */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Unit
-                </label>
-                <select
-                  name="offering_unit"
-                  value={formData.offering_unit}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                >
-                  <option value="kg">kg</option>
-                  <option value="quintal">Quintal</option>
-                  <option value="ton">Ton</option>
-                  <option value="bags">Bags</option>
-                </select>
-              </div>
+      {/* RIGHT: FORM PANEL */}
+      <main className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+        <div className="w-full max-w-2xl rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-emerald-950/25 backdrop-blur-2xl sm:p-10">
+          
+          {generalError && (
+            <div className="mb-6 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200 backdrop-blur-xl">
+              {generalError}
             </div>
-          </div>
+          )}
 
-          {/* SECTION 2: SEEKING */}
-          <div className="pt-6 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              👀 What do you need?
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Crop Name */}
-              <div className="md:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Crop Name *
-                </label>
-                <input
-                  type="text"
-                  name="seeking_crop"
-                  placeholder="E.g., Rice, Wheat, Pulses..."
-                  value={formData.seeking_crop}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-                />
-                {errors.seeking_crop && (
-                  <p className="text-red-500 text-xs mt-1">{errors.seeking_crop}</p>
-                )}
-              </div>
-
-              {/* Quantity (Optional) */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Expected Quantity
-                </label>
-                <input
-                  type="number"
-                  name="seeking_quantity"
-                  placeholder="50"
-                  value={formData.seeking_quantity}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-                />
-              </div>
-
-              {/* Unit */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Unit
-                </label>
-                <select
-                  name="seeking_unit"
-                  value={formData.seeking_unit}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                >
-                  <option value="kg">kg</option>
-                  <option value="quintal">Quintal</option>
-                  <option value="ton">Ton</option>
-                  <option value="bags">Bags</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 3: LOCATION & RADIUS */}
-          <div className="pt-6 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              📍 Location & Range
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Get Location Button */}
-              <button
-                type="button"
-                onClick={handleGetLocation}
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95"
-              >
-                <MapPin size={20} />
-                {location ? "✅ Location Set" : "📍 Enable GPS Location"}
-              </button>
-
-              {/* Radius Slider */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Search Radius: {formData.radius_km}km
-                </label>
-                <input
-                  type="range"
-                  name="radius_km"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value={formData.radius_km}
-                  onChange={handleChange}
-                  className="w-full cursor-pointer"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Show this listing to farmers within {formData.radius_km}km
-                </p>
-              </div>
-            </div>
-
-            {location && (
-              <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-sm">
-                ✅ <strong>Location:</strong> Lat {location.latitude.toFixed(4)}, Lon{" "}
-                {location.longitude.toFixed(4)}
-              </div>
-            )}
-
-            {locationError && (
-              <ErrorNotification 
-                message={locationError} 
-                onClose={() => setLocationError("")}
-                className="mt-4"
-              />
-            )}
-
-            {errors.location && (
-              <p className="text-red-500 text-xs mt-2">{errors.location}</p>
-            )}
-          </div>
-
-          {/* SECTION 4: DESCRIPTION & IMAGES */}
-          <div className="pt-6 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              📝 Details & Photos
-            </h2>
-
-            {/* Description */}
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Description (Optional)
-              </label>
-              <textarea
-                name="description"
-                placeholder="Add any details: quality, variety, harvest date, etc."
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
-                className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-              ></textarea>
-            </div>
-
-            {/* Image Upload */}
+          <div className="mb-8 flex items-center justify-between">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
-                Upload Photos (Max 3)
-              </label>
-
-              {/* File Input */}
-              <div className="border-2 border-dashed border-emerald-300 rounded-lg p-6 text-center mb-4 cursor-pointer hover:border-emerald-500 transition-colors">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                  id="imageInput"
-                  disabled={images.length >= 3}
-                />
-                <label htmlFor="imageInput" className="cursor-pointer block">
-                  <Upload className="mx-auto mb-2 text-emerald-600" size={32} />
-                  <p className="font-bold text-gray-900">
-                    Click to upload or drag & drop
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    PNG, JPG, GIF up to 5MB • Max 3 images
-                  </p>
-                </label>
-              </div>
-
-              {/* Selected Images */}
-              {images.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {images.length} image(s) selected
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleUploadImages}
-                    disabled={uploadingImages}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 disabled:bg-gray-300"
-                  >
-                    {uploadingImages ? (
-                      <>
-                        <Loader size={18} className="animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={18} />
-                        Upload {images.length} Image{images.length > 1 ? "s" : ""}
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* Display Uploaded URLs */}
-              {imageUrls.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-bold text-gray-700 mb-2">
-                    ✅ {imageUrls.length} image(s) uploaded
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {imageUrls.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`crop-${idx}`}
-                        className="w-full h-20 object-cover rounded-lg border border-emerald-200"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-100/70">Create Listing</p>
+              <h2 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">Crop Exchange</h2>
             </div>
+            <button
+              onClick={() => navigate("/exchange")}
+              className="p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition"
+            >
+              <ArrowLeft size={20} />
+            </button>
           </div>
 
-          {/* SUBMIT BUTTON */}
-          <div className="pt-6 border-t border-gray-200">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            
+            {/* OFFERING */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-emerald-200 flex items-center gap-2">
+                <CheckCircle2 size={18} /> What are you offering?
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-white/80">Crop Name *</label>
+                  <input
+                    type="text"
+                    name="offering_crop"
+                    placeholder="E.g., Wheat, Rice, Corn..."
+                    value={formData.offering_crop}
+                    onChange={handleChange}
+                    className={`${fieldShell} ${errors.offering_crop ? 'border-rose-400/40' : ''}`}
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-white/80">Quantity *</label>
+                  <input
+                    type="number"
+                    name="offering_quantity"
+                    placeholder="100"
+                    value={formData.offering_quantity}
+                    onChange={handleChange}
+                    className={fieldShell}
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-white/80">Unit</label>
+                  <select
+                    name="offering_unit"
+                    value={formData.offering_unit}
+                    onChange={handleChange}
+                    className={`${fieldShell} appearance-none`}
+                  >
+                    <option value="kg" className="bg-[#0a2a1d]">kg</option>
+                    <option value="quintal" className="bg-[#0a2a1d]">Quintal</option>
+                    <option value="ton" className="bg-[#0a2a1d]">Ton</option>
+                    <option value="bags" className="bg-[#0a2a1d]">Bags</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* SEEKING */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <h3 className="text-lg font-bold text-teal-200 flex items-center gap-2">
+                <Search size={18} /> What do you need?
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-white/80">Crop Name *</label>
+                  <input
+                    type="text"
+                    name="seeking_crop"
+                    placeholder="E.g., Rice, Wheat, Pulses..."
+                    value={formData.seeking_crop}
+                    onChange={handleChange}
+                    className={`${fieldShell} ${errors.seeking_crop ? 'border-rose-400/40' : ''}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* LOCATION */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <h3 className="text-lg font-bold text-blue-200 flex items-center gap-2">
+                <MapPin size={18} /> Location & Range
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  className={`flex h-12 items-center justify-center gap-2 rounded-2xl font-bold transition-all ${
+                    location 
+                      ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-200" 
+                      : "bg-blue-500/80 hover:bg-blue-600 text-white"
+                  }`}
+                >
+                  <MapPin size={18} />
+                  {location ? "Location Set" : "Enable GPS"}
+                </button>
+                <div className="flex flex-col justify-center">
+                  <div className="flex justify-between text-xs font-semibold text-white/60 mb-2">
+                    <span>Radius</span>
+                    <span>{formData.radius_km}km</span>
+                  </div>
+                  <input
+                    type="range"
+                    name="radius_km"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={formData.radius_km}
+                    onChange={handleChange}
+                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                </div>
+              </div>
+              {locationError && (
+                <p className="text-xs text-rose-300">{locationError}</p>
+              )}
+            </div>
+
+            {/* DESCRIPTION & IMAGES */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <h3 className="text-lg font-bold text-white/90">Details & Photos</h3>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-white/70">Description</label>
+                <textarea
+                  name="description"
+                  placeholder="Variety, harvest date, quality etc..."
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="3"
+                  className={`${fieldShell} resize-none h-24`}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
+                <label className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/5 py-8 cursor-pointer hover:border-emerald-300/40 hover:bg-white/8 transition-all">
+                  <Upload className="text-emerald-300/80 mb-2" size={24} />
+                  <span className="text-xs font-semibold text-white/60">Upload Photo (Max 3)</span>
+                  <input type="file" multiple className="hidden" onChange={handleImageSelect} />
+                </label>
+
+                <div className="flex flex-col gap-2">
+                  {images.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleUploadImages}
+                      disabled={uploadingImages}
+                      className="w-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 py-2 rounded-xl text-xs font-bold transition hover:bg-emerald-500/30"
+                    >
+                      {uploadingImages ? "Uploading..." : `Upload ${images.length} Image(s)`}
+                    </button>
+                  )}
+                  {imageUrls.length > 0 && (
+                    <div className="flex gap-2">
+                      {imageUrls.map((url, idx) => (
+                        <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                          <img src={url} alt="crop" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-emerald-900/40 transition hover:bg-emerald-400 disabled:opacity-50"
             >
               {loading ? (
-                <>
-                  <Loader size={20} className="animate-spin" />
-                  Creating Listing...
-                </>
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               ) : (
                 <>
-                  🌾 Post Exchange Listing
+                  <Sprout size={20} />
+                  Post Exchange Listing
                 </>
               )}
             </button>
-          </div>
-        </form>
+          </form>
 
-        {/* INFO BOX */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <p className="text-sm text-blue-900">
-            💡 <strong>Tip:</strong> Be specific about your crop quality and
-            quantity. This helps farmers make better matches!
-          </p>
+          <div className="mt-8 rounded-2xl border border-blue-400/10 bg-blue-400/5 p-4 flex items-start gap-4">
+            <Info className="text-blue-300 shrink-0" size={20} />
+            <p className="text-sm text-blue-100/70 leading-relaxed">
+              <strong>Tip:</strong> Detailed descriptions and real photos lead to faster and more reliable exchange matches.
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
