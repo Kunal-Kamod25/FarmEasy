@@ -169,6 +169,19 @@ URL: {{baseUrl}}/api/categories/{{categoryId}}/subcategories
 Expected: 200 and array
 
 ============================================================
+3B) BRAND ROUTES (PUBLIC)
+============================================================
+[TC_BRAND_001] Get all brands
+Method: GET
+URL: {{baseUrl}}/api/brands/
+Expected: 200 with data array (name, slug, logo)
+
+[TC_BRAND_002] Get brand by id
+Method: GET
+URL: {{baseUrl}}/api/brands/{{brandId}}
+Expected: 200 with brand object
+
+============================================================
 4) PRODUCT ROUTES (PUBLIC)
 ============================================================
 [TC_PROD_001] Get all products
@@ -557,6 +570,95 @@ Headers: Authorization
 Expected: 200
 
 ============================================================
+11B) REAL-TIME MESSAGING ROUTES (SOCKET.IO INTEGRATED)
+============================================================
+Note: These endpoints interact with the Socket.io server. For real-time testing, 
+use a WebSocket client (or the frontend).
+
+[TC_MSG_001] Get all vendors (Global Directory)
+Method: GET
+URL: {{baseUrl}}/api/vendor/list
+Headers: Authorization
+Expected: 200 with array of all registered vendors
+
+[TC_MSG_002] Get my conversations
+Method: GET
+URL: {{baseUrl}}/api/messages/conversations
+Headers: Authorization
+Expected: 200 with list of existing chats
+
+[TC_MSG_003] Start a new conversation
+Method: POST
+URL: {{baseUrl}}/api/messages/conversation/start
+Headers: Authorization
+Body (JSON):
+{
+  "vendor_id": {{vendorUserId}},
+  "product_id": {{productId}} 
+}
+Expected: 200/201 with conversationId
+
+[TC_MSG_004] Get messages for a conversation
+Method: GET
+URL: {{baseUrl}}/api/messages/conversation/{{conversationId}}
+Headers: Authorization
+Expected: 200 with array of messages
+
+[TC_MSG_005] Send a message
+Method: POST
+URL: {{baseUrl}}/api/messages/send
+Headers: Authorization
+Body (JSON):
+{
+  "conversation_id": "{{conversationId}}",
+  "receiver_id": {{vendorUserId}},
+  "message_text": "Hello, I'm interested in your crops!"
+}
+Expected: 200 with message object and real-time socket emission
+
+[TC_MSG_006] Mark message as read
+Method: PUT
+URL: {{baseUrl}}/api/messages/{{messageId}}/read
+Headers: Authorization
+Expected: 200
+
+[TC_MSG_007] Delete message
+Method: DELETE
+URL: {{baseUrl}}/api/messages/{{messageId}}
+Headers: Authorization
+Expected: 200
+
+Note: Vendor-specific versions of these routes also exist under {{baseUrl}}/api/vendor/messages/...
+Example: GET {{baseUrl}}/api/vendor/messages/conversations
+
+============================================================
+11C) NOTIFICATION ROUTES (PROTECTED)
+============================================================
+[TC_NOTIF_001] Get all notifications
+Method: GET
+URL: {{baseUrl}}/api/notifications/
+Headers: Authorization
+Expected: 200 with array
+
+[TC_NOTIF_002] Mark notification as read
+Method: PATCH
+URL: {{baseUrl}}/api/notifications/{{notificationId}}/read
+Headers: Authorization
+Expected: 200
+
+[TC_NOTIF_003] Mark all notifications as read
+Method: PATCH
+URL: {{baseUrl}}/api/notifications/read-all
+Headers: Authorization
+Expected: 200
+
+[TC_NOTIF_004] Delete notification
+Method: DELETE
+URL: {{baseUrl}}/api/notifications/{{notificationId}}
+Headers: Authorization
+Expected: 200
+
+============================================================
 12) REVIEW ROUTES (PROTECTED, CUSTOMER TOKEN)
 ============================================================
 Login as customer first. Need at least one completed order for product/vendor to create reviews.
@@ -879,6 +981,15 @@ URL: {{baseUrl}}/api/exchange/{{listingId}}
 Headers: Authorization
 Expected: 200
 
+[TC_EXCH_018] Upload listing image (protected)
+Method: POST
+URL: {{baseUrl}}/api/exchange/upload-image
+Headers: Authorization
+Body Type: form-data
+Fields:
+  exchange_image = <file>
+Expected: 200 with object { success, message, imageUrl }
+
 ============================================================
 12F) DELIVERY ROUTES (PUBLIC + PROTECTED)
 ============================================================
@@ -1136,3 +1247,14 @@ Notes for Future:
 - Field-specific validation errors stay inline below fields
 
 This comprehensive guide is the fastest way to master FarmEasy API testing.
+
+============================================================
+16) REAL-TIME CHAT TESTING (SOCKET.IO)
+============================================================
+To verify real-time functionality manually:
+1. Open the application in two different browsers (e.g., Chrome and Edge).
+2. Login as "Customer A" in Browser 1 and "Vendor B" in Browser 2.
+3. Open the /chat page on both.
+4. Send a message from Browser 1 -> it should appear instantly in Browser 2.
+5. In Browser 2, click "All Vendors" to see the auto-added registered vendors.
+6. Check the Browser Console (F12) for "Connected to socket server" logs.
