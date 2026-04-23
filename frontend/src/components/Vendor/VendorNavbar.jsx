@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { User, Bell, Search, LogOut, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
+import { useNotifications } from "../../context/NotificationContext";
 
 const VendorNavbar = () => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const { unreadCount } = useNotifications();
 
   const user = (() => {
     try {
@@ -70,9 +72,16 @@ const VendorNavbar = () => {
         </div>
 
         <div className="flex items-center gap-2 pr-2">
-          <button className="p-2.5 text-white hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all relative group">
+          <button 
+            onClick={() => navigate("/vendor/notifications")}
+            className="p-2.5 text-white hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all relative group"
+          >
             <Bell size={22} />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white group-hover:animate-ping"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-black group-hover:animate-bounce shadow-lg">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
         </div>
 
