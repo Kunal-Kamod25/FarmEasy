@@ -6,7 +6,8 @@ const s3 = require("../config/s3");
 // ===========================================================================
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { vendor_id } = req.query;
+    const userId = vendor_id || req.user.id;
 
     const [rows] = await db.query(`
       SELECT 
