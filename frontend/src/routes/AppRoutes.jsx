@@ -87,6 +87,7 @@ const AppRoutes = () => {
 
           {/* Vendor Chat & Notifications */}
           <Route path="/chat/:conversationId?" element={<VendorChat />} />
+          <Route path="/notifications" element={<VendorNotifications />} />
           <Route path="/vendor/notifications" element={<VendorNotifications />} />
 
           <Route path="/customer-service" element={<CustomerService />} />

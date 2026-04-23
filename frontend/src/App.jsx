@@ -4,6 +4,7 @@ import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { LanguageProvider } from "./context/language/LanguageContext";
 import { SocketProvider } from "./context/SocketContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import { setupAxiosInterceptors } from "./utils/axiosConfig";
 
 const App = () => {
@@ -16,7 +17,9 @@ const App = () => {
       <CartProvider>
         <WishlistProvider>
           <SocketProvider>
-            <AppRoutes />
+            <NotificationProvider>
+              <AppRoutes />
+            </NotificationProvider>
           </SocketProvider>
         </WishlistProvider>
       </CartProvider>
