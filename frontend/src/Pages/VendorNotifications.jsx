@@ -4,7 +4,7 @@ import axios from "axios";
 import { API_URL } from "../config";
 import { 
   Bell, Check, Trash2, Loader, Package, AlertTriangle, 
-  TrendingUp, ArrowLeft, MoreVertical, X, Filter, Sparkles, Sprout
+  TrendingUp, ArrowLeft, MoreVertical, X, Filter, Sparkles, Sprout, Clock, ArrowRight
 } from "lucide-react";
 
 const VendorNotifications = () => {
@@ -19,7 +19,7 @@ const VendorNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!token || user.role !== "vendor") {
+    if (!token) {
       navigate("/login");
       return;
     }
