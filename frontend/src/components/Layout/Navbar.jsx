@@ -6,6 +6,7 @@ import {
   HiOutlineUser,
   HiOutlineShoppingCart,
   HiOutlineHeart,
+  HiOutlineBell,
 } from "react-icons/hi2";
 import Searchbar from "../Common/SearchBar";
 import CartDrawer from "../Cart/CartDrawer";
@@ -13,6 +14,7 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { API_URL } from "../../config";
 import { useLanguage } from "../../context/language/LanguageContext";
+import { useNotifications } from "../../context/NotificationContext";
 import LoginModal from "../Common/LoginModal";
 
 const Navbar = () => {
@@ -113,6 +115,9 @@ const Navbar = () => {
 
   /* ❤️ WISHLIST */
   const { wishlistCount } = useWishlist();
+
+  /* 🔔 NOTIFICATIONS */
+  const { unreadCount } = useNotifications();
 
   // close on outside click
   const profileRef = useRef(null);
@@ -244,6 +249,20 @@ const Navbar = () => {
                   {wishlistCount > 0 && (
                     <span className="absolute -top-4 -right-1 text-white text-xs rounded-full bg-red-500 min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold">
                       {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* 🔔 Notifications Icon */}
+                <Link
+                  to="/notifications"
+                  title="Notifications"
+                  className="relative group"
+                >
+                  <HiOutlineBell className="h-6 w-6 text-white hover:text-emerald-400 transition-colors" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-4 -right-1 text-white text-xs rounded-full bg-red-500 min-w-[18px] h-[18px] flex items-center justify-center px-1 font-bold">
+                      {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
                 </Link>

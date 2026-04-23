@@ -4,7 +4,7 @@ import { API_URL } from "../../config";
 import { 
   Send, Loader, X, ArrowLeft, MessageCircle, Search, 
   Sprout, Sparkles, User, UserCircle2, Clock, Check,
-  Users, Store
+  Users, Store, Paperclip, FileText, Download, Trash2
 } from "lucide-react";
 import { useSocket } from "../../context/SocketContext";
 
@@ -16,6 +16,7 @@ const VendorMessages = () => {
   const { socket } = useSocket();
   const [activeTab, setActiveTab] = useState("chats"); // "chats" or "vendors"
   const [allVendors, setAllVendors] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +24,9 @@ const VendorMessages = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const fileInputRef = useRef(null);
   const [selectedConvId, setSelectedConvId] = useState(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
@@ -69,11 +73,14 @@ const VendorMessages = () => {
     if (!socket) return;
 
     socket.on("message received", (newMessage) => {
-      if (!selectedConvId || selectedConvId !== newMessage.conversation_id) {
-        // Notification logic if not in the current chat
+      if (newMessage.conversation_id === selectedConvId) {
+        setMessages((prev) => {
+          if (prev.find(m => m?.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
         fetchConversations();
       } else {
-        setMessages((prev) => [...prev, newMessage]);
+        fetchConversations();
       }
     });
 
@@ -113,26 +120,55 @@ const VendorMessages = () => {
     scrollToBottom();
   }, [messages]);
 
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageText.trim() || !selectedConvId) return;
 
     try {
       setSending(true);
+      let attachment_url = null;
+
+      // Handle file upload if present
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("attachment", selectedFile);
+        const uploadRes = await axios.post(`${API_URL}/api/messages/upload-attachment`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          },
+        });
+        attachment_url = uploadRes.data.data.url;
+      }
+
       const res = await axios.post(
-        `${API_URL}/api/vendor/messages/send`,
+        `${API_URL}/api/messages/send`,
         {
           conversation_id: selectedConvId,
           message_text: messageText,
           receiver_id: currentConversation?.other_user_id,
+          attachment_url
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMessages([...messages, res.data.data?.message]);
+      setMessages([...messages, res.data.data]);
       setMessageText("");
+      setSelectedFile(null);
+      setFilePreview(null);
+
+      // Refresh conversations to update sidebar
+      await fetchConversations();
     } catch (err) {
       console.error("Error sending message:", err);
       setError("Failed to send message");
@@ -184,7 +220,7 @@ const VendorMessages = () => {
   }
 
   return (
-    <div className="flex h-screen bg-[#04110d] font-Lora text-white overflow-hidden relative">
+    <div className="flex h-full bg-[#04110d] font-Lora text-white overflow-hidden relative">
       {/* BACKGROUND DECORATIONS */}
       <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:64px_64px]" />
       <div className="absolute -left-20 top-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
@@ -194,7 +230,7 @@ const VendorMessages = () => {
       <div
         className={`${
           isMobileView && selectedConvId ? "hidden" : "w-full md:w-[380px]"
-        } z-10 flex flex-col border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-all duration-300 shadow-2xl`}
+        } z-10 flex flex-col h-full border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-all duration-300 shadow-2xl`}
       >
         {/* Header */}
         <div className="p-6 border-b border-white/5">
@@ -302,7 +338,7 @@ const VendorMessages = () => {
                       if (v.id === user.id) return;
                       try {
                         const res = await axios.post(
-                          `${API_URL}/api/vendor/messages/conversation/start`,
+                          `${API_URL}/api/messages/conversation/start`,
                           { vendor_id: v.id },
                           { headers: { Authorization: `Bearer ${token}` } }
                         );
@@ -396,6 +432,7 @@ const VendorMessages = () => {
                 </div>
               ) : (
                 messages.map((msg, idx) => {
+                  if (!msg) return null;
                   const isSentByMe = msg.sender_id === user.id;
                   return (
                     <div key={idx} className={`flex ${isSentByMe ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -406,6 +443,42 @@ const VendorMessages = () => {
                             : "bg-white/10 text-white/90 rounded-bl-none backdrop-blur-xl border border-white/10 shadow-black/20"
                         }`}>
                           <p className="text-sm leading-relaxed">{msg.message_text}</p>
+                          {msg.attachment_url && (
+                             <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+                               {msg.attachment_url.toLowerCase().endsWith('.pdf') ? (
+                                 <div className="bg-white/5 p-4 flex items-center justify-between gap-4">
+                                   <div className="flex items-center gap-3">
+                                      <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400">
+                                         <FileText size={20} />
+                                      </div>
+                                      <span className="text-xs font-medium truncate max-w-[150px]">Document.pdf</span>
+                                   </div>
+                                   <a 
+                                     href={msg.attachment_url} 
+                                     target="_blank" 
+                                     rel="noopener noreferrer"
+                                     className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 transition shadow-lg"
+                                   >
+                                     <Download size={16} />
+                                   </a>
+                                 </div>
+                               ) : (
+                                 <div className="relative group/img">
+                                   <img src={msg.attachment_url} className="w-full max-h-80 object-cover" alt="Attachment" />
+                                   <a 
+                                     href={msg.attachment_url} 
+                                     download={`FarmEasy_Image_${idx}.jpg`}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                     className="absolute top-3 right-3 p-2 rounded-full bg-emerald-500 text-white shadow-xl opacity-0 group-hover/img:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95"
+                                     title="Download Image"
+                                   >
+                                     <Download size={16} />
+                                   </a>
+                                 </div>
+                               )}
+                             </div>
+                          )}
                         </div>
                         <div className={`flex items-center gap-2 mt-2 px-1 ${isSentByMe ? "flex-row-reverse" : "flex-row"}`}>
                           <span className="text-[10px] text-white/20 uppercase font-sans tracking-tighter">
@@ -423,13 +496,58 @@ const VendorMessages = () => {
 
             {/* Input Form */}
             <div className="p-4 md:p-6 border-t border-white/5 bg-black/20 backdrop-blur-3xl">
+              {/* Attachment Preview */}
+              {filePreview && (
+                <div className="max-w-5xl mx-auto mb-4 animate-in slide-in-from-bottom duration-300">
+                  <div className="relative inline-block group">
+                    {selectedFile?.type === "application/pdf" ? (
+                      <div className="w-28 h-28 rounded-2xl bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-2">
+                        <FileText size={32} className="text-rose-400" />
+                        <span className="text-[9px] px-2 truncate w-full text-center">{selectedFile.name}</span>
+                      </div>
+                    ) : (
+                      <img src={filePreview} className="w-28 h-28 rounded-2xl object-cover border border-emerald-500/50 shadow-2xl" alt="Preview" />
+                    )}
+                    <button 
+                      onClick={() => { setSelectedFile(null); setFilePreview(null); }}
+                      className="absolute -top-2 -right-2 p-1.5 rounded-full bg-rose-500 text-white shadow-xl hover:bg-rose-400 transition active:scale-90"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSendMessage} className="flex gap-3 max-w-5xl mx-auto items-center">
+                 <input 
+                   type="file" 
+                   ref={fileInputRef} 
+                   className="hidden" 
+                   accept="image/*,application/pdf"
+                   onChange={(e) => {
+                     const file = e.target.files[0];
+                     if (!file) return;
+                     setSelectedFile(file);
+                     if (file.type.startsWith('image/')) {
+                       setFilePreview(URL.createObjectURL(file));
+                     } else {
+                       setFilePreview('pdf-placeholder');
+                     }
+                   }}
+                 />
+                 <button
+                   type="button"
+                   onClick={() => fileInputRef.current?.click()}
+                   className="h-10 w-10 shrink-0 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-emerald-400 hover:bg-white/10 transition flex items-center justify-center"
+                 >
+                   <Paperclip size={18} />
+                 </button>
                 <div className="flex-1 relative group">
                   <input
                     type="text"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Write a message..."
+                    placeholder={filePreview ? "Add a caption..." : "Write a message..."}
                     disabled={sending}
                     className={`${fieldShell} !bg-white/5 !rounded-full pr-12 focus:!bg-white/10 transition-all duration-300 border-white/5 focus:border-emerald-500/40`}
                   />
