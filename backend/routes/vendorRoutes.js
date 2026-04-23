@@ -55,6 +55,7 @@ router.get("/my-purchases", verifyToken, vendorController.getMyPurchases);
 // ========== VENDOR MESSAGING ==========
 // Vendor can see conversations with customers and send/receive messages
 router.get("/messages/conversations", verifyToken, messageController.getConversations);
+router.post("/messages/conversation/start", verifyToken, messageController.startConversation);
 router.get("/messages/conversation/:conversationId", verifyToken, messageController.getMessages);
 router.post("/messages/send", verifyToken, messageController.sendMessage);
 router.put("/messages/:messageId/read", verifyToken, messageController.markAsRead);
