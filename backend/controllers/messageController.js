@@ -23,37 +23,37 @@ exports.getConversations = async (req, res) => {
       params = [user_id, user_id, user_id];
     }
 
-    // Get unique conversations with last message
+    // Get unique conversations with last message using a cleaner join approach
     const [conversations] = await db.query(
-      `SELECT DISTINCT
-        vm.conversation_id,
+      `SELECT 
+        m1.conversation_id,
         CASE 
-          WHEN vm.sender_id = ? THEN vm.receiver_id
-          ELSE vm.sender_id
+          WHEN m1.sender_id = ? THEN m1.receiver_id
+          ELSE m1.sender_id
         END as other_user_id,
-        (SELECT full_name FROM users WHERE id = 
-          CASE 
-            WHEN vm.sender_id = ? THEN vm.receiver_id
-            ELSE vm.sender_id
-          END) as other_user_name,
-        (SELECT profile_pic FROM users WHERE id = 
-          CASE 
-            WHEN vm.sender_id = ? THEN vm.receiver_id
-            ELSE vm.sender_id
-          END) as other_user_pic,
-        (SELECT message_text FROM vendor_messages 
-         WHERE conversation_id = vm.conversation_id
-         ORDER BY created_at DESC LIMIT 1) as last_message,
-        (SELECT created_at FROM vendor_messages 
-         WHERE conversation_id = vm.conversation_id
-         ORDER BY created_at DESC LIMIT 1) as last_message_time,
-        COUNT(CASE WHEN is_read = false AND receiver_id = ? THEN 1 END) as unread_count
-      FROM vendor_messages vm
-      ${where}
-      GROUP BY vm.conversation_id
+        u.full_name as other_user_name,
+        u.profile_pic as other_user_pic,
+        m1.message_text as last_message,
+        m1.created_at as last_message_time,
+        (SELECT COUNT(*) FROM vendor_messages 
+         WHERE conversation_id = m1.conversation_id 
+         AND is_read = false AND receiver_id = ?) as unread_count
+      FROM vendor_messages m1
+      JOIN (
+        SELECT conversation_id, MAX(created_at) as max_created
+        FROM vendor_messages
+        WHERE sender_id = ? OR receiver_id = ?
+        GROUP BY conversation_id
+      ) m2 ON m1.conversation_id = m2.conversation_id AND m1.created_at = m2.max_created
+      JOIN users u ON u.id = (
+        CASE 
+          WHEN m1.sender_id = ? THEN m1.receiver_id
+          ELSE m1.sender_id
+        END
+      )
       ORDER BY last_message_time DESC
       LIMIT ? OFFSET ?`,
-      [...params, user_id, parseInt(limit), offset]
+      [user_id, user_id, user_id, user_id, user_id, parseInt(limit), offset]
     );
 
     res.json({
@@ -231,6 +231,14 @@ exports.startConversation = async (req, res) => {
           ]
         );
       }
+    } else {
+      // Always insert a "Chat started" message if it's new so it shows up in conversation lists
+      await db.query(
+        `INSERT INTO vendor_messages 
+         (conversation_id, sender_id, receiver_id, message_text, created_at)
+         VALUES (?, ?, ?, ?, NOW())`,
+        [conversationId, user_id, vendor_id, "Hello! I'd like to chat about your products."]
+      );
     }
 
     res.json({
@@ -292,6 +300,26 @@ exports.markAsRead = async (req, res) => {
     });
   } catch (error) {
     console.error("Error marking message as read:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+// ===== UPLOAD ATTACHMENT =====
+exports.uploadAttachment = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: req.file.path,
+        filename: req.file.filename,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error("Error uploading attachment:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
