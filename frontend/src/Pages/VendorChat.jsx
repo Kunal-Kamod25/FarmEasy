@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import { 
-  Send, Loader, X, ArrowLeft, MessageCircle, Search, 
-  Sprout, Sparkles, User, Clock, Check, ShieldCheck
+  Sprout, Sparkles, User, Clock, Check, ShieldCheck, Paperclip, FileText, Download, Trash2
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
@@ -14,7 +13,8 @@ const VendorChat = () => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const messagesEndRef = useRef(null);
-
+  const [activeTab, setActiveTab] = useState("chats"); // "chats" or "vendors"
+  const [allVendors, setAllVendors] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
@@ -23,6 +23,9 @@ const VendorChat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const fileInputRef = useRef(null);
   const { socket } = useSocket();
 
   useEffect(() => {
@@ -39,19 +42,55 @@ const VendorChat = () => {
         const convs = res.data.data.conversations || [];
         setConversations(convs);
 
-        if (conversationId) {
-          const conv = convs.find((c) => c.conversation_id === conversationId);
-          if (conv) setCurrentConversation(conv);
-        }
-      } catch (_err) {
-        console.error("Error fetching conversations:", _err);
-        setError("Failed to load conversations");
-      } finally {
-        setLoading(false);
+         if (conversationId) {
+           const conv = convs.find((c) => c.conversation_id === conversationId);
+           if (conv) {
+             setCurrentConversation(conv);
+           } else {
+             // Direct navigation: Try to fetch the other user info
+             const ids = conversationId.split("_");
+             const otherId = ids.find((id) => id !== user.id.toString());
+             if (otherId) {
+               try {
+                 const userRes = await axios.get(`${API_URL}/api/vendor/profile`, {
+                   params: { vendor_id: otherId },
+                   headers: { Authorization: `Bearer ${token}` }
+                 });
+                 if (userRes.data) {
+                   setCurrentConversation({
+                     conversation_id: conversationId,
+                     other_user_id: otherId,
+                     other_user_name: userRes.data.store_name || userRes.data.vendor_name,
+                     other_user_pic: userRes.data.profile_image
+                   });
+                 }
+               } catch (err) {
+                 console.error("Could not fetch other user info:", err);
+               }
+             }
+           }
+         }
+       } catch (_err) {
+         console.error("Error fetching conversations:", _err);
+         setError("Failed to load conversations");
+       } finally {
+         setLoading(false);
+       }
+    };
+
+    const fetchAllVendors = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/vendor/list`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAllVendors(res.data.data || []);
+      } catch (err) {
+        console.error("Error fetching vendor list:", err);
       }
     };
 
     fetchConversations();
+    fetchAllVendors();
   }, [token, conversationId, navigate]);
 
   // Socket logic for real-time messages
@@ -63,7 +102,10 @@ const VendorChat = () => {
 
     socket.on("message received", (newMessage) => {
       if (newMessage.conversation_id === conversationId) {
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => {
+          if (prev.find(m => m?.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
       }
     });
 
@@ -103,19 +145,45 @@ const VendorChat = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!messageText.trim()) return;
+    if (!messageText.trim() && !selectedFile) return;
 
     try {
       setSending(true);
-      await axios.post(
+      let attachment_url = null;
+
+      // Handle file upload if present
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("attachment", selectedFile);
+        const uploadRes = await axios.post(`${API_URL}/api/messages/upload-attachment`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          },
+        });
+        attachment_url = uploadRes.data.data.url;
+      }
+
+      const res = await axios.post(
         `${API_URL}/api/messages/send`,
         {
           receiver_id: currentConversation.other_user_id,
           message_text: messageText,
+          attachment_url
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      setMessages([...messages, res.data.data]);
       setMessageText("");
+      setSelectedFile(null);
+      setFilePreview(null);
+      
+      // Refresh conversations to update sidebar
+      const convRes = await axios.get(`${API_URL}/api/messages/conversations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setConversations(convRes.data.data.conversations || []);
     } catch {
       setError("Failed to send message");
     } finally {
@@ -147,14 +215,14 @@ const VendorChat = () => {
   }
 
   return (
-    <div className="h-screen bg-[#04110d] font-Lora text-white overflow-hidden flex relative">
+    <div className="h-[calc(100vh-80px)] md:h-[calc(100vh-120px)] bg-[#04110d] font-Lora text-white overflow-hidden flex relative">
       {/* DECORATIONS */}
       <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:64px_64px]" />
       <div className="absolute -left-20 top-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
 
       {/* LEFT SIDEBAR: CONVERSATIONS */}
-      <div className={`z-10 flex flex-col border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-all duration-300 shadow-2xl ${conversationId ? "hidden md:flex w-full md:w-96" : "w-full"}`}>
+      <div className={`z-10 flex flex-col h-full border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-all duration-300 shadow-2xl ${conversationId ? "hidden md:flex w-full md:w-96" : "w-full"}`}>
         <div className="p-6 border-b border-white/5">
            <div className="flex items-center gap-4 mb-6">
               <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-300">
@@ -163,70 +231,153 @@ const VendorChat = () => {
               <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
            </div>
            
-           <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 group-focus-within:text-emerald-300 transition" />
-              <input
-                type="text"
-                placeholder="Search chats..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`${fieldShell} pl-11`}
-              />
-           </div>
+            <div className="relative group mb-4">
+               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 group-focus-within:text-emerald-300 transition" />
+               <input
+                 type="text"
+                 placeholder={activeTab === 'chats' ? "Search chats..." : "Search vendors..."}
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className={`${fieldShell} pl-11`}
+               />
+            </div>
+
+            <div className="flex p-1 bg-white/5 rounded-xl border border-white/5">
+              <button
+                onClick={() => setActiveTab("chats")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition ${activeTab === 'chats' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white/60'}`}
+              >
+                <MessageCircle size={14} />
+                Conversations
+              </button>
+              <button
+                onClick={() => setActiveTab("vendors")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition ${activeTab === 'vendors' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white/40 hover:text-white/60'}`}
+              >
+                <User size={14} />
+                All Vendors
+              </button>
+            </div>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-           {filteredConversations.length > 0 ? (
-             <div className="space-y-1">
-               {filteredConversations.map((conv) => (
-                  <button
-                    key={conv.conversation_id}
-                    onClick={() => handleConversationClick(conv)}
-                    className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent ${
-                      currentConversation?.conversation_id === conv.conversation_id
-                        ? "bg-emerald-500/10 border-emerald-500/20"
-                        : "hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="relative h-14 w-14 shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-bold text-xl overflow-hidden shadow-lg shadow-emerald-950/40">
-                      {conv.other_user_pic ? (
-                        <img src={conv.other_user_pic} className="h-full w-full object-cover" alt="" />
-                      ) : (
-                        conv.other_user_name?.charAt(0).toUpperCase()
+           {activeTab === "chats" ? (
+             filteredConversations.length > 0 ? (
+               <div className="space-y-1">
+                 {filteredConversations.map((conv) => (
+                    <button
+                      key={conv.conversation_id}
+                      onClick={() => handleConversationClick(conv)}
+                      className={`w-full group relative flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent ${
+                        currentConversation?.conversation_id === conv.conversation_id
+                          ? "bg-emerald-500/10 border-emerald-500/20"
+                          : "hover:bg-white/5"
+                      }`}
+                    >
+                      <div className="relative h-14 w-14 shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-bold text-xl overflow-hidden shadow-lg shadow-emerald-950/40">
+                        {conv.other_user_pic ? (
+                          <img src={conv.other_user_pic} className="h-full w-full object-cover" alt="" />
+                        ) : (
+                          conv.other_user_name?.charAt(0).toUpperCase()
+                        )}
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <h3 className="font-bold text-white/90 truncate">{conv.other_user_name}</h3>
+                          <span className="text-[10px] text-white/30 uppercase tracking-widest font-sans">
+                             {conv.last_message_time ? new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                          </span>
+                        </div>
+                        <p className="text-sm text-white/40 truncate leading-relaxed">
+                          {conv.last_message || "No messages yet..."}
+                        </p>
+                      </div>
+
+                      {conv.unread_count > 0 && (
+                        <div className="absolute right-4 bottom-4 h-5 w-5 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg ring-2 ring-[#04110d]">
+                          {conv.unread_count}
+                        </div>
                       )}
-                    </div>
-
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <h3 className="font-bold text-white/90 truncate">{conv.other_user_name}</h3>
-                        <span className="text-[10px] text-white/30 uppercase tracking-widest font-sans">
-                           {conv.last_message_time ? new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                        </span>
-                      </div>
-                      <p className="text-sm text-white/40 truncate leading-relaxed">
-                        {conv.last_message || "No messages yet..."}
-                      </p>
-                    </div>
-
-                    {conv.unread_count > 0 && (
-                      <div className="absolute right-4 bottom-4 h-5 w-5 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg ring-2 ring-[#04110d]">
-                        {conv.unread_count}
-                      </div>
-                    )}
-                  </button>
-               ))}
-             </div>
+                    </button>
+                 ))}
+               </div>
+             ) : (
+               <div className="h-full flex flex-col items-center justify-center p-8 text-center text-white/20">
+                  <MessageCircle size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                  <p className="text-sm font-semibold tracking-widest uppercase">No Conversations</p>
+               </div>
+             )
            ) : (
-             <div className="h-full flex flex-col items-center justify-center p-8 text-center text-white/20">
-                <MessageCircle size={48} strokeWidth={1} className="mb-4 opacity-20" />
-                <p className="text-sm font-semibold tracking-widest uppercase">No Conversations</p>
+             /* ALL VENDORS TAB */
+             <div className="space-y-1">
+               {allVendors
+                 .filter(v => v.vendor_name?.toLowerCase().includes(searchTerm.toLowerCase()) || (v.store_name || "").toLowerCase().includes(searchTerm.toLowerCase()))
+                 .map((v) => (
+                   <button
+                     key={v.id}
+                     onClick={async () => {
+                       if (v.id === user.id) return;
+                       try {
+                         setLoading(true);
+                         const res = await axios.post(
+                           `${API_URL}/api/messages/conversation/start`,
+                           { vendor_id: v.id },
+                           { headers: { Authorization: `Bearer ${token}` } }
+                         );
+                         if (res.data.success) {
+                           const convId = res.data.data.conversationId;
+                           
+                           // Create a skeleton conversation object so the UI opens immediately
+                           const newConv = {
+                             conversation_id: convId,
+                             other_user_id: v.id,
+                             other_user_name: v.store_name || v.vendor_name,
+                             other_user_pic: v.profile_image,
+                             last_message: "Chat started",
+                             last_message_time: new Date().toISOString()
+                           };
+
+                           setActiveTab("chats");
+                           setCurrentConversation(newConv);
+                           
+                           // Re-fetch conversations to refresh the sidebar
+                           const convRes = await axios.get(`${API_URL}/api/messages/conversations`, {
+                             headers: { Authorization: `Bearer ${token}` },
+                           });
+                           setConversations(convRes.data.data.conversations || []);
+                           
+                           navigate(`/chat/${convId}`);
+                         }
+                       } catch (err) {
+                         console.error("Error starting conversation:", err);
+                         setError("Could not start conversation");
+                       } finally {
+                         setLoading(false);
+                       }
+                     }}
+                     className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent hover:bg-white/5"
+                   >
+                     <div className="h-12 w-12 shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-bold overflow-hidden">
+                       {v.profile_image ? (
+                         <img src={v.profile_image} className="h-full w-full object-cover" alt="" />
+                       ) : (
+                          v.vendor_name?.charAt(0).toUpperCase()
+                       )}
+                     </div>
+                     <div className="flex-1 text-left min-w-0">
+                       <h3 className="font-bold text-white/90 truncate">{v.store_name || v.vendor_name}</h3>
+                       <p className="text-xs text-white/40 truncate">{v.vendor_name}</p>
+                     </div>
+                   </button>
+                 ))}
              </div>
            )}
         </div>
       </div>
 
       {/* RIGHT PANEL: CHAT */}
-      <div className={`z-10 flex-1 flex flex-col bg-white/2 backdrop-blur-md transition-all ${!conversationId ? "hidden md:flex" : "flex"}`}>
+      <div className={`z-10 flex-1 flex flex-col h-full bg-white/2 backdrop-blur-md transition-all ${!conversationId ? "hidden md:flex" : "flex"}`}>
         {currentConversation ? (
           <>
             {/* Header */}
@@ -272,6 +423,7 @@ const VendorChat = () => {
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar scroll-smooth">
               {messages.length > 0 ? (
                 messages.map((msg, idx) => {
+                  if (!msg) return null;
                   const isSentByMe = msg.sender_id === user.id;
                   return (
                     <div key={idx} className={`flex ${isSentByMe ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -283,7 +435,40 @@ const VendorChat = () => {
                         }`}>
                           <p className="text-sm leading-relaxed break-words">{msg.message_text}</p>
                           {msg.attachment_url && (
-                             <img src={msg.attachment_url} className="mt-3 rounded-2xl w-full max-h-64 object-cover border border-white/10 shadow-lg" alt="" />
+                             <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+                               {msg.attachment_url.toLowerCase().endsWith('.pdf') ? (
+                                 <div className="bg-white/5 p-4 flex items-center justify-between gap-4">
+                                   <div className="flex items-center gap-3">
+                                      <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400">
+                                         <FileText size={20} />
+                                      </div>
+                                      <span className="text-xs font-medium truncate max-w-[150px]">Document.pdf</span>
+                                   </div>
+                                   <a 
+                                     href={msg.attachment_url} 
+                                     target="_blank" 
+                                     rel="noopener noreferrer"
+                                     className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 transition shadow-lg"
+                                   >
+                                     <Download size={16} />
+                                   </a>
+                                 </div>
+                               ) : (
+                                 <div className="relative group/img">
+                                   <img src={msg.attachment_url} className="w-full max-h-80 object-cover" alt="Attachment" />
+                                   <a 
+                                     href={msg.attachment_url} 
+                                     download={`FarmEasy_Image_${idx}.jpg`}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                     className="absolute top-4 right-4 p-2.5 rounded-full bg-emerald-500 text-white shadow-2xl opacity-0 group-hover/img:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
+                                     title="Download Image"
+                                   >
+                                     <Download size={18} />
+                                   </a>
+                                 </div>
+                               )}
+                             </div>
                           )}
                         </div>
                         <div className={`mt-2 px-1 flex items-center gap-2 ${isSentByMe ? "flex-row-reverse" : ""}`}>
@@ -308,14 +493,59 @@ const VendorChat = () => {
             </div>
 
             {/* Input Form */}
-            <div className="p-6 md:p-8 bg-black/20 border-t border-white/5 backdrop-blur-3xl">
-              <form onSubmit={handleSendMessage} className="max-w-5xl mx-auto flex gap-4 items-center">
+            <div className="p-4 md:p-6 bg-black/20 border-t border-white/5 backdrop-blur-3xl">
+              {/* Attachment Preview */}
+              {filePreview && (
+                <div className="max-w-5xl mx-auto mb-4 animate-in slide-in-from-bottom duration-300">
+                  <div className="relative inline-block group">
+                    {selectedFile?.type === "application/pdf" ? (
+                      <div className="w-32 h-32 rounded-2xl bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-2">
+                        <FileText size={32} className="text-rose-400" />
+                        <span className="text-[9px] px-2 truncate w-full text-center">{selectedFile.name}</span>
+                      </div>
+                    ) : (
+                      <img src={filePreview} className="w-32 h-32 rounded-2xl object-cover border border-emerald-500/50 shadow-2xl" alt="Preview" />
+                    )}
+                    <button 
+                      onClick={() => { setSelectedFile(null); setFilePreview(null); }}
+                      className="absolute -top-2 -right-2 p-1.5 rounded-full bg-rose-500 text-white shadow-xl hover:bg-rose-400 transition active:scale-90"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSendMessage} className="max-w-5xl mx-auto flex gap-3 items-center">
+                 <input 
+                   type="file" 
+                   ref={fileInputRef} 
+                   className="hidden" 
+                   accept="image/*,application/pdf"
+                   onChange={(e) => {
+                     const file = e.target.files[0];
+                     if (!file) return;
+                     setSelectedFile(file);
+                     if (file.type.startsWith('image/')) {
+                       setFilePreview(URL.createObjectURL(file));
+                     } else {
+                       setFilePreview('pdf-placeholder');
+                     }
+                   }}
+                 />
+                 <button
+                   type="button"
+                   onClick={() => fileInputRef.current?.click()}
+                   className="h-12 w-12 shrink-0 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-emerald-400 hover:bg-white/10 transition flex items-center justify-center flex-col"
+                 >
+                   <Paperclip size={20} />
+                 </button>
                  <div className="flex-1 relative">
                     <input
                       type="text"
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
-                      placeholder="Type your message here..."
+                      placeholder={filePreview ? "Add a caption..." : "Type your message here..."}
                       disabled={sending}
                       className={`${fieldShell} !rounded-[2rem] !bg-white/5 !border-white/10 h-14 pr-12 focus:!bg-white/10 focus:border-emerald-500/40 transition-all duration-300`}
                     />
