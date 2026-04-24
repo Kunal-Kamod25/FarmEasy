@@ -13,11 +13,11 @@
       const [rows] = await db.query(`
         SELECT 
           p.*,
-          pc.product_cat_name,
+          pc.name AS product_cat_name,
           s.shop_name,
           u.full_name AS seller_name
         FROM product p
-        JOIN product_category pc ON p.category_id = pc.id
+        JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         WHERE p.category_id = ?
@@ -71,13 +71,13 @@
           p.product_image,
           p.created_at,
           p.seller_id,
-          pc.product_cat_name AS category_name,
+          pc.name AS category_name,
           pc.id AS category_id,
           s.id AS seller_table_id,
           s.shop_name,
           u.full_name AS seller_name
         FROM product p
-        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         WHERE 1=1
@@ -213,7 +213,7 @@
       const [rows] = await db.query(`
         SELECT 
           p.*,
-          pc.product_cat_name AS category_name,
+          pc.name AS category_name,
           s.shop_name,
           s.id AS seller_table_id,
           u.id AS vendor_id,
@@ -221,7 +221,7 @@
           u.city AS seller_city,
           u.state AS seller_state
         FROM product p
-        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         WHERE p.id = ?
