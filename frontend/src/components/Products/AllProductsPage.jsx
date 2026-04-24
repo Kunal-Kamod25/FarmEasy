@@ -237,99 +237,116 @@ const AllProductsPage = () => {
 
                     {/* ── FILTER SIDEBAR ── */}
                     <div className={`${filtersOpen ? "block" : "hidden"} lg:block w-full lg:w-64 flex-shrink-0`}>
-                        <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-xl p-6 space-y-8 sticky top-4">
-                            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                                <h3 className="font-black text-white flex items-center gap-2 uppercase tracking-widest text-sm">
-                                    <Filter size={16} className="text-emerald-500" />
-                                    Filters
+                        <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-emerald-500/5 p-7 space-y-9 sticky top-6">
+                            <div className="flex items-center justify-between border-b border-emerald-100 pb-5">
+                                <h3 className="font-black text-slate-800 flex items-center gap-2 uppercase tracking-[0.15em] text-xs">
+                                    <Filter size={18} className="text-emerald-600" />
+                                    {t("products.filters")}
                                 </h3>
                                 {hasActiveFilters && (
                                     <button
                                         onClick={clearAllFilters}
-                                        className="text-[10px] bg-red-500/10 text-red-500 px-2 py-1 rounded-md hover:bg-red-500/20 font-black uppercase tracking-tighter transition-colors"
+                                        className="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-xl hover:bg-red-100 font-black uppercase tracking-wider transition-all active:scale-95"
                                     >
-                                        Clear
+                                        {t("products.clearAll")}
                                     </button>
                                 )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
+
+                            {/* Category Filter */}
+                            <div className="space-y-3">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                                     {t("products.category")}
                                 </label>
-                                <select
-                                    value={filters.category_id}
-                                    onChange={e => handleFilterChange("category_id", e.target.value)}
-                                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
-                                >
-                                    <option value="" className="bg-slate-900">{t("products.allCategories")}</option>
-                                    {Array.isArray(categories) && categories.map(cat => (
-                                        <option key={cat.id} value={cat.id} className="bg-slate-900">
-                                            {td(cat.name || cat.product_cat_name)}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative group">
+                                    <select
+                                        value={filters.category_id}
+                                        onChange={e => handleFilterChange("category_id", e.target.value)}
+                                        className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
+                                    >
+                                        <option value="">{t("products.allCategories")}</option>
+                                        {Array.isArray(categories) && categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {td(cat.name || cat.product_cat_name)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
+                                </div>
                             </div>
 
                             {/* Price Range */}
-                            <div>
-                                <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
+                            <div className="space-y-3">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                                     {t("products.priceRange")}
                                 </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        placeholder={t("products.min")}
-                                        value={filters.min_price}
-                                        onChange={e => handleFilterChange("min_price", e.target.value)}
-                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-white/20"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder={t("products.max")}
-                                        value={filters.max_price}
-                                        onChange={e => handleFilterChange("max_price", e.target.value)}
-                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-white/20"
-                                    />
+                                <div className="flex gap-3">
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold">₹</span>
+                                        <input
+                                            type="number"
+                                            placeholder={t("products.min")}
+                                            value={filters.min_price}
+                                            onChange={e => handleFilterChange("min_price", e.target.value)}
+                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-8 pr-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold">₹</span>
+                                        <input
+                                            type="number"
+                                            placeholder={t("products.max")}
+                                            value={filters.max_price}
+                                            onChange={e => handleFilterChange("max_price", e.target.value)}
+                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-8 pr-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Product Type Filter */}
                             {productTypes.length > 0 && (
-                                <div>
-                                    <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
+                                <div className="space-y-3">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                                         {t("products.productType")}
                                     </label>
-                                    <select
-                                        value={filters.product_type}
-                                        onChange={e => handleFilterChange("product_type", e.target.value)}
-                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
-                                    >
-                                        <option value="" className="bg-slate-900">{t("products.allTypes")}</option>
-                                        {productTypes.map(type => (
-                                            <option key={type} value={type} className="bg-slate-900">{td(type)}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative group">
+                                        <select
+                                            value={filters.product_type}
+                                            onChange={e => handleFilterChange("product_type", e.target.value)}
+                                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
+                                        >
+                                            <option value="">{t("products.allTypes")}</option>
+                                            {productTypes.map(type => (
+                                                <option key={type} value={type}>{td(type)}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
+                                    </div>
                                 </div>
                             )}
 
                             {/* Seller Filter */}
                             {sellers.length > 0 && (
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                <div className="space-y-3">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                                         {t("products.seller")}
                                     </label>
-                                    <select
-                                        value={filters.seller_id}
-                                        onChange={e => handleFilterChange("seller_id", e.target.value)}
-                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
-                                    >
-                                        <option value="" className="bg-slate-900">{t("products.allSellers")}</option>
-                                        {sellers.map(seller => (
-                                            <option key={seller.id} value={seller.id} className="bg-slate-900">
-                                                {seller.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative group">
+                                        <select
+                                            value={filters.seller_id}
+                                            onChange={e => handleFilterChange("seller_id", e.target.value)}
+                                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
+                                        >
+                                            <option value="">{t("products.allSellers")}</option>
+                                            {sellers.map(seller => (
+                                                <option key={seller.id} value={seller.id}>
+                                                    {seller.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
+                                    </div>
                                 </div>
                             )}
                         </div>
