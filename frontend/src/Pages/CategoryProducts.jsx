@@ -44,23 +44,48 @@ const CategoryProducts = () => {
         const fetchedProducts = productsRes.data || [];
         setAllProducts(fetchedProducts);
 
-        // Extract category info from first product or use default
-        if (fetchedProducts.length > 0) {
-          const categoryName = fetchedProducts[0].category_name || "Products";
-          setCategory({
-            id: categoryId,
-            name: categoryName,
-            product_cat_name: categoryName,
-            description: `Browse our collection of ${categoryName.toLowerCase()}`,
-          });
-        } else {
-          setCategory({
-            id: categoryId,
-            name: "Category",
-            product_cat_name: "Category",
-            description: "Browse our collection",
-          });
+        // Fetch category details from categories API to get the correct name
+        let categoryName = "Products";
+        let categoryDesc = "Browse our collection";
+        let categoryImage = null;
+
+        try {
+          const categoriesRes = await axios.get(`${API_URL}/api/categories`);
+          const allCategories = categoriesRes.data?.data || [];
+          
+          // Helper to find category or subcategory in the hierarchy
+          const findCategory = (cats, id) => {
+            for (const c of cats) {
+              if (c.id == id) return c;
+              if (c.subcategories) {
+                const found = findCategory(c.subcategories, id);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+
+          const mainCategory = findCategory(allCategories, categoryId);
+          if (mainCategory) {
+            categoryName = mainCategory.name;
+            categoryDesc = mainCategory.description || `Browse our collection of ${categoryName.toLowerCase()}`;
+            categoryImage = mainCategory.image;
+            setSubcategories(mainCategory.subcategories || []);
+          } else if (fetchedProducts.length > 0) {
+            // Fallback to first product's category name if not found in hierarchy
+            categoryName = fetchedProducts[0].category_name || "Products";
+          }
+        } catch (err) {
+          console.error("Error fetching category info:", err);
         }
+
+        setCategory({
+          id: categoryId,
+          name: categoryName,
+          product_cat_name: categoryName,
+          description: categoryDesc,
+          image: categoryImage
+        });
 
         // Apply sub-filter from URL param if present
         if (subFilter) {
@@ -75,19 +100,7 @@ const CategoryProducts = () => {
           setProducts(fetchedProducts);
         }
 
-        // Get subcategories from categories API
-        try {
-          const categoriesRes = await axios.get(`${API_URL}/api/categories`);
-          const allCategories = categoriesRes.data?.data || [];
-          
-          // Find category by id and get its subcategories
-          const mainCategory = allCategories.find(c => c.id == categoryId);
-          if (mainCategory && mainCategory.subcategories) {
-            setSubcategories(mainCategory.subcategories || []);
-          }
-        } catch {
-          // Subcategories not found or not available
-        }
+        // Sub-filter already handled above
       } catch (error) {
         console.error("Error fetching category products:", error.message);
       } finally {
@@ -127,7 +140,7 @@ const CategoryProducts = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-6">
         {/* BREADCRUMB */}
         <div className="flex items-center gap-2 mb-8 text-sm text-gray-600">
           <button
@@ -233,7 +246,7 @@ const CategoryProducts = () => {
         {loading ? (
           <LoadingSkeleton count={8} />
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
