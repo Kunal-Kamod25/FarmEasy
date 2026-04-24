@@ -1,22 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
+import { useNotifications } from "../context/NotificationContext";
 import { 
   Bell, Check, Trash2, Loader, Package, AlertTriangle, 
-  TrendingUp, ArrowLeft, MoreVertical, X, Filter, Sparkles, Sprout, Clock, ArrowRight
+  TrendingUp, ArrowLeft, MoreVertical, X, Filter, Sparkles, Sprout, Clock, ArrowRight,
+  RefreshCw
 } from "lucide-react";
 
 const VendorNotifications = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { unreadCount: contextUnread, refreshNotifications } = useNotifications();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all"); 
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(contextUnread || 0);
+
+  const fetchNotifications = useCallback(async (isInitial = false) => {
+    if (!token) return;
+    try {
+      if (isInitial && notifications.length === 0) setLoading(true);
+      else setRefreshing(true);
+
+      const res = await axios.get(
+        `${API_URL}/api/notifications?unreadOnly=${filter === "unread"}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotifications(res.data.data.notifications || []);
+      setUnreadCount(res.data.data.unread_count || 0);
+      refreshNotifications(); // Sync with context
+      setError("");
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      if (notifications.length === 0) setError("Failed to load notifications");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [token, filter, notifications.length, refreshNotifications]);
 
   useEffect(() => {
     if (!token) {
@@ -24,28 +52,10 @@ const VendorNotifications = () => {
       return;
     }
 
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(
-          `${API_URL}/api/notifications?unreadOnly=${filter === "unread"}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        setNotifications(res.data.data.notifications || []);
-        setUnreadCount(res.data.data.unread_count || 0);
-      } catch (err) {
-        console.error("Error fetching notifications:", err);
-        setError("Failed to load notifications");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    fetchNotifications(true);
+    const interval = setInterval(() => fetchNotifications(false), 30000);
     return () => clearInterval(interval);
-  }, [token, user, filter, navigate]);
+  }, [token, user.id, filter, navigate, fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {
@@ -156,6 +166,11 @@ const VendorNotifications = () => {
           </div>
 
           <div className="flex items-center gap-3">
+             {refreshing && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                   <RefreshCw size={10} className="animate-spin" /> Syncing...
+                </div>
+             )}
              {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
