@@ -237,35 +237,33 @@ const AllProductsPage = () => {
 
                     {/* ── FILTER SIDEBAR ── */}
                     <div className={`${filtersOpen ? "block" : "hidden"} lg:block w-full lg:w-64 flex-shrink-0`}>
-                        <div className="bg-gradient-to-br from-emerald-300 to-teal-500 rounded-2xl border border-slate-100 shadow-sm p-5 space-y-6 sticky top-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                    <Filter size={15} />
-                                    {t("products.filters")}
+                        <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-xl p-6 space-y-8 sticky top-4">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                <h3 className="font-black text-white flex items-center gap-2 uppercase tracking-widest text-sm">
+                                    <Filter size={16} className="text-emerald-500" />
+                                    Filters
                                 </h3>
                                 {hasActiveFilters && (
                                     <button
                                         onClick={clearAllFilters}
-                                        className="text-xs text-red-500 hover:text-red-600 font-semibold flex items-center gap-1"
+                                        className="text-[10px] bg-red-500/10 text-red-500 px-2 py-1 rounded-md hover:bg-red-500/20 font-black uppercase tracking-tighter transition-colors"
                                     >
-                                        <X size={12} /> {t("products.clearAll")}
+                                        Clear
                                     </button>
                                 )}
                             </div>
-
-                            {/* Category Filter */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
                                     {t("products.category")}
                                 </label>
                                 <select
                                     value={filters.category_id}
                                     onChange={e => handleFilterChange("category_id", e.target.value)}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
+                                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
                                 >
-                                    <option value="">{t("products.allCategories")}</option>
+                                    <option value="" className="bg-slate-900">{t("products.allCategories")}</option>
                                     {Array.isArray(categories) && categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>
+                                        <option key={cat.id} value={cat.id} className="bg-slate-900">
                                             {td(cat.name || cat.product_cat_name)}
                                         </option>
                                     ))}
@@ -274,7 +272,7 @@ const AllProductsPage = () => {
 
                             {/* Price Range */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
                                     {t("products.priceRange")}
                                 </label>
                                 <div className="flex gap-2">
@@ -283,14 +281,14 @@ const AllProductsPage = () => {
                                         placeholder={t("products.min")}
                                         value={filters.min_price}
                                         onChange={e => handleFilterChange("min_price", e.target.value)}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-white/20"
                                     />
                                     <input
                                         type="number"
                                         placeholder={t("products.max")}
                                         value={filters.max_price}
                                         onChange={e => handleFilterChange("max_price", e.target.value)}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-white/20"
                                     />
                                 </div>
                             </div>
@@ -298,68 +296,21 @@ const AllProductsPage = () => {
                             {/* Product Type Filter */}
                             {productTypes.length > 0 && (
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">
                                         {t("products.productType")}
                                     </label>
                                     <select
                                         value={filters.product_type}
                                         onChange={e => handleFilterChange("product_type", e.target.value)}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
                                     >
-                                        <option value="">{t("products.allTypes")}</option>
+                                        <option value="" className="bg-slate-900">{t("products.allTypes")}</option>
                                         {productTypes.map(type => (
-                                            <option key={type} value={type}>{td(type)}</option>
+                                            <option key={type} value={type} className="bg-slate-900">{td(type)}</option>
                                         ))}
                                     </select>
                                 </div>
                             )}
-
-                            {/* Color Filter */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                                    🎨 Color
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {["Red", "Green", "Blue", "Yellow", "Orange", "Purple", "Black", "White", "Brown", "Gray"].map(colorName => (
-                                        <button
-                                            key={colorName}
-                                            onClick={() => handleFilterChange("color", filters.color === colorName ? "" : colorName)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                                                filters.color === colorName
-                                                    ? "bg-white text-slate-900 border-2 border-slate-800 shadow-md"
-                                                    : "bg-white/40 text-slate-700 border border-slate-300 hover:bg-white/60"
-                                            }`}
-                                        >
-                                            <span 
-                                                className="inline-block w-3 h-3 rounded-full mr-1.5"
-                                                style={{
-                                                    backgroundColor: {
-                                                        Red: "#ef4444",
-                                                        Green: "#22c55e",
-                                                        Blue: "#3b82f6",
-                                                        Yellow: "#eab308",
-                                                        Orange: "#f97316",
-                                                        Purple: "#a855f7",
-                                                        Black: "#1f2937",
-                                                        White: "#f5f5f5",
-                                                        Brown: "#92400e",
-                                                        Gray: "#6b7280"
-                                                    }[colorName]
-                                                }}
-                                            />
-                                            {colorName}
-                                        </button>
-                                    ))}
-                                </div>
-                                {filters.color && (
-                                    <button
-                                        onClick={() => handleFilterChange("color", "")}
-                                        className="mt-2 text-xs text-red-500 hover:text-red-600 font-semibold"
-                                    >
-                                        Clear Color
-                                    </button>
-                                )}
-                            </div>
 
                             {/* Seller Filter */}
                             {sellers.length > 0 && (
@@ -370,11 +321,11 @@ const AllProductsPage = () => {
                                     <select
                                         value={filters.seller_id}
                                         onChange={e => handleFilterChange("seller_id", e.target.value)}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none"
                                     >
-                                        <option value="">{t("products.allSellers")}</option>
+                                        <option value="" className="bg-slate-900">{t("products.allSellers")}</option>
                                         {sellers.map(seller => (
-                                            <option key={seller.id} value={seller.id}>
+                                            <option key={seller.id} value={seller.id} className="bg-slate-900">
                                                 {seller.name}
                                             </option>
                                         ))}
