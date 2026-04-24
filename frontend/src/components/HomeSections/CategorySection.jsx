@@ -40,53 +40,52 @@ const CategorySection = ({
     const icon = CATEGORY_ICONS[catKey] || "📦";
     const gradient = CATEGORY_COLORS[catKey] || "from-emerald-500 to-green-600";
 
-    // alternate subtle background tint so sections stand apart visually
-    const sectionBg = idx % 2 === 0 ? "bg-white/60" : "bg-emerald-50/30";
-
     return (
-        <section className={`${sectionBg} py-8`}>
-            <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className={`bg-gradient-to-br ${gradient} p-2.5 rounded-xl shadow-lg`}>
-                            <span className="text-xl">{icon}</span>
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-extrabold text-slate-800">
-                                {catName}
-                            </h2>
-                            <p className="text-slate-500 text-xs mt-0.5">
-                                {products.length} product{products.length !== 1 ? "s" : ""} available
-                            </p>
-                        </div>
+        <section className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-16">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className={`h-1 w-8 bg-gradient-to-r ${gradient} rounded-full`} />
+                        <span className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">
+                            {products.length} Products Available
+                        </span>
                     </div>
-                    <button
-                        onClick={() => navigate(`/products?category=${cat.id}`)}
-                        className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition"
-                    >
-                        View All <ArrowRight size={14} />
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {products.length > 0 ? (
-                        products.slice(0, 8).map((product) => (
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                onAddToCart={addToCart}
-                                onToggleWishlist={toggleWishlist}
-                                isWishlisted={isWishlisted(product.id)}
-                                onViewDetail={() => navigate(`/product/${product.id}`)}
-                            />
-                        ))
-                    ) : (
-                        <div className="col-span-full py-12 text-center">
-                            <p className="text-slate-400 text-sm mb-2">📭 No products available yet</p>
-                            <p className="text-slate-300 text-xs">Check back soon! Vendors will be adding products to this category.</p>
+                    <div className="flex items-center gap-4">
+                        <div className={`bg-gradient-to-br ${gradient} w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10`}>
+                            <span className="text-2xl">{icon}</span>
                         </div>
-                    )}
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
+                            {catName}
+                        </h2>
+                    </div>
                 </div>
+                <button
+                    onClick={() => navigate(`/products?category_id=${cat.id}`)}
+                    className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95"
+                >
+                    View Collection <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {products.length > 0 ? (
+                    products.slice(0, 5).map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onAddToCart={addToCart}
+                            onToggleWishlist={toggleWishlist}
+                            isWishlisted={isWishlisted(product.id)}
+                            onViewDetail={() => navigate(`/product/${product.id}`)}
+                        />
+                    ))
+                ) : (
+                    <div className="col-span-full py-20 text-center bg-white/40 backdrop-blur-md rounded-[3rem] border border-dashed border-white shadow-inner">
+                        <div className="text-4xl mb-4">📭</div>
+                        <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-2">No Harvest Found</p>
+                        <p className="text-slate-400 text-xs font-medium">Check back soon! Vendors will be adding products to this category.</p>
+                    </div>
+                )}
             </div>
         </section>
     );
