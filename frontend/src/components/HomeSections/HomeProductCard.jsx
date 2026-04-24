@@ -20,14 +20,19 @@ export const ProductCard = ({
     const [loginMessage, setLoginMessage] = useState("");
 
     const handleWishlist = (e) => {
-        e.stopPropagation();
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const token = localStorage.getItem("token");
         if (!token) {
             setLoginMessage("Please login to save products to your wishlist.");
             setShowLoginModal(true);
             return;
         }
-        onToggleWishlist(product);
+        if (typeof onToggleWishlist === "function") {
+            onToggleWishlist(product);
+        }
     };
 
     const inStock = product.product_quantity > 0;
@@ -43,6 +48,7 @@ export const ProductCard = ({
                 <div className="relative h-48 bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center overflow-hidden">
                     {/* wishlist button */}
                     <button
+                        type="button"
                         onClick={handleWishlist}
                         className="absolute top-4 right-4 bg-white/80 backdrop-blur-xl rounded-2xl p-2.5 shadow-sm border border-white hover:scale-110 active:scale-95 transition-all z-10 group/wishlist"
                     >
