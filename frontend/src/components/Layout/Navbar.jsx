@@ -159,82 +159,64 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-black text-white py-1">
-      <nav className="container mx-auto flex flex-col gap-3 px-3 py-2 md:flex-row md:items-center md:px-6 md:py-0 md:gap-4">
-        {/* Left Side */}
-        <div className="flex w-full items-center justify-between gap-3 md:w-auto md:flex-none md:justify-start md:gap-4">
-          <div className="flex items-center h-12 md:h-15 md:pl-1 md:px-8">
-            <Link to="/">
+    <div className="bg-black text-white">
+      <nav className="container mx-auto px-4 md:px-8">
+        <div className="flex flex-col md:flex-row md:items-center md:h-20 py-3 md:py-0 gap-4">
+          
+          {/* LOGO & MOBILE ICONS ROW */}
+          <div className="flex items-center justify-between w-full md:w-auto gap-4">
+            <Link to="/" className="flex-shrink-0 transition-transform active:scale-95">
               <img
                 src={logo}
-                alt="logo"
-                className="h-12 md:h-25 w-auto object-contain"
+                alt="FarmEasy"
+                className="h-10 md:h-14 w-auto object-contain"
               />
             </Link>
-          </div>
 
-          <div className="flex items-center gap-3 md:hidden">
-            {!user && (
-              <>
-                <Link
-                  to="/register"
-                  className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
-                >
-                  {t("nav.signup")}
+            {/* MOBILE ONLY ICONS */}
+            <div className="flex items-center gap-4 md:hidden">
+              {!user ? (
+                <Link to="/login" className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                  Login
                 </Link>
-                <Link
-                  to="/login"
-                  className="text-[11px] font-semibold uppercase tracking-wide text-white hover:text-green-400"
-                >
-                  {t("nav.login")}
-                </Link>
-              </>
-            )}
-
-            {user && (
-              <>
-                <Link to="/wishlist" title="My Wishlist" className="relative group">
-                  <HiOutlineHeart className="h-5 w-5 text-white hover:text-red-400 transition-colors" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-3 -right-2 text-white text-[10px] rounded-full bg-red-500 min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">
-                      {wishlistCount > 99 ? "99+" : wishlistCount}
-                    </span>
-                  )}
-                </Link>
-                <Link to="/my-orders">
-                  <HiOutlineUser className="h-5 w-5 text-white hover:text-green-500 transition-colors" />
-                </Link>
-              </>
-            )}
-
-            <button
-              onClick={toggleCartDrawer}
-              className="relative hover:text-green-500 transition-colors"
-            >
-              <HiOutlineShoppingCart className="h-5 w-5 text-white hover:text-green-500" />
-              {cartCount > 0 && (
-                <span className="absolute -top-3 -right-2 text-white text-[10px] rounded-full bg-[#0C970C] min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Link to="/wishlist" className="relative group">
+                    <HiOutlineHeart className="h-6 w-6 text-white group-hover:text-red-400 transition-colors" />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-3 -right-2 text-white text-[9px] rounded-full bg-red-500 w-4 h-4 flex items-center justify-center font-black">
+                        {wishlistCount > 9 ? "9+" : wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                  <button onClick={toggleCartDrawer} className="relative group">
+                    <HiOutlineShoppingCart className="h-6 w-6 text-white group-hover:text-emerald-400 transition-colors" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-3 -right-2 text-white text-[9px] rounded-full bg-emerald-500 w-4 h-4 flex items-center justify-center font-black">
+                        {cartCount > 9 ? "9+" : cartCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
           </div>
-        </div>
 
-        <div className="w-full md:w-[520px] md:max-w-[52vw] md:min-w-0 md:mr-auto">
-          <Searchbar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            handleSearch={handleSearch}
-            suggestions={searchSuggestions}
-            suggestionsLoading={searchSuggestionsLoading}
-            onSuggestionSelect={handleSuggestionSelect}
-            onViewAllMatches={handleViewAllMatches}
-          />
-        </div>
+          {/* SEARCH BAR - Pushed below on mobile, center on desktop */}
+          <div className="w-full md:flex-1 md:max-w-2xl md:mx-auto">
+            <Searchbar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              handleSearch={handleSearch}
+              suggestions={searchSuggestions}
+              suggestionsLoading={searchSuggestionsLoading}
+              onSuggestionSelect={handleSuggestionSelect}
+              onViewAllMatches={handleViewAllMatches}
+            />
+          </div>
 
-        {/* Right Section */}
-        <div className="hidden md:flex items-center gap-4 ml-auto">
+          {/* DESKTOP ONLY ICONS */}
+          <div className="hidden md:flex items-center gap-6 ml-auto">
           {/* 🔐 AUTH SECTION */}
           {user ? (
             <>
