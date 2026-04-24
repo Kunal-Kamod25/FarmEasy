@@ -17,7 +17,7 @@
           s.shop_name,
           u.full_name AS seller_name
         FROM product p
-        JOIN categories pc ON p.category_id = pc.id
+        LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         WHERE p.category_id = ?
