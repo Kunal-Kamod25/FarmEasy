@@ -91,40 +91,41 @@ const Home = () => {
   }, [categories]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-amber-50/30 to-green-50">
+    <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc]">
 
       {categoryParam === "main" && <Hero />}
 
       {/* ═══════════════ NEW ARRIVALS SECTION ═══════════════ */}
-      <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 pt-10 pb-4">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-purple-200">
-              <Sparkles size={20} className="text-white" />
+      <section className="w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-20 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+                <div className="h-1 w-8 bg-emerald-500 rounded-full" />
+                <span className="text-emerald-600 font-black uppercase tracking-[0.3em] text-[10px]">
+                    Fresh Harvest
+                </span>
             </div>
-            <div>
-              <h2 className="text-xl font-extrabold text-slate-800">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
                 New Arrivals
-              </h2>
-              <p className="text-slate-500 text-xs mt-0.5">
-                Fresh products just added by vendors
-              </p>
-            </div>
+            </h2>
+            <p className="text-slate-500 text-lg max-w-xl font-medium">
+                Discover the latest high-yield seeds and premium fertilizers recently added by our verified partners.
+            </p>
           </div>
           <button
             onClick={() => navigate("/products")}
-            className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition"
+            className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95"
           >
-            View All <ArrowRight size={14} />
+            Explore Catalog <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
           </button>
         </div>
 
         {loading ? (
-          <LoadingSkeleton count={4} />
+          <LoadingSkeleton count={5} />
         ) : newArrivals.length === 0 ? (
           <EmptyState message="No products yet. Products will appear once vendors add them." />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {newArrivals.map((product) => (
               <ProductCard
                 key={product.id}
@@ -145,23 +146,28 @@ const Home = () => {
 
       {/* ═══════════════ RECOMMENDED FOR YOU ═══════════════ */}
       {!loading && recommendations.length > 0 && (
-        <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-12">
-          <div className="bg-white rounded-3xl p-8 shadow-xl shadow-emerald-100/20 border border-emerald-100/50">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2.5 rounded-xl shadow-lg shadow-amber-200">
-                <Star size={20} className="text-white fill-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">
-                  Recommended for You
-                </h2>
-                <p className="text-slate-500 text-xs mt-0.5">
-                  Handpicked quality products for your farm
-                </p>
-              </div>
+        <section className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-20">
+          <div className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-[3rem] p-12 border border-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className="h-1 w-8 bg-amber-500 rounded-full" />
+                        <span className="text-amber-600 font-black uppercase tracking-[0.3em] text-[10px]">
+                            Curated Selection
+                        </span>
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+                        Handpicked for You
+                    </h2>
+                    <p className="text-slate-500 text-lg max-w-xl font-medium">
+                        Personalized recommendations based on your farming needs and regional climate.
+                    </p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 relative z-10">
               {recommendations.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -194,74 +200,39 @@ const Home = () => {
           />
         ))}
 
-      {/* ═══════════════ ALL PRODUCTS ═══════════════ */}
-      {!loading && allProducts.length > 0 && (
-        <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2.5 rounded-xl shadow-lg shadow-emerald-200">
-                <TrendingUp size={20} className="text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">
-                  All Products
-                </h2>
-                <p className="text-slate-500 text-xs mt-0.5">
-                  {allProducts.length} products from verified vendors
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/products")}
-              className="flex items-center gap-1 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition"
-            >
-              Browse All <ArrowRight size={14} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {allProducts.slice(0, 12).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleWishlist={toggleWishlist}
-                isWishlisted={isWishlisted(product.id)}
-                onViewDetail={() => navigate(`/product/${product.id}`)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* ═══════════════ WHY FARMEASY ═══════════════ */}
       {categoryParam === "main" && (
-        <section className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 py-14 mt-8">
-          <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-extrabold text-white mb-2">
-                Why Farmers Trust FarmEasy
+        <section className="py-24 bg-slate-900 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+          <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
+            <div className="text-center mb-20 space-y-4">
+              <span className="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs">
+                Our Foundation
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+                Built for the Modern Farmer
               </h2>
-              <p className="text-emerald-100 text-sm max-w-xl mx-auto">
-                We are built for farmers, by people who understand farming.
-                Quality products, honest prices, delivered to your doorstep.
+              <p className="text-slate-400 text-xl max-w-2xl mx-auto font-medium">
+                We bridge the gap between traditional farming wisdom and modern marketplace efficiency.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { icon: <Truck size={28} />, title: "Free Delivery", desc: "On orders above ₹3,000 across India", color: "bg-white/20" },
-                { icon: <ShieldCheck size={28} />, title: "Genuine Products", desc: "100% authentic from verified vendors", color: "bg-white/20" },
-                { icon: <Sprout size={28} />, title: "Farmer First", desc: "Best prices for seeds, fertilizers & tools", color: "bg-white/20" },
-                { icon: <Headphones size={28} />, title: "Kisan Support", desc: "Expert help in Hindi, Marathi & English", color: "bg-white/20" },
+                { icon: <Truck size={32} />, title: "Hyper-Local Logistics", desc: "Optimized delivery routes ensuring your products reach the field faster than ever.", color: "from-emerald-500 to-teal-600" },
+                { icon: <ShieldCheck size={32} />, title: "Verified Ecosystem", desc: "Every vendor and product is rigorously vetted to ensure zero compromises on quality.", color: "from-blue-500 to-indigo-600" },
+                { icon: <Sprout size={32} />, title: "Yield Optimization", desc: "Expert advice and high-performance inputs designed to maximize your seasonal harvest.", color: "from-amber-500 to-orange-600" },
+                { icon: <Headphones size={32} />, title: "24/7 Field Support", desc: "Our agri-experts are just a call away to solve your technical and logistics queries.", color: "from-rose-500 to-red-600" },
               ].map((item, i) => (
                 <div
                   key={i}
-                  className={`${item.color} backdrop-blur-sm rounded-2xl p-6 text-center border border-white/10 hover:bg-white/30 transition-colors`}
+                  className="group relative bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-10 border border-white/10 hover:bg-white/10 transition-all duration-500 hover:-translate-y-4"
                 >
-                  <div className="text-white mb-3 flex justify-center">{item.icon}</div>
-                  <h3 className="text-white font-bold text-sm mb-1">{item.title}</h3>
-                  <p className="text-emerald-100 text-[11px] leading-relaxed">{item.desc}</p>
+                  <div className={`w-16 h-16 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                    <div className="text-white">{item.icon}</div>
+                  </div>
+                  <h3 className="text-white font-black text-xl mb-4">{item.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed font-medium group-hover:text-slate-300 transition-colors">{item.desc}</p>
                 </div>
               ))}
             </div>
