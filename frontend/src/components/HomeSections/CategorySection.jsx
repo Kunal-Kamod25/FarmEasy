@@ -45,7 +45,7 @@ const CategorySection = ({
 
     return (
         <section className={`${sectionBg} py-8`}>
-            <div className="w-full max-w-7xl mx-auto px-6">
+            <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className={`bg-gradient-to-br ${gradient} p-2.5 rounded-xl shadow-lg`}>
@@ -68,7 +68,7 @@ const CategorySection = ({
                     </button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {products.length > 0 ? (
                         products.slice(0, 8).map((product) => (
                             <ProductCard

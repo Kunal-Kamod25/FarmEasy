@@ -52,7 +52,7 @@ const ProductCard = ({ product }) => {
     <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-100 transition-all duration-500 border border-slate-100 overflow-hidden w-full flex flex-col h-full">
 
       {/* Image Container */}
-      <div className="relative h-48 w-full bg-slate-50/50 p-4 flex items-center justify-center overflow-hidden">
+      <div className="relative h-48 w-full bg-slate-50/50 p-2 flex items-center justify-center overflow-hidden">
 
         {/* ❤️ Wishlist Button */}
         <button
@@ -102,7 +102,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="px-2.5 py-4 flex flex-col flex-grow">
 
         {/* Brand */}
         <div className="flex items-center gap-1 mb-2">

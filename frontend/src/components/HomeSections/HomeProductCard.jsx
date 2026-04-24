@@ -68,7 +68,7 @@ export const ProductCard = ({
                 )}
 
                 {/* real product image from backend, or a styled placeholder */}
-                <div className="group-hover:scale-105 transition-transform duration-500 w-full h-full flex items-center justify-center p-3">
+                <div className="group-hover:scale-105 transition-transform duration-500 w-full h-full flex items-center justify-center p-2">
                     {product.product_image ? (
                         <img
                             src={getImageUrl(product.product_image)}
@@ -93,7 +93,7 @@ export const ProductCard = ({
             </div>
 
             {/* ── card content ── */}
-            <div className="p-4 flex flex-col flex-grow">
+            <div className="px-2.5 py-4 flex flex-col flex-grow">
 
                 {/* product name */}
                 <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 min-h-[38px] mb-1.5 group-hover:text-emerald-700 transition-colors">
@@ -157,7 +157,7 @@ export const ProductCard = ({
 };
 
 export const LoadingSkeleton = ({ count = 4 }) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
         {[...Array(count)].map((_, i) => (
             <div
                 key={i}
