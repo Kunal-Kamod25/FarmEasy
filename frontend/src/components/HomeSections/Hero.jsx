@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight, Truck, ShieldCheck, Star, Headphones } from "lucide-react";
 import Farm1 from "../../assets/Farm1.jpeg";
 import Farm2 from "../../assets/Farm2.jpeg";
@@ -17,6 +18,7 @@ const slides = [
       "Buy everything you need for modern farming from trusted vendors.",
     bgImage: Farm1,
     button: "Explore Platform",
+    link: "/products"
   },
   {
     title: "Premium Fertilizers",
@@ -25,6 +27,7 @@ const slides = [
       "High-quality organic and chemical fertilizers for every soil type.",
     bgImage: Farm2,
     button: "Shop Fertilizers",
+    link: "/products?category_id=1"
   },
   {
     title: "Modern Farm Equipment",
@@ -33,6 +36,7 @@ const slides = [
       "Tractors, tools, and machines designed for efficiency and durability.",
     bgImage: Fartilizers2,
     button: "View Equipment",
+    link: "/products?category_id=5"
   },
   {
     title: "Seeds & Pulses",
@@ -41,6 +45,7 @@ const slides = [
       "Certified seeds and pulses for maximum germination and yield.",
     bgImage: Farm4,
     button: "Browse Seeds",
+    link: "/products?category_id=2"
   },
   {
     title: "Irrigation Systems",
@@ -49,6 +54,7 @@ const slides = [
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
     bgImage: Farm5,
     button: "Explore Irrigation",
+    link: "/products?category_id=3"
   },
   {
     title: "Animal Feed & Medicines",
@@ -57,10 +63,12 @@ const slides = [
       "Nutritious animal feed and trusted veterinary medicines.",
     bgImage: Feed,
     button: "Shop Animal Care",
+    link: "/products?category_id=4"
   },
 ];
 
 const HeroCarousel = () => {
+  const navigate = useNavigate();
   const MotionDiv = motion.div;
   const MotionH1 = motion.h1;
   const MotionP = motion.p;
@@ -156,13 +164,16 @@ const HeroCarousel = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                className="flex flex-wrap gap-4"
+                className="flex flex-wrap gap-4 relative z-50"
               >
-                <button className="group relative bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-3.5 rounded-2xl font-black text-base shadow-[0_15px_40px_rgba(16,185,129,0.3)] transition-all duration-500 hover:-translate-y-1.5 flex items-center gap-3 overflow-hidden">
+                <Link 
+                  to={slides[index].link}
+                  className="group relative bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-3.5 rounded-2xl font-black text-base shadow-[0_15px_40px_rgba(16,185,129,0.3)] transition-all duration-500 hover:-translate-y-1.5 flex items-center gap-3 overflow-hidden"
+                >
                   <span className="relative z-10">{slides[index].button}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <ArrowRight size={18} className="relative z-10 transition-transform duration-500 group-hover:translate-x-1.5" />
-                </button>
+                </Link>
               </MotionDiv>
             </div>
           </div>

@@ -30,7 +30,11 @@ const ReusableProductCard = ({
     ? getImageUrl(product.product_image)
     : product?.image || product?.img || "";
 
-  const handleWishlist = async () => {
+  const handleWishlist = async (e) => {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
     if (!onToggleWishlist) return;
     if (!token) {
       setShowLoginModal(true);
