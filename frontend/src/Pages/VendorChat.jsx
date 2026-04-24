@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import { 
-  Sprout, Sparkles, User, Clock, Check, ShieldCheck, Paperclip, FileText, Download, Trash2
+  Sprout, Sparkles, User, Clock, Check, ShieldCheck, Paperclip, FileText, Download, Trash2,
+  Loader, Send, MessageCircle, Search, ArrowLeft, X
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
