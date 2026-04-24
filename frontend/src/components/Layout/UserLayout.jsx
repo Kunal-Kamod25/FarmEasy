@@ -94,7 +94,7 @@ const UserLayout = () => {
     useAuthInterceptor();
     return (
         <div className="min-h-screen flex flex-col">
-            <header className="sticky top-0 z-[100] bg-white shadow-md">
+            <header className="sticky top-0 z-[100] bg-black shadow-md">
                 <Topbar />
                 <Navbar />
                 <Thirdbar />
