@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from "../config";
@@ -29,6 +30,7 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadCount(0);
       return;
     }

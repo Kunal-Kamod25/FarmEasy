@@ -110,15 +110,7 @@ const VendorMessages = () => {
     // No more manual polling - socket handles real-time!
   }, [selectedConvId, token]);
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
