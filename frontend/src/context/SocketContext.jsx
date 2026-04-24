@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { API_URL } from '../config';
@@ -29,6 +30,7 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('connect', () => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsConnected(true);
         console.log('🟢 Connected to socket server');
         
@@ -45,6 +47,7 @@ export const SocketProvider = ({ children }) => {
         console.log('🔴 Disconnected from socket server');
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSocket(newSocket);
 
       // Cleanup on unmount
