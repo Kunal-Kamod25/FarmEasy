@@ -96,7 +96,7 @@ const Home = () => {
       {categoryParam === "main" && <Hero />}
 
       {/* ═══════════════ NEW ARRIVALS SECTION ═══════════════ */}
-      <section className="w-full max-w-7xl mx-auto px-6 pt-10 pb-4">
+      <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 pt-10 pb-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-purple-200">
@@ -124,7 +124,7 @@ const Home = () => {
         ) : newArrivals.length === 0 ? (
           <EmptyState message="No products yet. Products will appear once vendors add them." />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {newArrivals.map((product) => (
               <ProductCard
                 key={product.id}
@@ -145,7 +145,7 @@ const Home = () => {
 
       {/* ═══════════════ RECOMMENDED FOR YOU ═══════════════ */}
       {!loading && recommendations.length > 0 && (
-        <section className="w-full max-w-7xl mx-auto px-6 py-12">
+        <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-12">
           <div className="bg-white rounded-3xl p-8 shadow-xl shadow-emerald-100/20 border border-emerald-100/50">
             <div className="flex items-center gap-3 mb-8">
               <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2.5 rounded-xl shadow-lg shadow-amber-200">
@@ -161,7 +161,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {recommendations.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -196,7 +196,7 @@ const Home = () => {
 
       {/* ═══════════════ ALL PRODUCTS ═══════════════ */}
       {!loading && allProducts.length > 0 && (
-        <section className="w-full max-w-7xl mx-auto px-6 py-8">
+        <section className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2.5 rounded-xl shadow-lg shadow-emerald-200">
@@ -219,7 +219,7 @@ const Home = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {allProducts.slice(0, 12).map((product) => (
               <ProductCard
                 key={product.id}
@@ -237,7 +237,7 @@ const Home = () => {
       {/* ═══════════════ WHY FARMEASY ═══════════════ */}
       {categoryParam === "main" && (
         <section className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 py-14 mt-8">
-          <div className="w-full max-w-7xl mx-auto px-6">
+          <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6">
             <div className="text-center mb-10">
               <h2 className="text-2xl font-extrabold text-white mb-2">
                 Why Farmers Trust FarmEasy
