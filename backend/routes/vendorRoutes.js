@@ -24,6 +24,7 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/auth");
 const vendorController = require("../controllers/vendorController");
+const vendorMessageController = require("../controllers/vendorMessageController");
 const upload = require("../middleware/upload");
 
 // ========== PRODUCTS ==========
@@ -50,6 +51,9 @@ router.put("/profile", verifyToken, upload.single("profile_image"), vendorContro
 // ========== VENDOR AS BUYER (My Purchases) ==========
 // vendor is also a user who can buy from others - this fetches those orders
 router.get("/my-purchases", verifyToken, vendorController.getMyPurchases);
+
+// ========== VENDOR MESSAGES ==========
+router.delete("/messages/:messageId", verifyToken, vendorMessageController.deleteMessage);
 
 
 module.exports = router;
