@@ -605,4 +605,37 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/:orderId", verifyToken, async (req, res) => {
+  try {
+    const orderId = Number.parseInt(req.params.orderId, 10);
+
+    if (!orderId) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    const [orders] = await db.query(
+      "SELECT id, user_id FROM orders WHERE id = ?",
+      [orderId]
+    );
+
+    if (!orders.length) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (Number(orders[0].user_id) !== Number(req.user.id)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    await db.query("DELETE FROM orders WHERE id = ?", [orderId]);
+
+    return res.json({
+      success: true,
+      message: "Order deleted successfully"
+    });
+  } catch (error) {
+    console.error("Order delete error:", error);
+    return res.status(500).json({ message: "Failed to delete order" });
+  }
+});
+
 module.exports = router;
