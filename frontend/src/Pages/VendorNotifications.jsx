@@ -108,8 +108,18 @@ const VendorNotifications = () => {
         return <div className="p-2.5 rounded-2xl bg-blue-500/20 text-blue-300"><Package size={24} /></div>;
       case "low_stock":
         return <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-300"><AlertTriangle size={24} /></div>;
+      case "order_processing":
+        return <div className="p-2.5 rounded-2xl bg-indigo-500/20 text-indigo-300"><TrendingUp size={24} /></div>;
+      case "order_shipped":
+        return <div className="p-2.5 rounded-2xl bg-sky-500/20 text-sky-300"><ArrowRight size={24} /></div>;
+      case "order_completed":
+        return <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300"><Check size={24} /></div>;
+      case "order_cancelled":
+        return <div className="p-2.5 rounded-2xl bg-rose-500/20 text-rose-300"><X size={24} /></div>;
+      case "order_placed":
+      case "order_update":
       case "order_status_change":
-        return <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300"><TrendingUp size={24} /></div>;
+        return <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300"><Package size={24} /></div>;
       default:
         return <div className="p-2.5 rounded-2xl bg-white/10 text-white/60"><Bell size={24} /></div>;
     }
