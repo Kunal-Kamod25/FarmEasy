@@ -62,6 +62,13 @@ const ProductDetailPage = () => {
   const [reviewsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState("newest");
 
+  // Q&A states
+  const [queries, setQueries] = useState([]);
+  const [newQueryText, setNewQueryText] = useState("");
+  const [submittingQuery, setSubmittingQuery] = useState(false);
+  const [answerText, setAnswerText] = useState({});
+  const [submittingAnswer, setSubmittingAnswer] = useState(null);
+
   const token = localStorage.getItem("token");
 
   const fetchProduct = useCallback(async () => {
@@ -85,6 +92,14 @@ const ProductDetailPage = () => {
         console.warn("Could not load reviews:", reviewErr.message);
         setReviews([]);
         setReviewStats(null);
+      }
+
+      // Fetch Queries
+      try {
+        const queryRes = await axios.get(`${API_URL}/api/queries/${id}`);
+        setQueries(queryRes.data || []);
+      } catch (queryErr) {
+        console.warn("Could not load queries:", queryErr.message);
       }
     } catch (err) {
       console.error("❌ Failed to load product:", err.message, err.response?.status, err.response?.data);
@@ -120,29 +135,6 @@ const ProductDetailPage = () => {
       return;
     }
     toggleWishlist(product);
-  };
-  
-  const handleContactSeller = async () => {
-    if (!token) {
-      setLoginMessage("Please login to message the seller");
-      setShowLoginModal(true);
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/messages/conversation/start`,
-        { vendor_id: product.vendor_id, product_id: product.id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data.success) {
-        navigate(`/chat/${res.data.data.conversationId}`);
-      }
-    } catch (err) {
-      console.error("Error starting conversation:", err);
-      setError("Could not start conversation with seller");
-    }
   };
 
   const incrementQty = () => {
@@ -216,6 +208,44 @@ const ProductDetailPage = () => {
       }
     } catch (err) {
       console.warn("Error fetching reviews:", err);
+    }
+  };
+
+  const handleSubmitQuery = async (e) => {
+    e.preventDefault();
+    if (!token) {
+      setLoginMessage("Please login to ask a question");
+      setShowLoginModal(true);
+      return;
+    }
+    if (!newQueryText.trim()) return;
+
+    try {
+      setSubmittingQuery(true);
+      await axios.post(`${API_URL}/api/queries/${id}`, { query_text: newQueryText }, { headers: { Authorization: `Bearer ${token}` } });
+      setNewQueryText("");
+      const queryRes = await axios.get(`${API_URL}/api/queries/${id}`);
+      setQueries(queryRes.data || []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit question");
+    } finally {
+      setSubmittingQuery(false);
+    }
+  };
+
+  const handleSubmitAnswer = async (queryId) => {
+    if (!answerText[queryId]?.trim()) return;
+
+    try {
+      setSubmittingAnswer(queryId);
+      await axios.patch(`${API_URL}/api/queries/${queryId}/answer`, { answer_text: answerText[queryId] }, { headers: { Authorization: `Bearer ${token}` } });
+      const queryRes = await axios.get(`${API_URL}/api/queries/${id}`);
+      setQueries(queryRes.data || []);
+      setAnswerText({ ...answerText, [queryId]: "" });
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit answer");
+    } finally {
+      setSubmittingAnswer(null);
     }
   };
 
@@ -510,14 +540,7 @@ const ProductDetailPage = () => {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <button
-                onClick={handleContactSeller}
-                className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2"
-              >
-                <MessageSquare size={16} />
-                Chat with Seller
-              </button>
-              <button className="px-6 py-2 text-emerald-600 font-bold border border-emerald-600 rounded-lg hover:bg-emerald-50 transition">
+              <button className="px-6 py-2 text-emerald-600 font-bold border border-emerald-600 rounded-lg hover:bg-emerald-50 transition w-full">
                 View Store
               </button>
             </div>
@@ -691,6 +714,90 @@ const ProductDetailPage = () => {
                 ))
               ) : (
                 <p className="text-slate-600 text-center py-8">No reviews yet. Be the first to review!</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* PRODUCT Q&A SECTION */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-8">
+          <div className="p-6 border-b border-slate-200">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+              <MessageSquare className="text-emerald-500" size={24} />
+              Customer Questions & Answers
+            </h2>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleSubmitQuery} className="mb-8">
+              <label className="block text-sm font-semibold text-slate-900 mb-2">Have a question? Ask the seller</label>
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  value={newQueryText}
+                  onChange={(e) => setNewQueryText(e.target.value)}
+                  placeholder="Type your question here..."
+                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-600"
+                />
+                <button
+                  type="submit"
+                  disabled={submittingQuery || !newQueryText.trim()}
+                  className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition disabled:bg-slate-400"
+                >
+                  {submittingQuery ? "Asking..." : "Ask Question"}
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-6">
+              {queries && queries.length > 0 ? (
+                queries.map(q => (
+                  <div key={q.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
+                    <div className="flex gap-4">
+                      <div className="font-bold text-slate-800 w-6">Q:</div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900">{q.query_text}</p>
+                        <p className="text-xs text-slate-500 mt-1">Asked by {q.user_name} on {new Date(q.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-4 mt-3">
+                      <div className="font-bold text-emerald-600 w-6">A:</div>
+                      <div className="flex-1">
+                        {q.answer_text ? (
+                          <>
+                            <p className="text-slate-700">{q.answer_text}</p>
+                            <p className="text-xs text-slate-500 mt-1">Answered by {q.vendor_name || 'Seller'} on {new Date(q.updated_at).toLocaleDateString()}</p>
+                          </>
+                        ) : (
+                          <div className="text-slate-500 italic text-sm">
+                            No answer yet.
+                            {/* If the current user is the vendor, they can answer */}
+                            {user?.role === 'vendor' && (
+                              <div className="mt-3 flex gap-2">
+                                <input 
+                                  type="text" 
+                                  value={answerText[q.id] || ""}
+                                  onChange={(e) => setAnswerText({...answerText, [q.id]: e.target.value})}
+                                  placeholder="Type your answer..." 
+                                  className="flex-1 px-3 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-emerald-500"
+                                />
+                                <button 
+                                  onClick={() => handleSubmitAnswer(q.id)}
+                                  disabled={submittingAnswer === q.id}
+                                  className="px-3 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700 disabled:bg-slate-400"
+                                >
+                                  Answer
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate-600 text-center py-4">No questions asked yet.</p>
               )}
             </div>
           </div>
