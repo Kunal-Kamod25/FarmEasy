@@ -21,6 +21,7 @@ const mapProfileRow = (row) => {
     pincode: row.pincode,
     bio: row.bio,
     role: row.role,
+    profile_pic: row.profile_pic,
     created_at: row.created_at,
     total_orders: Number(row.total_orders || 0),
     total_spent: Number(row.total_spent || 0),
@@ -44,28 +45,43 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    const sql = `
-      UPDATE users 
-      SET full_name = ?, 
-          phone_number = ?, 
-          address = ?, 
-          city = ?, 
-          state = ?, 
-          pincode = ?, 
-          bio = ? 
-      WHERE id = ?
-    `;
+    // Handle profile image upload via S3 (path contains full URL)
+    let profilePicPath = null;
+    if (req.file) {
+      profilePicPath = req.file.path;
+    }
 
-    const [result] = await db.execute(sql, [
-      fullname,
-      phone || null,
-      address || null,
-      city || null,
-      state || null,
-      pincode || null,
-      bio || null,
-      userId
-    ]);
+    let sql, params;
+    if (profilePicPath) {
+      sql = `
+        UPDATE users 
+        SET full_name = ?, 
+            phone_number = ?, 
+            address = ?, 
+            city = ?, 
+            state = ?, 
+            pincode = ?, 
+            bio = ?,
+            profile_pic = ?
+        WHERE id = ?
+      `;
+      params = [fullname, phone || null, address || null, city || null, state || null, pincode || null, bio || null, profilePicPath, userId];
+    } else {
+      sql = `
+        UPDATE users 
+        SET full_name = ?, 
+            phone_number = ?, 
+            address = ?, 
+            city = ?, 
+            state = ?, 
+            pincode = ?, 
+            bio = ? 
+        WHERE id = ?
+      `;
+      params = [fullname, phone || null, address || null, city || null, state || null, pincode || null, bio || null, userId];
+    }
+
+    const [result] = await db.execute(sql, params);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "User not found." });
@@ -95,6 +111,7 @@ exports.getMyProfile = async (req, res) => {
          u.pincode,
          u.bio,
          u.role,
+         u.profile_pic,
          u.created_at,
          (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS total_orders,
          (SELECT COALESCE(SUM(o.total_price), 0) FROM orders o WHERE o.user_id = u.id) AS total_spent
@@ -135,6 +152,7 @@ exports.getProfile = async (req, res) => {
          u.pincode,
          u.bio,
          u.role,
+         u.profile_pic,
          u.created_at,
          (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS total_orders,
          (SELECT COALESCE(SUM(o.total_price), 0) FROM orders o WHERE o.user_id = u.id) AS total_spent

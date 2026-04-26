@@ -48,7 +48,6 @@ const DriverDeliveryApp = lazy(() => import("../Pages/DriverDeliveryApp"));
 
 /* Pages */
 const ProductDetails = lazy(() => import("../Pages/ProductDetails"));
-const VendorChat = lazy(() => import("../Pages/VendorChat"));
 const VendorNotifications = lazy(() => import("../Pages/VendorNotifications"));
 const CheckoutPage = lazy(() => import("../Pages/Checkout"));
 const OrderSuccessPage = lazy(() => import("../Pages/OrderSuccess"));
@@ -85,8 +84,7 @@ const AppRoutes = () => {
           {/* Single product detail */}
           <Route path="/product/:productId" element={<ProductDetails />} />
 
-          {/* Vendor Chat & Notifications */}
-          <Route path="/chat/:conversationId?" element={<VendorChat />} />
+          {/* Vendor Notifications */}
           <Route path="/notifications" element={<VendorNotifications />} />
           <Route path="/vendor/notifications" element={<VendorNotifications />} />
 

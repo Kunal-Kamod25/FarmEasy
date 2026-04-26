@@ -1,4 +1,4 @@
-import { User, Shield, ChevronRight, LogOut } from "lucide-react";
+import { User, Shield, ShoppingBag, ChevronRight, LogOut } from "lucide-react";
 
 const ProfileSidebar = ({ activeTab, setActiveTab, navigate }) => {
     return (
@@ -16,6 +16,14 @@ const ProfileSidebar = ({ activeTab, setActiveTab, navigate }) => {
                         <User size={20} />
                         <span>General Info</span>
                         {activeTab === "profile" && <ChevronRight size={16} className="ml-auto" />}
+                    </button>
+
+                    <button
+                        onClick={() => navigate("/my-orders")}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 text-white/70 hover:bg-white/10"
+                    >
+                        <ShoppingBag size={20} />
+                        <span>My Orders</span>
                     </button>
 
                     <button

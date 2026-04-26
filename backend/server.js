@@ -27,13 +27,9 @@ require("dotenv").config();   // loads .env variables (DB credentials, JWT secre
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const { initSocket } = require("./socketManager");
 
 const app = express();
 const server = http.createServer(app);
-
-// Initialize Socket.io
-initSocket(server);
 
 // ================= MIDDLEWARE =================
 // CORS configuration for production
@@ -75,7 +71,7 @@ const deliveryRoutes = require("./routes/deliveryRoutes");  // GPS delivery trac
 const reviewRoutes = require("./routes/reviewRoutes");  // Product and vendor reviews/ratings
 const newsletterRoutes = require("./routes/newsletterRoutes"); // Newsletter subscription
 const notificationRoutes = require("./routes/notificationRoutes"); // Vendor notifications
-const messageRoutes = require("./routes/messageRoutes");  // Farmer-vendor messaging
+const queryRoutes = require("./routes/queryRoutes"); // Product Q&A
 
 
 // Use routes
@@ -97,7 +93,7 @@ app.use("/api/delivery", deliveryRoutes); // GPS-based home delivery tracking
 app.use("/api/reviews", reviewRoutes); // Product and vendor reviews
 app.use("/api/newsletter", newsletterRoutes); // Newsletter subscriptions
 app.use("/api/notifications", notificationRoutes); // Vendor notifications
-app.use("/api/messages", messageRoutes); // Farmer-vendor messaging
+app.use("/api/queries", queryRoutes); // Product Q&A
 
 
 // ================= TEST ROUTE =================

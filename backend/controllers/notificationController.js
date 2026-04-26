@@ -90,36 +90,23 @@ exports.getNotifications = async (req, res) => {
     // ============================================
     // 2. FARMER/CUSTOMER NOTIFICATIONS
     // ============================================
-    // My unread chats/messages
-    const [unreadMessages] = await db.query(
-      `SELECT 
-        vm.id as msg_id, 
-        vm.conversation_id, 
-        vm.created_at,
-        u.full_name as sender_name
-       FROM vendor_messages vm
-       LEFT JOIN users u ON vm.sender_id = u.id
-       WHERE vm.receiver_id = ? AND vm.is_read = false
-       ORDER BY vm.created_at DESC LIMIT 20`,
-      [user_id]
-    );
-
-    const messageNotifications = unreadMessages.map(msg => ({
-      id: `msg_${msg.msg_id}`,
-      type: "new_message",
-      title: `New Message from ${msg.sender_name || 'User'} 💬`,
-      message: `You have an unread message to respond to.`,
+    // Login Notification (Always shows a recent login alert for the session)
+    const loginNotification = {
+      id: `login_alert_${user_id}`,
+      type: "login_alert",
+      title: "Login Successful 🔐",
+      message: "You have successfully logged into your FarmEasy account.",
       is_read: false,
       related_order_id: null,
-      action_url: `/chat/${msg.conversation_id}`,
-      created_at: msg.created_at,
-    }));
+      action_url: `/profile`,
+      created_at: new Date().toISOString()
+    };
 
     // My order updates
     const [myOrderUpdates] = await db.query(
       `SELECT id as order_id, order_status, order_date, total_price 
        FROM orders 
-       WHERE user_id = ? AND order_status IN ('Confirmed', 'Shipped', 'Delivered')
+       WHERE user_id = ?
        ORDER BY order_date DESC LIMIT 20`,
       [user_id]
     );
@@ -135,7 +122,7 @@ exports.getNotifications = async (req, res) => {
       created_at: o.order_date
     }));
 
-    allNotifications = [...allNotifications, ...messageNotifications, ...customerOrderNotifications];
+    allNotifications = [...allNotifications, loginNotification, ...customerOrderNotifications];
 
     // Sort all combined notifications by newest first
     allNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

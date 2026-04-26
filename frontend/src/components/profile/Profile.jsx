@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileContent from "./ProfileContent";
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -10,6 +10,8 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [metrics, setMetrics] = useState({
         total_orders: 0,
         total_spent: 0,
@@ -67,6 +69,11 @@ const Profile = () => {
                                 phone_verified: false
                             }
                         });
+
+                        if (latestUser.profile_pic) {
+                            setImagePreview(getImageUrl(latestUser.profile_pic));
+                        }
+
                         localStorage.setItem("user", JSON.stringify(formattedUser));
 
                         setFormData({
@@ -95,6 +102,14 @@ const Profile = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSave = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -102,15 +117,27 @@ const Profile = () => {
         const token = localStorage.getItem("token");
 
         try {
+            // Use FormData to support image upload
+            const fd = new FormData();
+            fd.append("fullname", formData.fullname);
+            fd.append("phone", formData.phone);
+            fd.append("address", formData.address);
+            fd.append("city", formData.city);
+            fd.append("state", formData.state);
+            fd.append("pincode", formData.pincode);
+            fd.append("bio", formData.bio);
+
+            if (imageFile) {
+                fd.append("profile_image", imageFile);
+            }
+
             const response = await fetch(`${API_URL}/api/profile/update`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
+                    // Don't set Content-Type — browser sets it with boundary for FormData
                 },
-                body: JSON.stringify({
-                    ...formData
-                }),
+                body: fd,
             });
 
             if (response.ok) {
@@ -128,6 +155,12 @@ const Profile = () => {
 
                     localStorage.setItem("user", JSON.stringify(updatedUser));
                     setUser(updatedUser);
+                    setImageFile(null);
+
+                    if (refreshed.profile_pic) {
+                        setImagePreview(getImageUrl(refreshed.profile_pic));
+                    }
+
                     setMetrics({
                         total_orders: refreshed.total_orders || 0,
                         total_spent: refreshed.total_spent || 0,
@@ -159,7 +192,15 @@ const Profile = () => {
             <div className="max-w-6xl mx-auto relative">
                 <div className="absolute inset-0 opacity-20 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:68px_68px]" />
 
-                <div className="mt-10 flex flex-col lg:flex-row gap-8 relative z-10">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">My Profile</h1>
+                        <p className="text-white/65 text-sm mt-0.5">Manage your personal details and account settings</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-8 relative z-10">
 
                     <ProfileSidebar
                         activeTab={activeTab}
@@ -178,6 +219,8 @@ const Profile = () => {
                         message={message}
                         handleInputChange={handleInputChange}
                         handleSave={handleSave}
+                        imagePreview={imagePreview}
+                        handleImageChange={handleImageChange}
                     />
 
                 </div>

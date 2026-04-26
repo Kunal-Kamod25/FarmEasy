@@ -417,29 +417,26 @@ CREATE TABLE `vendor_notifications` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `vendor_messages`
+-- Table structure for table `product_queries`
 --
 
-DROP TABLE IF EXISTS `vendor_messages`;
+DROP TABLE IF EXISTS `product_queries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `vendor_messages` (
+CREATE TABLE `product_queries` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `conversation_id` varchar(50) NOT NULL,
-  `sender_id` int NOT NULL,
-  `receiver_id` int NOT NULL,
-  `message_text` longtext NOT NULL,
-  `attachment_url` varchar(500),
-  `is_read` boolean DEFAULT false,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `query_text` text NOT NULL,
+  `answer_text` text,
+  `answered_by` int,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `idx_conversation_id` (`conversation_id`),
-  INDEX `idx_sender_id` (`sender_id`),
-  INDEX `idx_receiver_id` (`receiver_id`),
-  INDEX `idx_created_at` (`created_at`),
-  FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`receiver_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`product_id`) REFERENCES `product`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`answered_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  KEY `idx_product_queries` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -729,6 +726,30 @@ CREATE TABLE `delivery_reviews` (
   FOREIGN KEY (`driver_id`) REFERENCES `delivery_drivers`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_queries`
+--
+
+DROP TABLE IF EXISTS `product_queries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_queries` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `query_text` text NOT NULL,
+  `answer_text` text DEFAULT NULL,
+  `answered_by` int DEFAULT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_product_queries_product` (`product_id`),
+  KEY `idx_product_queries_user` (`user_id`),
+  CONSTRAINT `fk_pq_product` FOREIGN KEY (`product_id`) REFERENCES `product`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pq_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
