@@ -29,6 +29,7 @@ const VendorMessages = () => {
   const fileInputRef = useRef(null);
   const [selectedConvId, setSelectedConvId] = useState(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [deletingMessageId, setDeletingMessageId] = useState(null);
 
   const fetchConversations = useCallback(async () => {
     try {
@@ -166,6 +167,27 @@ const VendorMessages = () => {
       setError("Failed to send message");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    const confirmed = window.confirm("Delete this message? This action cannot be undone.");
+    if (!confirmed) return;
+
+    try {
+      setDeletingMessageId(messageId);
+
+      await axios.delete(`${API_URL}/api/vendor/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setMessages((prev) => prev.filter((message) => message.id !== messageId));
+      await fetchConversations();
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      setError(err.response?.data?.message || "Failed to delete message");
+    } finally {
+      setDeletingMessageId(null);
     }
   };
 
@@ -476,7 +498,21 @@ const VendorMessages = () => {
                           <span className="text-[10px] text-white/20 uppercase font-sans tracking-tighter">
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          {isSentByMe && <Check size={10} className="text-emerald-400/60" />}
+                          {isSentByMe && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                disabled={deletingMessageId === msg.id}
+                                className="inline-flex items-center gap-1 rounded-full border border-rose-400/20 bg-rose-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-rose-300 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Delete message"
+                              >
+                                <Trash2 size={10} />
+                                {deletingMessageId === msg.id ? "Deleting" : "Delete"}
+                              </button>
+                              <Check size={10} className="text-emerald-400/60" />
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
