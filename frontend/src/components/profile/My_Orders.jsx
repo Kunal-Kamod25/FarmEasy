@@ -4,7 +4,7 @@ import { API_URL, getImageUrl } from '../../config';
 import { useNavigate } from "react-router-dom";
 import {
     Package, Truck, CheckCircle, Clock, ChevronRight,
-    MapPin, Calendar, AlertCircle, Store, Search, X, ChevronDown
+    MapPin, Calendar, AlertCircle, Store, Search, X, ChevronDown, Trash2
 } from "lucide-react";
 import {
     getDisplayOrderStatus,
@@ -20,10 +20,41 @@ const My_Orders = () => {
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeTab, setActiveTab] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
+    const [deletingOrderId, setDeletingOrderId] = useState(null);
     const navigate = useNavigate();
 
     const toggleDetails = (orderId) => {
         setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+    };
+
+    const handleDeleteOrder = async (orderId) => {
+        const confirmed = window.confirm(
+            "Delete this order from your history? This action cannot be undone."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setDeletingOrderId(orderId);
+
+            await axios.delete(`${API_URL}/api/orders/${orderId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setOrders((prev) => prev.filter((order) => (order.id || order.order_id) !== orderId));
+            setExpandedOrders((prev) => {
+                const next = { ...prev };
+                delete next[orderId];
+                return next;
+            });
+        } catch (err) {
+            console.error("Order delete error:", err);
+            setError(err.response?.data?.message || "Failed to delete order");
+        } finally {
+            setDeletingOrderId(null);
+        }
     };
 
     const token = localStorage.getItem("token");
@@ -200,6 +231,21 @@ const My_Orders = () => {
                                         title="Track Order"
                                     >
                                         <MapPin size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteOrder(order.id || order.order_id)}
+                                        disabled={deletingOrderId === (order.id || order.order_id)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border border-red-400/30 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                        title="Delete order"
+                                    >
+                                        {deletingOrderId === (order.id || order.order_id) ? (
+                                            <span>Deleting...</span>
+                                        ) : (
+                                            <>
+                                                <Trash2 size={14} />
+                                                Delete
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </div>
