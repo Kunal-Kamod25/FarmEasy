@@ -6,6 +6,49 @@
 
 const db = require("../config/db");
 
+const getOrderNotificationMeta = (status, orderId) => {
+  const normalizedStatus = String(status || "").trim().toLowerCase();
+
+  switch (normalizedStatus) {
+    case "pending":
+      return {
+        type: "order_placed",
+        title: "Order Placed! 📦",
+        message: `Your order #${orderId} has been placed and is now Pending.`
+      };
+    case "processing":
+      return {
+        type: "order_processing",
+        title: "Order Processing 🔄",
+        message: `Your order #${orderId} is currently being processed.`
+      };
+    case "shipped":
+      return {
+        type: "order_shipped",
+        title: "Order Shipped 🚚",
+        message: `Your order #${orderId} has been shipped.`
+      };
+    case "delivered":
+      return {
+        type: "order_completed",
+        title: "Order Completed ✅",
+        message: `Your order #${orderId} has been delivered successfully.`
+      };
+    case "cancelled":
+      return {
+        type: "order_cancelled",
+        title: "Order Cancelled ❌",
+        message: `Your order #${orderId} has been cancelled.`
+      };
+    default:
+      return {
+        type: "order_update",
+        title: `Order Update 📦`,
+        message: `Your order #${orderId} status is now ${status || "updated"}.`
+      };
+  }
+};
+
 // ===== GET NOTIFICATIONS (derived from real order data and messages) =====
 exports.getNotifications = async (req, res) => {
   try {
@@ -44,18 +87,16 @@ exports.getNotifications = async (req, res) => {
       );
 
       const vendorOrders = orders.map((order) => {
-        const isNew = order.order_status === "Pending";
-        const type = isNew ? "new_order" : "order_status_change";
-        const title = isNew
-          ? "New Order Received! 📦"
-          : `Order Status: ${order.order_status} 🔄`;
-        const message = `Order #${order.order_id} from ${order.customer_name || "Customer"} — ₹${order.total_price}`;
+        const meta = getOrderNotificationMeta(order.order_status, order.order_id);
+        const isNew = String(order.order_status || "").toLowerCase() === "pending";
 
         return {
           id: `vendor_ord_${order.order_id}_${order.order_status}`,
-          type,
-          title,
-          message,
+          type: isNew ? "new_order" : meta.type,
+          title: isNew ? "New Order Received! 📦" : meta.title,
+          message: isNew
+            ? `Order #${order.order_id} from ${order.customer_name || "Customer"} — ₹${order.total_price}`
+            : meta.message,
           is_read: !isNew, // unread only if Pending
           related_order_id: order.order_id,
           action_url: `/vendor/orders`,
@@ -113,10 +154,9 @@ exports.getNotifications = async (req, res) => {
 
     const customerOrderNotifications = myOrderUpdates.map(o => ({
       id: `cust_ord_${o.order_id}_${o.order_status}`,
-      type: "order_update",
-      title: `Order ${o.order_status}! 📦`,
-      message: `Your order #${o.order_id} for ₹${o.total_price} is now ${o.order_status}.`,
-      is_read: false, // For customer dynamic alerts, we don't track read state in DB, consider them unread if recent. Let's just pass false.
+      ...getOrderNotificationMeta(o.order_status, o.order_id),
+      message: getOrderNotificationMeta(o.order_status, o.order_id).message || `Your order #${o.order_id} for ₹${o.total_price} is now ${o.order_status}.`,
+      is_read: false,
       related_order_id: o.order_id,
       action_url: `/track-order/${o.order_id}`,
       created_at: o.order_date
