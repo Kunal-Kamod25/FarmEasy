@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
@@ -41,6 +41,38 @@ const Checkout = () => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    // Fetch user details to pre-fill the form
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            try {
+                const res = await axios.get(`${API_URL}/api/profile/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if (res.data) {
+                    const profile = res.data;
+                    setFormData(prev => ({
+                        ...prev,
+                        fullName: profile.full_name || prev.fullName,
+                        email: profile.email || prev.email,
+                        phone: profile.phone_number || prev.phone,
+                        address: profile.address || prev.address,
+                        city: profile.city || prev.city,
+                        state: profile.state || prev.state,
+                        pincode: profile.pincode || prev.pincode,
+                    }));
+                }
+            } catch (err) {
+                console.error("Error pre-filling checkout form:", err);
+            }
+        };
+
+        fetchUserProfile();
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
