@@ -180,27 +180,7 @@ const HeroCarousel = () => {
         </MotionDiv>
       </AnimatePresence>
 
-      {/* QUICK STATS BAR */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-5xl px-6 z-30 hidden lg:block">
-        <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 p-1.5 flex items-center justify-between shadow-2xl">
-            {[
-                { icon: <Truck size={18} />, label: "Fast Delivery", sub: "3-5 Days" },
-                { icon: <ShieldCheck size={18} />, label: "Secured", sub: "100% Safety" },
-                { icon: <Star size={18} />, label: "Premium", sub: "Verified Only" },
-                { icon: <Headphones size={18} />, label: "24/7 Support", sub: "Kisan Help" }
-            ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-3 px-6 py-3 hover:bg-white/10 rounded-2xl transition-all cursor-default group">
-                    <div className="bg-emerald-500/20 p-2 rounded-xl text-emerald-400 group-hover:scale-110 transition-transform">
-                        {stat.icon}
-                    </div>
-                    <div>
-                        <p className="text-white font-black text-xs tracking-tight">{stat.label}</p>
-                        <p className="text-white/40 text-[8px] font-bold uppercase tracking-widest leading-none">{stat.sub}</p>
-                    </div>
-                </div>
-            ))}
-        </div>
-      </div>
+
 
       {/* SIDE NAVIGATION ARROWS */}
       <div className="absolute inset-0 flex items-center justify-between px-6 z-40 pointer-events-none">
@@ -222,8 +202,8 @@ const HeroCarousel = () => {
           </button>
       </div>
 
-      {/* STEP INDICATORS */}
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-40">
+      {/* STEP INDICATORS - Moved to bottom center and changed to horizontal */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-40">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -231,9 +211,15 @@ const HeroCarousel = () => {
               setDirection(i > index ? 1 : -1);
               setIndex(i);
             }}
-            className="group relative h-8 w-1 focus:outline-none"
+            className="group relative w-12 h-1.5 focus:outline-none transition-all duration-300"
           >
-            <div className={`absolute inset-0 transition-all duration-700 rounded-full ${i === index ? "h-8 bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)]" : "h-4 bg-white/20 hover:bg-white/40"}`} />
+            <div 
+              className={`absolute inset-0 transition-all duration-700 rounded-full ${
+                i === index 
+                  ? "w-12 bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.8)]" 
+                  : "w-6 bg-white/20 hover:bg-white/40"
+              }`} 
+            />
           </button>
         ))}
       </div>
