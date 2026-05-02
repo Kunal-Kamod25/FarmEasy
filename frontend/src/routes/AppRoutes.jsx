@@ -25,8 +25,8 @@ const VendorAddProduct = lazy(() => import("../components/Vendor/VendorAddProduc
 const VendorOrders = lazy(() => import("../components/Vendor/VendorOrders"));
 const VendorSales = lazy(() => import("../components/Vendor/VendorSales"));
 const VendorProfile = lazy(() => import("../components/Vendor/VendorProfile"));
-const VendorMessages = lazy(() => import("../components/Vendor/VendorMessages"));
 const VendorEditProduct = lazy(() => import("../components/Vendor/vendorEditProduct"));
+const VendorProductDetail = lazy(() => import("../components/Vendor/VendorProductDetail"));
 
 /* Protected Routes */
 const VendorRoute = lazy(() => import("./VendorRoute"));
@@ -146,6 +146,7 @@ const AppRoutes = () => {
 
           {/* products management */}
           <Route path="products" element={<VendorProducts />} />
+          <Route path="products/:id" element={<VendorProductDetail />} />
           <Route path="add-product" element={<VendorAddProduct />} />
           <Route path="products/edit/:id" element={<VendorEditProduct />} />
 
@@ -153,7 +154,6 @@ const AppRoutes = () => {
           <Route path="orders" element={<VendorOrders />} />
           <Route path="sales" element={<VendorSales />} />
           <Route path="profile" element={<VendorProfile />} />
-          <Route path="messages" element={<VendorMessages />} />
         </Route>
 
         </Routes>

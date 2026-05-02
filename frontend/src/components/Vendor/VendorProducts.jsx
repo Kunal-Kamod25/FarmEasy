@@ -67,7 +67,7 @@ const VendorProducts = () => {
   const outOfStock = products.filter((p) => p.product_quantity === 0).length;
 
   return (
-    <div className="min-h-screen bg-transparent p-6 space-y-8">
+    <div className="min-h-screen bg-transparent px-6 pb-6 space-y-8">
       {/* ERROR NOTIFICATION */}
       {error && (
         <ErrorNotification 
@@ -77,10 +77,11 @@ const VendorProducts = () => {
       )}
 
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-md border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Products</h1>
-          <p className="text-gray-500 font-medium mt-1">Manage and organize your inventory</p>
+          <p className="text-gray-500 font-medium mt-1 text-sm">Manage and organize your inventory</p>
         </div>
         <Link
           to="/vendor/add-product"
@@ -194,7 +195,7 @@ const VendorProducts = () => {
                         product={p}
                         mode="vendor"
                         categoryLabel={category}
-                        onViewDetail={() => navigate(`/product/${p.id}`)}
+                        onViewDetail={() => navigate(`/vendor/products/${p.id}`)}
                         onEdit={() => navigate(`/vendor/products/edit/${p.id}`)}
                         onDelete={() => handleDelete(p.id)}
                       />
@@ -244,7 +245,7 @@ const VendorProducts = () => {
                             </td>
                             <td className="px-4 py-5 text-right">
                               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => navigate(`/product/${p.id}`)} className="p-2 text-gray-400 hover:text-emerald-600 transition-colors"><Eye size={16} /></button>
+                                <button onClick={() => navigate(`/vendor/products/${p.id}`)} className="p-2 text-gray-400 hover:text-emerald-600 transition-colors"><Eye size={16} /></button>
                                 <button onClick={() => navigate(`/vendor/products/edit/${p.id}`)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Pencil size={16} /></button>
                                 <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
                               </div>

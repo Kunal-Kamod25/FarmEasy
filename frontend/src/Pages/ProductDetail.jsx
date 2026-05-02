@@ -171,24 +171,6 @@ const ProductDetail = () => {
     }
   };
 
-  // ===== START VENDOR CHAT =====
-  const handleAskVendor = async () => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/messages/conversation/start`,
-        { vendor_id: product.seller_id, product_id: productId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      navigate(`/chat/${res.data.data.conversationId}`);
-    } catch {
-      setError("Failed to start conversation");
-    }
-  };
 
   if (loading) {
     return (
@@ -317,16 +299,9 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock_quantity === 0}
-                className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-bold py-3 rounded flex items-center justify-center gap-2"
+                className="col-span-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-bold py-3 rounded flex items-center justify-center gap-2"
               >
                 🛒 Add to Cart
-              </button>
-              <button
-                onClick={handleAskVendor}
-                className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 font-bold py-3 rounded flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={20} />
-                Ask Vendor
               </button>
             </div>
 
