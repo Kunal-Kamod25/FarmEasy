@@ -8,54 +8,112 @@ const NotificationContext = createContext();
 
 export const useNotifications = () => useContext(NotificationContext);
 
+// ─── helpers: persist read IDs in localStorage ───────────────────────────────
+const STORAGE_KEY = "farmeasy_read_notification_ids";
+
+const getReadIds = () => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+};
+
+const saveReadIds = (set) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const NotificationProvider = ({ children }) => {
-  const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const { socket } = useSocket();
 
-  const fetchUnreadCount = useCallback(async () => {
+  // Fetch raw notifications from server, then apply local read state
+  const fetchNotifications = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await axios.get(`${API_URL}/api/notifications?unreadOnly=true`, {
+      const res = await axios.get(`${API_URL}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUnreadCount(res.data.data.unread_count || 0);
-      setNotifications(res.data.data.notifications || []);
+
+      const raw = res.data?.data?.notifications || [];
+      const readIds = getReadIds();
+
+      // Override server is_read with locally tracked read state
+      const merged = raw.map((n) => ({
+        ...n,
+        is_read: readIds.has(n.id) ? true : n.is_read,
+      }));
+
+      setNotifications(merged);
+      setUnreadCount(merged.filter((n) => !n.is_read).length);
     } catch (err) {
-      console.error("Error fetching notification count:", err);
+      console.error("Error fetching notifications:", err);
     }
   }, [token]);
 
+  // Mark a single notification as read
+  const markAsRead = useCallback((notificationId) => {
+    const readIds = getReadIds();
+    readIds.add(notificationId);
+    saveReadIds(readIds);
+
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  // Mark ALL notifications as read (call this when user opens the notifications page)
+  const markAllAsRead = useCallback(() => {
+    const readIds = getReadIds();
+    notifications.forEach((n) => readIds.add(n.id));
+    saveReadIds(readIds);
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+  }, [notifications]);
+
+  // Poll on mount and every 30 seconds
   useEffect(() => {
     if (!token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadCount(0);
       return;
     }
 
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30 seconds
-
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [token, fetchUnreadCount]);
+  }, [token, fetchNotifications]);
 
-  // Listen for socket events to update count in real-time
+  // Real-time socket updates
   useEffect(() => {
     if (!socket || !user.id) return;
 
     socket.on("new message notification", () => {
-      fetchUnreadCount();
+      fetchNotifications();
     });
 
     return () => {
       socket.off("new message notification");
     };
-  }, [socket, user.id, fetchUnreadCount]);
+  }, [socket, user.id, fetchNotifications]);
 
   return (
-    <NotificationContext.Provider value={{ unreadCount, notifications, refreshNotifications: fetchUnreadCount }}>
+    <NotificationContext.Provider
+      value={{
+        unreadCount,
+        notifications,
+        markAsRead,
+        markAllAsRead,
+        refreshNotifications: fetchNotifications,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );

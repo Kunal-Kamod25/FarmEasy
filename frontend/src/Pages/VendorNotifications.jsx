@@ -13,14 +13,28 @@ const VendorNotifications = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const { unreadCount: contextUnread, refreshNotifications } = useNotifications();
+  const { notifications: ctxNotifications, unreadCount: contextUnread, markAsRead: ctxMarkAsRead, markAllAsRead: ctxMarkAllAsRead, refreshNotifications } = useNotifications();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all"); 
+  const [filter, setFilter] = useState("all");
   const [unreadCount, setUnreadCount] = useState(contextUnread || 0);
+
+  // Keep local list in sync with context (which has merged read state)
+  useEffect(() => {
+    if (ctxNotifications.length > 0) {
+      setNotifications(ctxNotifications);
+      setUnreadCount(ctxNotifications.filter((n) => !n.is_read).length);
+    }
+  }, [ctxNotifications]);
+
+  // Auto-mark all as read when user opens the page
+  useEffect(() => {
+    ctxMarkAllAsRead();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchNotifications = useCallback(async (isInitial = false) => {
     if (!token) return;
@@ -57,48 +71,29 @@ const VendorNotifications = () => {
     return () => clearInterval(interval);
   }, [token, user.id, filter, navigate, fetchNotifications]);
 
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/api/notifications/${notificationId}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-      );
-      setUnreadCount(Math.max(0, unreadCount - 1));
-    } catch (err) {
-      console.error("Error marking notification:", err);
-    }
+  const handleMarkAsRead = (notificationId) => {
+    // Update context (persists to localStorage + drops navbar count)
+    ctxMarkAsRead(notificationId);
+    // Update local list
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await axios.patch(
-        `${API_URL}/api/notifications/read-all`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    } catch (err) {
-      console.error("Error marking all read:", err);
-    }
+  const handleMarkAllAsRead = () => {
+    ctxMarkAllAsRead();
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
   };
 
-  const handleDelete = async (notificationId) => {
-    try {
-      await axios.delete(`${API_URL}/api/notifications/${notificationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const deleted = notifications.find((n) => n.id === notificationId);
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-      if (deleted && !deleted.is_read) {
-        setUnreadCount(Math.max(0, unreadCount - 1));
-      }
-    } catch (err) {
-      console.error("Error deleting notification:", err);
+  const handleDelete = (notificationId) => {
+    const deleted = notifications.find((n) => n.id === notificationId);
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    if (deleted && !deleted.is_read) {
+      // Also mark as read in context so count doesn't re-appear
+      ctxMarkAsRead(notificationId);
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     }
   };
 
@@ -125,9 +120,9 @@ const VendorNotifications = () => {
     }
   };
 
-  const handleNotificationClick = async (notification) => {
+  const handleNotificationClick = (notification) => {
     if (!notification.is_read) {
-      await handleMarkAsRead(notification.id);
+      handleMarkAsRead(notification.id);
     }
     if (notification.action_url) {
       navigate(notification.action_url);
