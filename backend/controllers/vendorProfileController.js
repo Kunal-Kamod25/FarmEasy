@@ -146,13 +146,25 @@ exports.updateProfile = async (req, res) => {
     }
 
     // Update users table with personal info
+    // We use OR logic to fallback to existing values if null/missing is sent
     if (profilePic) {
+      console.log("Updating user with profile pic:", profilePic);
       await db.query(`
         UPDATE users 
-        SET full_name = ?, phone_number = ?, address = ?, city = ?, state = ?, pincode = ?, bio = ?, profile_pic = ?
+        SET 
+          full_name = COALESCE(?, full_name), 
+          email = COALESCE(?, email), 
+          phone_number = COALESCE(?, phone_number), 
+          address = COALESCE(?, address), 
+          city = COALESCE(?, city), 
+          state = COALESCE(?, state), 
+          pincode = COALESCE(?, pincode), 
+          bio = COALESCE(?, bio), 
+          profile_pic = ?
         WHERE id = ?
       `, [
         vendor_name || null,
+        email || null,
         phone || null,
         address || null,
         city || null,
@@ -163,12 +175,22 @@ exports.updateProfile = async (req, res) => {
         userId
       ]);
     } else {
+      console.log("Updating user without profile pic");
       await db.query(`
         UPDATE users 
-        SET full_name = ?, phone_number = ?, address = ?, city = ?, state = ?, pincode = ?, bio = ?
+        SET 
+          full_name = COALESCE(?, full_name), 
+          email = COALESCE(?, email), 
+          phone_number = COALESCE(?, phone_number), 
+          address = COALESCE(?, address), 
+          city = COALESCE(?, city), 
+          state = COALESCE(?, state), 
+          pincode = COALESCE(?, pincode), 
+          bio = COALESCE(?, bio)
         WHERE id = ?
       `, [
         vendor_name || null,
+        email || null,
         phone || null,
         address || null,
         city || null,

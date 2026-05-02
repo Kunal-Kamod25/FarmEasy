@@ -13,16 +13,15 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
-    connectionLimit: 5,
+    connectionLimit: 20, // Increased for better concurrency
     queueLimit: 0,
-    connectTimeout: 10000,
-    acquireTimeout: 10000,
+    connectTimeout: 20000, // Increased for remote Aiven DB
+    acquireTimeout: 20000,
     ssl: {
         rejectUnauthorized: false
     },
     enableKeepAlive: true,
     keepAliveInitialDelayMs: 0,
-    connectionTimeZone: '+00:00'
 });
 
 // Test connection
