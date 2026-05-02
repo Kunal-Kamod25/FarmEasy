@@ -98,9 +98,14 @@ const createOrderFromCart = async ({
 }) => {
   const totalPrice = calculateTotal(cartItems);
 
+  // Determine initial order status based on payment
+  const initialStatus = paymentStatus === PAYMENT_STATUS.PAID
+    ? ORDER_STATUS.PAYMENT_CONFIRMED
+    : ORDER_STATUS.PAYMENT_PENDING;
+
   const [orderResult] = await connection.query(
     "INSERT INTO orders (user_id, total_price, order_status) VALUES (?, ?, ?)",
-    [userId, totalPrice, ORDER_STATUS.PENDING]
+    [userId, totalPrice, initialStatus]
   );
   const orderId = orderResult.insertId;
 

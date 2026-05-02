@@ -10,35 +10,60 @@ const getOrderNotificationMeta = (status, orderId) => {
   const normalizedStatus = String(status || "").trim().toLowerCase();
 
   switch (normalizedStatus) {
-    case "pending":
+    case "payment pending":
       return {
         type: "order_placed",
-        title: "Order Placed! 📦",
-        message: `Your order #${orderId} has been placed and is now Pending.`
+        title: "Order Placed — Payment Pending 💳",
+        message: `Your order #${orderId} is placed. Payment is pending.`
+      };
+    case "payment confirmed":
+      return {
+        type: "payment_confirmed",
+        title: "Payment Confirmed ✅",
+        message: `Payment for order #${orderId} has been confirmed.`
+      };
+    case "order confirmed":
+      return {
+        type: "order_confirmed",
+        title: "Order Confirmed 📦",
+        message: `Your order #${orderId} has been confirmed by the seller.`
       };
     case "processing":
       return {
         type: "order_processing",
         title: "Order Processing 🔄",
-        message: `Your order #${orderId} is currently being processed.`
+        message: `Your order #${orderId} is currently being prepared.`
       };
     case "shipped":
       return {
         type: "order_shipped",
         title: "Order Shipped 🚚",
-        message: `Your order #${orderId} has been shipped.`
+        message: `Your order #${orderId} has been shipped and is on its way.`
+      };
+    case "out for delivery":
+      return {
+        type: "out_for_delivery",
+        title: "Out for Delivery 🏍️",
+        message: `Your order #${orderId} is out for delivery. Get ready!`
       };
     case "delivered":
       return {
         type: "order_completed",
-        title: "Order Completed ✅",
-        message: `Your order #${orderId} has been delivered successfully.`
+        title: "Delivered Successfully ✅",
+        message: `Your order #${orderId} has been delivered. Enjoy!`
       };
     case "cancelled":
       return {
         type: "order_cancelled",
         title: "Order Cancelled ❌",
         message: `Your order #${orderId} has been cancelled.`
+      };
+    // Backward compatibility for old "Pending" status
+    case "pending":
+      return {
+        type: "order_placed",
+        title: "Order Placed — Payment Pending 💳",
+        message: `Your order #${orderId} is placed. Payment is pending.`
       };
     default:
       return {
@@ -88,7 +113,7 @@ exports.getNotifications = async (req, res) => {
 
       const vendorOrders = orders.map((order) => {
         const meta = getOrderNotificationMeta(order.order_status, order.order_id);
-        const isNew = String(order.order_status || "").toLowerCase() === "pending";
+        const isNew = ["pending", "payment pending"].includes(String(order.order_status || "").toLowerCase());
 
         return {
           id: `vendor_ord_${order.order_id}_${order.order_status}`,

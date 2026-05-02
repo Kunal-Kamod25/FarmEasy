@@ -4,7 +4,8 @@ import { API_URL, getImageUrl } from '../../config';
 import { useNavigate } from "react-router-dom";
 import {
     Package, Truck, CheckCircle, Clock, ChevronRight,
-    MapPin, Calendar, AlertCircle, Store, Search, X, ChevronDown, Trash2
+    MapPin, Calendar, AlertCircle, Store, Search, X, ChevronDown, Trash2,
+    CreditCard, ShieldCheck, Cog, Bike
 } from "lucide-react";
 import {
     getDisplayOrderStatus,
@@ -89,14 +90,14 @@ const My_Orders = () => {
 
     const stats = {
         total: orders.length,
-        inProgress: orders.filter(o => ["pending", "processing", "shipped", "in transit"].includes((o.order_status || o.status || "").toLowerCase())).length,
+        inProgress: orders.filter(o => ["payment pending", "payment confirmed", "order confirmed", "processing", "shipped", "out for delivery", "pending", "in transit"].includes((o.order_status || o.status || "").toLowerCase())).length,
         completed: orders.filter(o => (o.order_status || o.status || "").toLowerCase() === "delivered").length,
     };
 
     const filteredOrders = orders
         .filter(order => {
             const status = (order.order_status || order.status || "").toLowerCase();
-            if (activeTab === "in-progress") return ["pending", "processing", "shipped", "in transit"].includes(status);
+            if (activeTab === "in-progress") return ["payment pending", "payment confirmed", "order confirmed", "processing", "shipped", "out for delivery", "pending", "in transit"].includes(status);
             if (activeTab === "completed") return status === "delivered";
             if (activeTab === "cancelled") return status === "cancelled";
             return true;
@@ -112,10 +113,29 @@ const My_Orders = () => {
     const getStatusIcon = (status) => {
         const s = getDisplayOrderStatus(status).toLowerCase();
         if (s === "delivered") return <CheckCircle size={14} />;
+        if (s === "out for delivery") return <Bike size={14} />;
         if (["shipped", "in transit"].includes(s)) return <Truck size={14} />;
-        if (s === "processing") return <Package size={14} />;
+        if (s === "processing") return <Cog size={14} />;
+        if (s === "order confirmed") return <ShieldCheck size={14} />;
+        if (s === "payment confirmed") return <CreditCard size={14} />;
         if (s === "cancelled") return <X size={14} />;
         return <Clock size={14} />;
+    };
+
+    const STATUS_FLOW = [
+        "Payment Pending",
+        "Payment Confirmed",
+        "Order Confirmed",
+        "Processing",
+        "Shipped",
+        "Out for Delivery",
+        "Delivered"
+    ];
+
+    const getStatusStepIndex = (status) => {
+        const normalized = getDisplayOrderStatus(status);
+        const idx = STATUS_FLOW.findIndex(s => s.toLowerCase() === normalized.toLowerCase());
+        return idx >= 0 ? idx : 0;
     };
 
     if (loading) {
@@ -220,6 +240,8 @@ const My_Orders = () => {
                                     <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-colors ${
                                         (order.order_status || order.status || "").toLowerCase() === 'delivered' 
                                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                                        : (order.order_status || order.status || "").toLowerCase() === 'cancelled'
+                                        ? "bg-red-500/10 text-red-400 border-red-500/20"
                                         : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                     }`}>
                                         {getStatusIcon(order.order_status || order.status)}
@@ -338,18 +360,35 @@ const My_Orders = () => {
                                                 <h5 className="text-sm font-black text-white/30 uppercase tracking-widest flex items-center gap-2">
                                                     <Package size={16} className="text-emerald-500" /> Order Timeline
                                                 </h5>
-                                                <div className="space-y-4 pl-2">
-                                                    <div className="relative pl-6 border-l-2 border-emerald-500/30 pb-2">
-                                                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/50" />
-                                                        <p className="text-sm font-bold text-white">Order Placed</p>
-                                                        <p className="text-xs text-white/40">{new Date(order.order_date || order.createdAt).toLocaleString()}</p>
+                                                {(order.order_status || order.status || "").toLowerCase() === "cancelled" ? (
+                                                    <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20 text-red-400 text-sm font-semibold">
+                                                        This order has been cancelled.
                                                     </div>
-                                                    <div className="relative pl-6 border-l-2 border-white/5">
-                                                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-white/10 border-2 border-white/20 rounded-full" />
-                                                        <p className="text-sm font-bold text-white/50">Estimated Delivery</p>
-                                                        <p className="text-xs text-white/20">Usually within 3-5 business days</p>
+                                                ) : (
+                                                    <div className="space-y-0 pl-2">
+                                                        {STATUS_FLOW.map((step, idx) => {
+                                                            const currentIdx = getStatusStepIndex(order.order_status || order.status);
+                                                            const isCompleted = idx <= currentIdx;
+                                                            const isCurrent = idx === currentIdx;
+                                                            const isLast = idx === STATUS_FLOW.length - 1;
+                                                            return (
+                                                                <div key={step} className={`relative pl-6 ${!isLast ? 'pb-4 border-l-2' : ''} ${isCompleted ? 'border-emerald-500/30' : 'border-white/5'}`}>
+                                                                    <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full ${
+                                                                        isCurrent 
+                                                                            ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50 ring-4 ring-emerald-500/20' 
+                                                                            : isCompleted 
+                                                                                ? 'bg-emerald-500' 
+                                                                                : 'bg-white/10 border-2 border-white/20'
+                                                                    }`} />
+                                                                    <p className={`text-sm font-bold ${isCompleted ? 'text-white' : 'text-white/30'}`}>{step}</p>
+                                                                    {isCurrent && (
+                                                                        <p className="text-[10px] text-emerald-400/70 font-semibold uppercase tracking-wider mt-0.5">Current Status</p>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
