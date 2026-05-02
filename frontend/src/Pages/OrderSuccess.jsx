@@ -104,7 +104,7 @@ const OrderSuccess = () => {
                     </button>
 
                     <button
-                        onClick={() => navigate("/profile")}
+                        onClick={() => navigate("/my-orders")}
                         className="w-full bg-white text-gray-700 py-4 rounded-xl font-bold border border-gray-200 hover:bg-gray-50 transition-all"
                     >
                         View My Orders
