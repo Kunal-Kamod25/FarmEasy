@@ -18,7 +18,6 @@ const VendorAddProduct = () => {
     price: "",
     category_id: "",
     subcategory_id: "",
-    color: "",
     product_quantity: "",
   });
 
@@ -93,7 +92,6 @@ const VendorAddProduct = () => {
       submitData.append("price", formData.price);
       submitData.append("category_id", formData.category_id);
       submitData.append("subcategory_id", formData.subcategory_id);
-      submitData.append("color", formData.color);
       submitData.append("product_quantity", formData.product_quantity);
 
       if (images.length > 0) {
@@ -117,7 +115,6 @@ const VendorAddProduct = () => {
         price: "",
         category_id: "",
         subcategory_id: "",
-        color: "",
         product_quantity: "",
       });
       setImages([]);
@@ -272,7 +269,7 @@ const VendorAddProduct = () => {
             </div>
 
             {/* Pricing & Stock */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
                   <IndianRupee size={14} className="text-emerald-300/60" />
@@ -302,24 +299,6 @@ const VendorAddProduct = () => {
                   placeholder="Units"
                   className={fieldShell}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                  <Palette size={14} className="text-emerald-300/60" />
-                  Color
-                </label>
-                <select
-                  name="color"
-                  value={formData.color}
-                  onChange={handleChange}
-                  className={`${fieldShell} appearance-none`}
-                >
-                  <option value="" className="bg-[#0a2a1d]">Select color</option>
-                  {["Red", "Green", "Blue", "Yellow", "Orange", "Black", "White", "Brown", "Gray"].map(c => (
-                    <option key={c} value={c} className="bg-[#0a2a1d]">{c}</option>
-                  ))}
-                </select>
               </div>
             </div>
 
