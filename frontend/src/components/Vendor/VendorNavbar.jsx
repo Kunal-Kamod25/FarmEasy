@@ -45,7 +45,7 @@ const VendorNavbar = () => {
       {/* ── LEFT: LOGO & BRANDING ── */}
       <div className="flex items-center gap-4">
         <div className="flex items-center h-12 md:h-15 md:pl-1 md:px-8">
-            <Link to="/">
+            <Link to="/vendor">
               <img
                 src={logo}
                 alt="logo"
