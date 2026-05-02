@@ -84,9 +84,7 @@ const AppRoutes = () => {
           {/* Single product detail */}
           <Route path="/product/:productId" element={<ProductDetails />} />
 
-          {/* Vendor Notifications */}
           <Route path="/notifications" element={<VendorNotifications />} />
-          <Route path="/vendor/notifications" element={<VendorNotifications />} />
 
           <Route path="/customer-service" element={<CustomerService />} />
           <Route path="/support" element={<Support />} />
@@ -154,6 +152,7 @@ const AppRoutes = () => {
           <Route path="orders" element={<VendorOrders />} />
           <Route path="sales" element={<VendorSales />} />
           <Route path="profile" element={<VendorProfile />} />
+          <Route path="notifications" element={<VendorNotifications />} />
         </Route>
 
         </Routes>
