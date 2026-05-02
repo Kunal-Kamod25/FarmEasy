@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from "../config";
-import { useSocket } from "./SocketContext";
 
 const NotificationContext = createContext();
 
@@ -31,7 +30,6 @@ export const NotificationProvider = ({ children }) => {
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const { socket } = useSocket();
 
   // Fetch raw notifications from server, then apply local read state
   const fetchNotifications = useCallback(async () => {
@@ -55,7 +53,7 @@ export const NotificationProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching notifications:", err);
     }
-  }, [token]);
+  }, [token, user?.role]);
 
   // Mark a single notification as read
   const markAsRead = useCallback((notificationId) => {
@@ -91,18 +89,10 @@ export const NotificationProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [token, fetchNotifications]);
 
-  // Real-time socket updates
+  // Listen for login/logout to refresh
   useEffect(() => {
-    if (!socket || !user.id) return;
-
-    socket.on("new message notification", () => {
-      fetchNotifications();
-    });
-
-    return () => {
-      socket.off("new message notification");
-    };
-  }, [socket, user.id, fetchNotifications]);
+    fetchNotifications();
+  }, [user.id, user.role, fetchNotifications]);
 
   return (
     <NotificationContext.Provider

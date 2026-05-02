@@ -16,7 +16,7 @@ IMPORTANT: Error Handling Update (April 2026)
 Updated pages with ErrorNotification:
 ✓ AdminHomePage, Checkout, DriverDeliveryApp, OrderTracking
 ✓ CreateExchange, ExchangeDetail, ExchangeMarketplace
-✓ VendorProducts, ExchangeChat
+✓ VendorProducts
 Form validation errors remain inline for better UX context.
 
 1. Start backend:
@@ -1304,14 +1304,4 @@ Body (JSON):
 }
 Expected: 200
 
-============================================================
-============================================================
-19) REAL-TIME CHAT TESTING (SOCKET.IO)
-============================================================
-To verify real-time functionality manually:
-1. Open the application in two different browsers (e.g., Chrome and Edge).
-2. Login as "Customer A" in Browser 1 and "Vendor B" in Browser 2.
-3. Open the /chat page on both.
-4. Send a message from Browser 1 -> it should appear instantly in Browser 2.
-5. In Browser 2, click "All Vendors" to see the auto-added registered vendors.
-6. Check the Browser Console (F12) for "Connected to socket server" logs.
+
