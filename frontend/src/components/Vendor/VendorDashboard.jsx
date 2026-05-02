@@ -8,7 +8,8 @@ import {
 } from "recharts";
 import {
   Package, ShoppingCart, IndianRupee, TrendingUp,
-  Plus, LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck, AlertCircle
+  Plus, LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck, AlertCircle,
+  Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";

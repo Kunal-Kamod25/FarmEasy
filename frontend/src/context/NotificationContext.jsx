@@ -37,7 +37,7 @@ export const NotificationProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await axios.get(`${API_URL}/api/notifications`, {
+      const res = await axios.get(`${API_URL}/api/notifications?role=${user?.role || "customer"}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -64,8 +64,6 @@ const Login = () => {
 
     if (!password) {
       newErrors.password = t("login.validation.passwordRequired");
-    } else if (!REGEX.specialChar.test(password)) {
-      newErrors.password = t("login.validation.passwordSpecial");
     }
 
     return newErrors;

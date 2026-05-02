@@ -237,7 +237,7 @@ const Navbar = () => {
 
                   {/* 🔔 Notifications Icon */}
                   <Link
-                    to="/notifications"
+                    to={["vendor", "seller"].includes(String(user?.role || "").toLowerCase()) ? "/vendor/notifications" : "/notifications"}
                     title="Notifications"
                     className="relative group"
                   >

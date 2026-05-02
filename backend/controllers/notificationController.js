@@ -78,9 +78,12 @@ const getOrderNotificationMeta = (status, orderId) => {
 exports.getNotifications = async (req, res) => {
   try {
     const user_id = req.user.id;
-    const { unreadOnly } = req.query;
+    const { unreadOnly, role } = req.query;
+    const requestedRole = String(role || "").toLowerCase();
 
     let allNotifications = [];
+    let vendorAlerts = [];
+    let customerAlerts = [];
 
     // ============================================
     // 1. VENDOR NOTIFICATIONS
@@ -150,7 +153,7 @@ exports.getNotifications = async (req, res) => {
         created_at: new Date().toISOString(),
       }));
 
-      allNotifications = [...allNotifications, ...vendorOrders, ...stockNotifications];
+      vendorAlerts = [...vendorOrders, ...stockNotifications];
     }
 
     // ============================================
@@ -187,7 +190,17 @@ exports.getNotifications = async (req, res) => {
       created_at: o.order_date
     }));
 
-    allNotifications = [...allNotifications, loginNotification, ...customerOrderNotifications];
+    customerAlerts = [loginNotification, ...customerOrderNotifications];
+
+    // Combine based on requested role
+    if (requestedRole === "vendor") {
+      allNotifications = vendorAlerts;
+    } else if (requestedRole === "customer") {
+      allNotifications = customerAlerts;
+    } else {
+      // Default: both (for backward compatibility if needed)
+      allNotifications = [...vendorAlerts, ...customerAlerts];
+    }
 
     // Sort all combined notifications by newest first
     allNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

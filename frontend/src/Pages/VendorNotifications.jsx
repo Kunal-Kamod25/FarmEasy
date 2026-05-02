@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import { useNotifications } from "../context/NotificationContext";
@@ -16,11 +16,15 @@ const VendorNotifications = () => {
   const { notifications: ctxNotifications, unreadCount: contextUnread, markAsRead: ctxMarkAsRead, markAllAsRead: ctxMarkAllAsRead, refreshNotifications } = useNotifications();
 
   const [notifications, setNotifications] = useState([]);
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [unreadCount, setUnreadCount] = useState(contextUnread || 0);
+
+  const isVendorPath = location.pathname.includes("/vendor");
+  const effectiveRole = isVendorPath ? "vendor" : "customer";
 
   // Keep local list in sync with context (which has merged read state)
   useEffect(() => {
@@ -43,7 +47,7 @@ const VendorNotifications = () => {
       else setRefreshing(true);
 
       const res = await axios.get(
-        `${API_URL}/api/notifications?unreadOnly=${filter === "unread"}`,
+        `${API_URL}/api/notifications?unreadOnly=${filter === "unread"}&role=${effectiveRole}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -166,7 +170,9 @@ const VendorNotifications = () => {
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-1">
                 <Sparkles size={12} /> Live Updates
               </div>
-              <h1 className="text-4xl font-bold tracking-tight">Notifications</h1>
+              <h1 className="text-4xl font-bold tracking-tight">
+                {effectiveRole === "vendor" ? "Vendor Alerts" : "My Notifications"}
+              </h1>
             </div>
           </div>
 
