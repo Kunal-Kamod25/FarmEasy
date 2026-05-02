@@ -77,13 +77,14 @@ const VendorSales = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 space-y-6">
-
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Sales Overview</h1>
-                <p className="text-gray-500 text-sm mt-0.5">Track your revenue and transaction history</p>
-            </div>
+    <div className="min-h-screen bg-gray-50 px-6 pb-6 space-y-6">
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-md border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Sales Overview</h1>
+          <p className="text-gray-500 font-medium mt-1 text-sm">Track your revenue and transaction history</p>
+        </div>
+      </div>
 
             {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
 

@@ -112,21 +112,20 @@ export default function VendorDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent p-6 space-y-8">
-
-      {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="min-h-screen bg-transparent px-6 pb-6 space-y-8">
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-md border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
             Dashboard Overview
           </h1>
-          <p className="text-gray-500 font-medium mt-1">
-            Welcome back, <span className="text-emerald-600">{vendorName}</span>! Here's what's happening today.
+          <p className="text-gray-500 font-medium mt-1 text-sm">
+            Welcome back, <span className="text-emerald-600 font-bold">{vendorName}</span>! Here's what's happening today.
           </p>
         </div>
 
         {/* Date Range Selector */}
-        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
           <input
             type="date"
             value={startDate}

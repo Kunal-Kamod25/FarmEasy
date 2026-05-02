@@ -74,6 +74,7 @@ const VendorProfile = () => {
   const fetchProfile = useCallback(async () => {
     try {
       setFetching(true);
+      console.log("🔄 Fetching vendor profile...");
 
       const res = await axios.get(
         `${API_URL}/api/vendor/profile`,
@@ -82,38 +83,51 @@ const VendorProfile = () => {
         }
       );
 
+      console.log("✅ Profile data received:", res.data);
+
+      const data = res.data;
+
       // map backend field names to our local state shape
       setProfile({
-        vendor_name: res.data.vendor_name || "",
-        store_name: res.data.store_name || "",
-        phone: res.data.phone || "",
-        address: res.data.address || "",
-        city: res.data.city || "",
-        state: res.data.state || "",
-        pincode: res.data.pincode || "",
-        bio: res.data.bio || "",
-        email: res.data.email || "",
-        gst_number: res.data.gst_number || "",
-        profile_image: res.data.profile_image || "",
-        joined_at: res.data.created_at || "",
-        total_orders: Number(res.data.total_orders || 0),
-        account_status: res.data.account_status || {
+        vendor_name: data.vendor_name || "",
+        store_name: data.store_name || "",
+        phone: data.phone || "",
+        address: data.address || "",
+        city: data.city || "",
+        state: data.state || "",
+        pincode: data.pincode || "",
+        bio: data.bio || "",
+        email: data.email || "",
+        gst_number: data.gst_number || "",
+        profile_image: data.profile_image || "",
+        joined_at: data.created_at || "",
+        total_orders: Number(data.total_orders || 0),
+        account_status: data.account_status || {
           profile_verified: false,
           email_verified: false,
           gst_submitted: false,
         },
-        website: "",
-        bank_account: "",
-        ifsc_code: "",
+        website: data.website || "",
+        bank_account: data.bank_account || "",
+        ifsc_code: data.ifsc_code || "",
       });
 
       // if they already have a profile pic saved in DB, show it
-      if (res.data.profile_image) {
-        setImagePreview(getImageUrl(res.data.profile_image));
+      if (data.profile_image) {
+        setImagePreview(getImageUrl(data.profile_image));
       }
 
+      // 🔄 Sync updated data back to localStorage so Navbar updates too
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const updatedUser = {
+        ...currentUser,
+        full_name: data.vendor_name,
+        profile_pic: data.profile_image ? getImageUrl(data.profile_image) : currentUser.profile_pic
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
     } catch (error) {
-      console.error("Profile fetch error:", error);
+      console.error("❌ Profile fetch error:", error.response?.data || error.message);
     } finally {
       setFetching(false);
     }
@@ -155,6 +169,7 @@ const VendorProfile = () => {
       formData.append("pincode", profile.pincode);
       formData.append("bio", profile.bio);
       formData.append("store_name", profile.store_name);
+      formData.append("email", profile.email);
       formData.append("gst_number", profile.gst_number);
 
       // only attach image if vendor picked a new one
@@ -200,10 +215,9 @@ const VendorProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#04110d] p-6 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.14),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(45,212,191,0.14),_transparent_28%),linear-gradient(145deg,_#03110c_0%,_#072117_45%,_#0b2d20_100%)]">
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-[#04110d] px-6 pb-6 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.14),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(45,212,191,0.14),_transparent_28%),linear-gradient(145deg,_#03110c_0%,_#072117_45%,_#0b2d20_100%)]">
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-[#04110d]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Vendor Profile</h1>
           <p className="text-white/65 text-sm mt-0.5">Manage your store details and account information</p>

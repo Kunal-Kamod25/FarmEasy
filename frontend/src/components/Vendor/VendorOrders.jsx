@@ -115,12 +115,13 @@ const VendorOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
-
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Manage vendor orders and orders you placed</p>
+    <div className="min-h-screen bg-gray-50 px-6 pb-6 space-y-6">
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-md border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Orders</h1>
+          <p className="text-gray-500 font-medium mt-1 text-sm">Manage vendor orders and orders you placed</p>
+        </div>
       </div>
 
       {/* Stats Cards */}
