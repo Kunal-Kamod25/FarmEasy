@@ -7,15 +7,10 @@ const crypto = require("crypto");
 // ─── SMTP CONFIGURATION ─────────────────────────────────────────────────────
 // You should add these to your .env file
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: process.env.EMAIL_SERVICE || "gmail",
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false // Helps with some local network issues
     }
 });
 

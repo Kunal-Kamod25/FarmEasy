@@ -16,12 +16,10 @@ const pool = mysql.createPool({
     connectionLimit: 20, // Increased for better concurrency
     queueLimit: 0,
     connectTimeout: 20000, // Increased for remote Aiven DB
-    acquireTimeout: 20000,
     ssl: {
         rejectUnauthorized: false
     },
     enableKeepAlive: true,
-    keepAliveInitialDelayMs: 0,
 });
 
 // Test connection

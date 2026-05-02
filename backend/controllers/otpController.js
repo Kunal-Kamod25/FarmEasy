@@ -6,15 +6,10 @@ const nodemailer = require('nodemailer');
 
 // Reuse the same SMTP config from passwordController
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
+    service: process.env.EMAIL_SERVICE || "gmail",
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
     }
 });
 
