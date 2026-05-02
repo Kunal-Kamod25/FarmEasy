@@ -24,7 +24,6 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/auth");
 const vendorController = require("../controllers/vendorController");
-const vendorMessageController = require("../controllers/vendorMessageController");
 const upload = require("../middleware/upload");
 
 // ========== PRODUCTS ==========
@@ -43,7 +42,7 @@ router.get("/sales-summary", verifyToken, vendorController.getSalesSummary);
 // ========== PROFILE ==========
 // vendor profile reads from users + seller table joined
 router.get("/profile", verifyToken, vendorController.getProfile);
-// vendor list for messaging discovery
+// vendor list
 router.get("/list", verifyToken, vendorController.getVendorList);
 // profile update supports optional profile_image file upload via multer
 router.put("/profile", verifyToken, upload.single("profile_image"), vendorController.updateProfile);
@@ -51,9 +50,6 @@ router.put("/profile", verifyToken, upload.single("profile_image"), vendorContro
 // ========== VENDOR AS BUYER (My Purchases) ==========
 // vendor is also a user who can buy from others - this fetches those orders
 router.get("/my-purchases", verifyToken, vendorController.getMyPurchases);
-
-// ========== VENDOR MESSAGES ==========
-router.delete("/messages/:messageId", verifyToken, vendorMessageController.deleteMessage);
 
 
 module.exports = router;
