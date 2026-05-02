@@ -119,49 +119,48 @@ const VendorEditProduct = () => {
 
   if (fetching) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto space-y-5">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-gray-100" />
-          ))}
-        </div>
+      <div className="min-h-screen bg-[#04110d] p-6 flex justify-center items-center">
+         <div className="flex items-center gap-3 text-emerald-400">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
+            <span className="font-semibold text-sm tracking-widest uppercase">Loading Product...</span>
+         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[#04110d] p-6 bg-[radial-gradient(circle_at_top_left,_rgba(134,239,172,0.14),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(45,212,191,0.14),_transparent_28%),linear-gradient(145deg,_#03110c_0%,_#072117_45%,_#0b2d20_100%)] font-Lora text-white">
 
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8 max-w-7xl mx-auto">
         <button
           onClick={() => navigate("/vendor/products")}
-          className="p-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+          className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition backdrop-blur-xl"
         >
-          <ArrowLeft size={18} className="text-gray-600" />
+          <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Update product details and inventory</p>
+          <h1 className="text-3xl font-bold text-white">Edit Product</h1>
+          <p className="text-white/65 text-sm mt-0.5">Update product details and inventory</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* LEFT: Main Info */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-2 space-y-6">
 
             {/* Basic Info Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100">
+            <div className="bg-white/5 rounded-3xl shadow-xl shadow-emerald-950/15 border border-white/10 p-8 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-6 pb-3 border-b border-white/10">
                 Basic Information
               </h2>
 
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Product Name <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                    Product Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -170,12 +169,12 @@ const VendorEditProduct = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Organic Wheat Seeds"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
                     Product Type
                   </label>
                   <input
@@ -184,24 +183,24 @@ const VendorEditProduct = () => {
                     value={formData.product_type}
                     onChange={handleChange}
                     placeholder="e.g. Seeds, Fertilizer, Equipment"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Category <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                    Category <span className="text-rose-500">*</span>
                   </label>
                   <select
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                    className="w-full border border-white/15 bg-[#0a2a1d]/40 text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:outline-none transition appearance-none"
                   >
-                    <option value="">Select category</option>
+                    <option value="" className="bg-[#0a2a1d]">Select category</option>
                     {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={cat.id} value={cat.id} className="bg-[#0a2a1d]">
                         {cat.name || cat.product_cat_name}
                       </option>
                     ))}
@@ -209,7 +208,7 @@ const VendorEditProduct = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
                     Description
                   </label>
                   <textarea
@@ -218,25 +217,25 @@ const VendorEditProduct = () => {
                     value={formData.product_description}
                     onChange={handleChange}
                     placeholder="Describe your product — quality, usage, benefits..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition resize-none"
+                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition resize-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Pricing & Inventory Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100">
+            <div className="bg-white/5 rounded-3xl shadow-xl shadow-emerald-950/15 border border-white/10 p-8 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-6 pb-3 border-b border-white/10">
                 Pricing & Inventory
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Price (₹) <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                    Price (₹) <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-2.5 text-gray-400 font-semibold text-sm">₹</span>
+                    <span className="absolute left-4 top-3 text-white/40 font-semibold text-sm">₹</span>
                     <input
                       type="number"
                       name="price"
@@ -244,13 +243,13 @@ const VendorEditProduct = () => {
                       onChange={handleChange}
                       required
                       placeholder="0.00"
-                      className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                      className="w-full border border-white/15 bg-white/5 text-white rounded-xl pl-8 pr-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
                     Stock Quantity
                   </label>
                   <input
@@ -259,7 +258,7 @@ const VendorEditProduct = () => {
                     value={formData.product_quantity}
                     onChange={handleChange}
                     placeholder="Available units"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:outline-none transition"
+                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
                   />
                 </div>
               </div>
@@ -268,20 +267,20 @@ const VendorEditProduct = () => {
           </div>
 
           {/* RIGHT: Images & Actions */}
-          <div className="space-y-5">
+          <div className="space-y-6">
 
             {/* Image Upload Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100">
+            <div className="bg-white/5 rounded-3xl shadow-xl shadow-emerald-950/15 border border-white/10 p-8 backdrop-blur-xl">
+              <h2 className="text-base font-bold text-white mb-6 pb-3 border-b border-white/10">
                 Product Images
               </h2>
 
               {currentImagePath && images.length === 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2">
                     Current Image
                   </p>
-                  <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                  <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-white/5">
                     <img
                       src={resolveImageUrl(currentImagePath)}
                       alt="current product"
@@ -292,23 +291,23 @@ const VendorEditProduct = () => {
                       }}
                     />
                     <div
-                      className="hidden h-36 items-center justify-center text-xs text-gray-500"
+                      className="hidden h-36 items-center justify-center text-xs text-white/50"
                     >
                       Current image not found on server
                     </div>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-2">
+                  <p className="text-[11px] text-white/40 mt-2">
                     Keep this image by saving without selecting a new file.
                   </p>
                 </div>
               )}
 
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition group">
-                <div className="bg-emerald-50 group-hover:bg-emerald-100 p-3 rounded-xl mb-3 transition">
-                  <Upload className="text-emerald-600" size={20} />
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-2xl p-6 bg-white/5 cursor-pointer hover:border-emerald-300/40 hover:bg-emerald-500/5 transition-all group">
+                <div className="rounded-2xl bg-emerald-500/10 p-4 group-hover:bg-emerald-500/20 transition mb-3">
+                  <Upload className="text-emerald-300/80" size={20} />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">Upload New Images</span>
-                <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 10MB</span>
+                <span className="text-sm font-semibold text-white/70">Upload New Images</span>
+                <span className="text-[10px] text-white/30 uppercase tracking-widest mt-1">PNG, JPG, WEBP up to 10MB</span>
                 <input
                   type="file"
                   multiple
@@ -321,7 +320,7 @@ const VendorEditProduct = () => {
               {images.length > 0 && (
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   {images.map((img, index) => (
-                    <div key={index} className="relative rounded-xl overflow-hidden shadow-sm group">
+                    <div key={index} className="relative rounded-2xl overflow-hidden border border-white/10 group">
                       <img
                         src={img.preview}
                         alt="preview"
@@ -331,9 +330,9 @@ const VendorEditProduct = () => {
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md hover:bg-red-50 transition"
+                        className="absolute top-2 right-2 bg-rose-500 p-1.5 rounded-xl shadow-xl hover:bg-rose-400 transition"
                       >
-                        <X size={12} className="text-red-500" />
+                        <X size={12} className="text-white" />
                       </button>
                     </div>
                   ))}
@@ -342,13 +341,13 @@ const VendorEditProduct = () => {
             </div>
 
             {/* Actions Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-3">
-              <h2 className="text-base font-bold text-gray-800 mb-2">Update Product</h2>
+            <div className="bg-white/5 rounded-3xl shadow-xl shadow-emerald-950/15 border border-white/10 p-8 backdrop-blur-xl space-y-4">
+              <h2 className="text-base font-bold text-white mb-2">Update Product</h2>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm"
+                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-bold py-3.5 rounded-2xl shadow-xl shadow-emerald-950/20 transition-all hover:scale-[1.02] active:scale-95 text-sm"
               >
                 {loading ? (
                   <>
@@ -360,7 +359,7 @@ const VendorEditProduct = () => {
                   </>
                 ) : (
                   <>
-                    <Save size={16} />
+                    <Save size={18} />
                     Update Product
                   </>
                 )}
@@ -369,7 +368,7 @@ const VendorEditProduct = () => {
               <button
                 type="button"
                 onClick={() => navigate("/vendor/products")}
-                className="w-full border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold py-2.5 rounded-xl transition text-sm"
+                className="w-full border border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-semibold py-3.5 rounded-2xl transition text-sm"
               >
                 Cancel
               </button>
