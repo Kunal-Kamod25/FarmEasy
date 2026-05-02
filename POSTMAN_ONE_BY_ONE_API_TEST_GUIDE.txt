@@ -1,5 +1,5 @@
 FarmEasy API One-by-One Testing Guide (Postman / Thunder Client)
-Date: 2026-04-04
+Date: 2026-05-02
 Backend Base URL: http://localhost:5000
 Frontend Base URL: http://localhost:5173
 
@@ -1249,7 +1249,64 @@ Notes for Future:
 This comprehensive guide is the fastest way to master FarmEasy API testing.
 
 ============================================================
-16) REAL-TIME CHAT TESTING (SOCKET.IO)
+17) NOTIFICATIONS (Prefix: /api/notifications)
+============================================================
+[TC_NOTIF_001] Get all notifications (both roles)
+Method: GET
+URL: {{baseUrl}}/api/notifications
+Auth: Bearer {{token}}
+Expected: 200 with list of alerts
+
+[TC_NOTIF_002] Get vendor-specific alerts
+Method: GET
+URL: {{baseUrl}}/api/notifications?role=vendor
+Auth: Bearer {{token}}
+Expected: 200 with business alerts only (orders, stock)
+
+[TC_NOTIF_003] Get customer-specific alerts
+Method: GET
+URL: {{baseUrl}}/api/notifications?role=customer
+Auth: Bearer {{token}}
+Expected: 200 with personal alerts only (order updates, security)
+
+[TC_NOTIF_004] Mark notification as read
+Method: PATCH
+URL: {{baseUrl}}/api/notifications/:notificationId/read
+Auth: Bearer {{token}}
+Expected: 200
+
+============================================================
+18) PRODUCT QUERIES (Prefix: /api/queries)
+============================================================
+[TC_QUERY_001] Post a product query (Customer)
+Method: POST
+URL: {{baseUrl}}/api/queries/{{productId}}
+Auth: Bearer {{token}}
+Body (JSON):
+{
+  "query_text": "Is this fertilizer suitable for organic tomatoes?"
+}
+Expected: 201
+
+[TC_QUERY_002] Get all queries for a product
+Method: GET
+URL: {{baseUrl}}/api/queries/{{productId}}
+Auth: No
+Expected: 200 with list of questions/answers
+
+[TC_QUERY_003] Answer a query (Vendor only)
+Method: PATCH
+URL: {{baseUrl}}/api/queries/:queryId/answer
+Auth: Bearer {{token}}
+Body (JSON):
+{
+  "answer_text": "Yes, it is 100% organic and safe for all vegetables."
+}
+Expected: 200
+
+============================================================
+============================================================
+19) REAL-TIME CHAT TESTING (SOCKET.IO)
 ============================================================
 To verify real-time functionality manually:
 1. Open the application in two different browsers (e.g., Chrome and Edge).
