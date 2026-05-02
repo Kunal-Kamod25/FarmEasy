@@ -17,7 +17,8 @@
 // ===========================================================================
 
 import React, { useState } from 'react';
-import { BadgeCheck, Star, Heart, ArrowRight } from 'lucide-react';
+import { BadgeCheck, Heart, ArrowRight } from 'lucide-react';
+import StarRating from '../Common/StarRating';
 import { useWishlist } from '../../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
@@ -126,15 +127,10 @@ const ProductCard = ({ product }) => {
 
         {/* Rating */}
         <div className="flex items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl w-fit">
-          <div className="flex items-center gap-1 text-amber-500">
-            <Star size={13} fill="currentColor" />
-            <span className="font-bold text-slate-800 text-[11px]">
-              {product.rating || '4.5'}
-            </span>
-          </div>
+          <StarRating rating={product.average_rating || product.rating || 0} size={11} />
           <div className="w-px h-3 bg-slate-200" />
           <span className="text-slate-400 text-[9px] font-semibold">
-            ({product.reviewsCount || 0})
+            ({product.review_count || product.reviewsCount || 0})
           </span>
         </div>
 

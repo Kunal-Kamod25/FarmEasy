@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { API_URL, getImageUrl } from '../../config';
 import {
-    Heart, Package, Store, Star,
+    Heart, Package, Store,
     ArrowRight, Leaf
 } from "lucide-react";
 import LoginModal from "../Common/LoginModal";
+import StarRating from "../Common/StarRating";
 
 const API = `${API_URL}`;
 
@@ -99,16 +100,13 @@ export const ProductCard = ({
                 {/* ── CARD CONTENT ── */}
                 <div className="p-5 flex flex-col flex-grow">
                     <div className="flex items-center gap-1.5 mb-2">
-                        <div className="flex items-center gap-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                    key={star}
-                                    size={10}
-                                    className={star <= 4 ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200"}
-                                />
-                            ))}
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-black tracking-tighter">(4.0)</span>
+                        <StarRating rating={product.average_rating || 0} size={10} />
+                        <span className="text-[10px] text-slate-400 font-black tracking-tighter">
+                            ({Number(product.average_rating || 0).toFixed(1)})
+                            <span className="ml-1 opacity-50">
+                                ({product.review_count || 0} reviews)
+                            </span>
+                        </span>
                     </div>
 
                     <h3 className="font-black text-slate-800 text-sm leading-snug line-clamp-2 min-h-[40px] mb-2 group-hover:text-emerald-600 transition-colors">

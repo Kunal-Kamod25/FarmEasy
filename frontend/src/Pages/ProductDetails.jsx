@@ -32,6 +32,7 @@ import {
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import LoginModal from "../components/Common/LoginModal";
+import StarRating from "../components/Common/StarRating";
 import { useLanguage } from "../context/language/LanguageContext";
 
 // single product detail page - shows everything about one product
@@ -415,12 +416,11 @@ const ProductDetailPage = () => {
 
               {/* Rating */}
               <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100">
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <span className="text-sm text-slate-600">(0 reviews)</span>
+                <StarRating rating={product.average_rating || 0} size={16} />
+                <span className="text-sm text-slate-600">
+                  ({Number(product.average_rating || 0).toFixed(1)}) 
+                  <span className="ml-1">({product.review_count || 0} {t("product.reviews")})</span>
+                </span>
               </div>
 
               {/* Description */}
@@ -593,14 +593,8 @@ const ProductDetailPage = () => {
               <div className="flex items-center gap-8 mt-6">
                 <div className="text-center pb-6 md:pb-0 md:pr-8 md:border-r border-slate-200">
                   <div className="text-5xl font-black text-slate-900">{reviewStats.averageRating?.toFixed(1) || "0.0"}</div>
-                  <div className="flex justify-center gap-1 my-2">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <Star
-                        key={i}
-                        size={20}
-                        className={i <= Math.round(reviewStats.averageRating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-200"}
-                      />
-                    ))}
+                  <div className="flex justify-center my-2">
+                    <StarRating rating={reviewStats.averageRating || 0} size={20} />
                   </div>
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{reviewStats.totalReviews || 0} Reviews</p>
                 </div>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Heart, Store, Package, Eye, Pencil, Trash2 } from "lucide-react";
 import { getImageUrl } from "../../config";
 import LoginModal from "../Common/LoginModal";
+import StarRating from "../Common/StarRating";
 import { useLanguage } from "../../context/language/LanguageContext";
 
 const ReusableProductCard = ({
@@ -121,6 +122,15 @@ const ReusableProductCard = ({
           <p className="text-slate-500 text-xs line-clamp-2 mb-3 flex-grow leading-relaxed">
             {productDescription || t("common.noDescriptionAvailable")}
           </p>
+
+          {mode === "user" && (
+            <div className="flex items-center gap-2 mb-2 bg-slate-50/50 p-1.5 rounded-lg w-fit">
+              <StarRating rating={product.average_rating || 0} size={10} />
+              <span className="text-[10px] text-slate-400 font-bold">
+                ({Number(product.average_rating || 0).toFixed(1)})
+              </span>
+            </div>
+          )}
 
           {mode === "user" && (
             <div className="flex items-center gap-1.5 mb-3 bg-slate-50 rounded-lg px-2.5 py-1.5">

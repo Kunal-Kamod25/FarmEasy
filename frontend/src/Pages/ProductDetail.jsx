@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import { Star, Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown } from "lucide-react";
+import { Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown } from "lucide-react";
+import StarRating from "../components/Common/StarRating";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -235,17 +236,7 @@ const ProductDetail = () => {
 
             <div className="flex items-center gap-4 mb-4">
               <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={20}
-                    className={
-                      i < Math.round(avgRating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }
-                  />
-                ))}
+                <StarRating rating={Number(avgRating)} size={20} />
               </div>
               <span className="text-lg font-semibold text-gray-700">
                 {avgRating} ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
