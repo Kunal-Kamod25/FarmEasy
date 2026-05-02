@@ -83,7 +83,10 @@ const ProductDetailPage = () => {
         const reviewRes = await axios.get(
           `${API_URL}/api/reviews/product/${id}?page=1&limit=${reviewsPerPage}&sortBy=${sortBy}`
         );
-        if (reviewRes.data?.data?.reviews) {
+        if (reviewRes.data?.reviews) {
+          setReviews(reviewRes.data.reviews);
+          setReviewStats(reviewRes.data.summary);
+        } else if (reviewRes.data?.data?.reviews) {
           setReviews(reviewRes.data.data.reviews);
           setReviewStats(reviewRes.data.data.statistics);
         }
@@ -204,7 +207,9 @@ const ProductDetailPage = () => {
       const res = await axios.get(
         `${API_URL}/api/reviews/product/${id}?page=1&limit=${reviewsPerPage}&sortBy=${newSort}`
       );
-      if (res.data?.data?.reviews) {
+      if (res.data?.reviews) {
+        setReviews(res.data.reviews);
+      } else if (res.data?.data?.reviews) {
         setReviews(res.data.data.reviews);
       }
     } catch (err) {
@@ -586,18 +591,43 @@ const ProductDetailPage = () => {
             </h2>
             {reviewStats && (
               <div className="flex items-center gap-8 mt-6">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-slate-900">{reviewStats.averageRating?.toFixed(1) || "0.0"}</div>
+                <div className="text-center pb-6 md:pb-0 md:pr-8 md:border-r border-slate-200">
+                  <div className="text-5xl font-black text-slate-900">{reviewStats.averageRating?.toFixed(1) || "0.0"}</div>
                   <div className="flex justify-center gap-1 my-2">
                     {[1, 2, 3, 4, 5].map(i => (
                       <Star
                         key={i}
-                        size={16}
-                        className={i <= Math.round(reviewStats.averageRating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-300"}
+                        size={20}
+                        className={i <= Math.round(reviewStats.averageRating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-200"}
                       />
                     ))}
                   </div>
-                  <p className="text-sm text-slate-600">{reviewStats.totalReviews || 0} reviews</p>
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{reviewStats.totalReviews || 0} Reviews</p>
+                </div>
+
+                {/* Rating Distribution */}
+                <div className="flex-1 max-w-md space-y-2">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = reviewStats.distribution?.[stars] || 0;
+                    const percentage = reviewStats.totalReviews > 0 
+                      ? (count / reviewStats.totalReviews) * 100 
+                      : 0;
+                    return (
+                      <div key={stars} className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-10">
+                          <span className="text-sm font-bold text-slate-700">{stars}</span>
+                          <Star size={12} className="text-amber-400 fill-amber-400" />
+                        </div>
+                        <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-slate-400 w-8">{count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -698,8 +728,7 @@ const ProductDetailPage = () => {
                       </div>
                       <span className="text-xs text-slate-500">{new Date(review.created_at).toLocaleDateString()}</span>
                     </div>
-                    {review.title && <p className="font-semibold text-slate-900 mb-2">{review.title}</p>}
-                    <p className="text-slate-600 text-sm">{review.review_text}</p>
+                    <p className="text-slate-600 text-sm">{review.comment || review.review_text}</p>
                   </div>
                 ))
               ) : (

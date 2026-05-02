@@ -45,7 +45,10 @@ const ProductDetail = () => {
           const reviewRes = await axios.get(
             `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=${sortBy}`
           );
-          if (reviewRes.data?.data?.reviews) {
+          if (reviewRes.data?.reviews) {
+            setReviews(reviewRes.data.reviews);
+            setReviewStats(reviewRes.data.summary);
+          } else if (reviewRes.data?.data?.reviews) {
             setReviews(reviewRes.data.data.reviews);
             setReviewStats(reviewRes.data.data.statistics);
           }
@@ -73,7 +76,10 @@ const ProductDetail = () => {
       const res = await axios.get(
         `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=${newSort}`
       );
-      if (res.data?.data?.reviews) {
+      if (res.data?.reviews) {
+        setReviews(res.data.reviews);
+        setCurrentPage(1);
+      } else if (res.data?.data?.reviews) {
         setReviews(res.data.data.reviews);
         setCurrentPage(1);
       }
@@ -541,14 +547,9 @@ const ProductDetail = () => {
                     ))}
                   </div>
 
-                  {/* TITLE & TEXT */}
-                  {review.title && (
-                    <h4 className="font-bold text-gray-900 mb-2">
-                      {review.title}
-                    </h4>
-                  )}
+                  {/* TEXT */}
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    {review.review_text}
+                    {review.comment || review.review_text}
                   </p>
 
                   {/* HELPFUL BUTTON */}

@@ -46,6 +46,7 @@ export default function VendorDashboard() {
     monthlyBreakdown: [],
     feedbackStats: []
   });
+  const [recentReviews, setRecentReviews] = useState([]);
 
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -66,9 +67,22 @@ export default function VendorDashboard() {
     }
   }, [token, startDate, endDate]);
 
+  const fetchRecentReviews = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await axios.get(`${API_URL}/api/reviews/vendor/${user.id}/product-reviews?limit=5`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRecentReviews(res.data.reviews || []);
+    } catch (err) {
+      console.error("Recent reviews fetch error:", err);
+    }
+  }, [token, user?.id]);
+
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+    fetchRecentReviews();
+  }, [fetchStats, fetchRecentReviews]);
 
   const monthlyData = stats.monthlyBreakdown || [];
   const feedbackData = stats.feedbackStats || [];
@@ -335,6 +349,77 @@ export default function VendorDashboard() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      {/* ── RECENT REVIEWS SECTION ── */}
+      <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-50 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-black text-gray-800">Recent Customer Reviews</h2>
+            <p className="text-gray-400 text-xs font-bold mt-1 uppercase tracking-widest">Feedback on your products</p>
+          </div>
+          <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider">
+            {recentReviews.length} New
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentReviews.length > 0 ? (
+            recentReviews.map((review) => (
+              <div 
+                key={review.id} 
+                className="group p-6 rounded-[2rem] bg-gray-50/50 border border-gray-100 hover:border-emerald-500/30 hover:bg-white hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden"
+              >
+                {/* Product Badge */}
+                <div className="mb-4">
+                  <span className="px-3 py-1 bg-white border border-gray-100 rounded-full text-[10px] font-black text-emerald-600 uppercase tracking-tighter shadow-sm">
+                    {review.product_name}
+                  </span>
+                </div>
+
+                {/* Rating */}
+                <div className="flex gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star 
+                      key={i} 
+                      size={14} 
+                      className={i <= review.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"} 
+                    />
+                  ))}
+                </div>
+
+                {/* Comment */}
+                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-4 line-clamp-3 italic">
+                  "{review.comment || review.review_text || "No comment provided."}"
+                </p>
+
+                {/* Reviewer Info */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100/50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-black text-[10px] uppercase">
+                      {review.reviewer_name?.charAt(0) || "A"}
+                    </div>
+                    <span className="text-xs font-bold text-gray-900">{review.reviewer_name || "Anonymous"}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {/* Decorative Accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-16 text-center bg-gray-50/30 rounded-[2.5rem] border-2 border-dashed border-gray-100">
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4">
+                <Star className="text-gray-200" size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-400">No reviews yet</h3>
+              <p className="text-gray-400 text-xs font-medium">As customers buy your products, their reviews will appear here.</p>
+            </div>
+          )}
         </div>
       </div>
 
