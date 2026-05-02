@@ -368,9 +368,10 @@ export default function VendorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recentReviews.length > 0 ? (
             recentReviews.map((review) => (
-              <div 
+              <Link 
+                to={`/vendor/products/${review.product_id}`}
                 key={review.id} 
-                className="group p-6 rounded-[2rem] bg-gray-50/50 border border-gray-100 hover:border-emerald-500/30 hover:bg-white hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden"
+                className="group p-6 rounded-[2rem] bg-gray-50/50 border border-gray-100 hover:border-emerald-500/30 hover:bg-white hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden block"
               >
                 {/* Product Badge */}
                 <div className="mb-4">
@@ -410,7 +411,7 @@ export default function VendorDashboard() {
 
                 {/* Decorative Accent */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="col-span-full py-16 text-center bg-gray-50/30 rounded-[2.5rem] border-2 border-dashed border-gray-100">
