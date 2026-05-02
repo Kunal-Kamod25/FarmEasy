@@ -18,7 +18,6 @@ const ProductDetail = () => {
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [userRating, setUserRating] = useState(0);
-  const [reviewTitle, setReviewTitle] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [submitingReview, setSubmittingReview] = useState(false);
 
@@ -101,11 +100,11 @@ const ProductDetail = () => {
     try {
       setSubmittingReview(true);
       await axios.post(
-        `${API_URL}/api/reviews/product/${productId}`,
+        `${API_URL}/api/reviews/product`,
         {
+          product_id: productId,
           rating: userRating,
-          title: reviewTitle,
-          review_text: reviewText,
+          comment: reviewText,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -115,7 +114,10 @@ const ProductDetail = () => {
         const reviewRes = await axios.get(
           `${API_URL}/api/reviews/product/${productId}?page=1&limit=${reviewsPerPage}&sortBy=newest`
         );
-        if (reviewRes.data?.data?.reviews) {
+        if (reviewRes.data?.reviews) {
+          setReviews(reviewRes.data.reviews);
+          setReviewStats(reviewRes.data.summary);
+        } else if (reviewRes.data?.data?.reviews) {
           setReviews(reviewRes.data.data.reviews);
           setReviewStats(reviewRes.data.data.statistics);
         }
@@ -125,7 +127,6 @@ const ProductDetail = () => {
 
       // Reset form
       setUserRating(0);
-      setReviewTitle("");
       setReviewText("");
       setShowReviewForm(false);
       setError("");
@@ -427,21 +428,6 @@ const ProductDetail = () => {
                     You selected {userRating} stars
                   </p>
                 )}
-              </div>
-
-              {/* TITLE */}
-              <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Review Title
-                </label>
-                <input
-                  type="text"
-                  value={reviewTitle}
-                  onChange={(e) => setReviewTitle(e.target.value)}
-                  placeholder="e.g., Excellent product, highly recommended"
-                  maxLength="100"
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
               </div>
 
               {/* REVIEW TEXT */}

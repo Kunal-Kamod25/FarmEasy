@@ -12,7 +12,6 @@ import { API_URL } from "../../config";
 const ProductReviewForm = ({ productId, onReviewSubmitted }) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +41,6 @@ const ProductReviewForm = ({ productId, onReviewSubmitted }) => {
         {
           product_id: productId,
           rating,
-          title: title || `${rating} Star Review`,
           comment,
         },
         {
@@ -52,7 +50,6 @@ const ProductReviewForm = ({ productId, onReviewSubmitted }) => {
 
       setSuccess("Review submitted successfully!");
       setRating(0);
-      setTitle("");
       setComment("");
 
       if (onReviewSubmitted) {
@@ -119,20 +116,6 @@ const ProductReviewForm = ({ productId, onReviewSubmitted }) => {
               {rating === 1 && "Very Poor"}
             </p>
           )}
-        </div>
-
-        {/* TITLE */}
-        <div>
-          <label className="block font-medium mb-2">Review Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g., Great quality product"
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            maxLength={100}
-          />
-          <p className="text-xs text-gray-500 mt-1">{title.length}/100</p>
         </div>
 
         {/* COMMENT */}

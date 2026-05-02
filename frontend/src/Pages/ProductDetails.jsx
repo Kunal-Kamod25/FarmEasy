@@ -56,7 +56,6 @@ const ProductDetailPage = () => {
   const [reviewStats, setReviewStats] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [userRating, setUserRating] = useState(0);
-  const [reviewTitle, setReviewTitle] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewsPerPage] = useState(10);
@@ -163,11 +162,11 @@ const ProductDetailPage = () => {
     try {
       setSubmittingReview(true);
       await axios.post(
-        `${API_URL}/api/reviews/product/${id}`,
+        `${API_URL}/api/reviews/product`,
         {
+          product_id: id,
           rating: userRating,
-          title: reviewTitle,
-          review_text: reviewText,
+          comment: reviewText,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -177,7 +176,10 @@ const ProductDetailPage = () => {
         const reviewRes = await axios.get(
           `${API_URL}/api/reviews/product/${id}?page=1&limit=${reviewsPerPage}&sortBy=newest`
         );
-        if (reviewRes.data?.data?.reviews) {
+        if (reviewRes.data?.reviews) {
+          setReviews(reviewRes.data.reviews);
+          setReviewStats(reviewRes.data.summary);
+        } else if (reviewRes.data?.data?.reviews) {
           setReviews(reviewRes.data.data.reviews);
           setReviewStats(reviewRes.data.data.statistics);
         }
@@ -187,7 +189,6 @@ const ProductDetailPage = () => {
 
       // Reset form
       setUserRating(0);
-      setReviewTitle("");
       setReviewText("");
       setShowReviewForm(false);
     } catch (err) {
@@ -654,17 +655,6 @@ const ProductDetailPage = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-900 mb-2">Review Title</label>
-                  <input
-                    type="text"
-                    value={reviewTitle}
-                    onChange={(e) => setReviewTitle(e.target.value)}
-                    placeholder="Summarize your experience"
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-600"
-                  />
                 </div>
 
                 <div>
