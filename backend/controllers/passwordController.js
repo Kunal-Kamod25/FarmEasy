@@ -4,13 +4,15 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
-// ─── SMTP CONFIGURATION ─────────────────────────────────────────────────────
-// You should add these to your .env file
+// ─── SMTP CONFIGURATION (NEW FORMAT) ─────────────────────────────────────
+// Updated to use new SMTP format from emailConfig
 const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: parseInt(process.env.SMTP_PORT) === 465, // true for 465, false for 587
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
     }
 });
 
@@ -35,14 +37,14 @@ exports.forgotPassword = async (req, res) => {
         }
 
         let token;
-        let expires = Date.now() + 3600000; // 1 hour from now
+        let expires = Date.now() + 300000; // 5 minutes from now
 
         if (type === "otp") {
             // Generate 6-digit OTP
             token = Math.floor(100000 + Math.random() * 900000).toString();
         } else {
             // Generate secure reset token (JWT)
-            token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+            token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET, { expiresIn: "5m" });
         }
 
         // Save token and expiry to DB
@@ -54,12 +56,12 @@ exports.forgotPassword = async (req, res) => {
         // Send Email
         const resetUrl = `http://localhost:5173/reset-password/${token}`;
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: `"${process.env.SMTP_FROM_NAME || 'FarmEasy'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
             to: email,
             subject: "FarmEasy - Password Reset Request",
             html: type === "otp"
-                ? `<h3>Password Reset OTP</h3><p>Your 6-digit OTP is: <b>${token}</b></p><p>It expires in 1 hour.</p>`
-                : `<h3>Password Reset Link</h3><p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>Expires in 1 hour.</p>`,
+                ? `<h3>Password Reset OTP</h3><p>Your 6-digit OTP is: <b>${token}</b></p><p>It expires in 5 minutes.</p>`
+                : `<h3>Password Reset Link</h3><p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>Expires in 5 minutes.</p>`,
         };
 
         // Note: If SMTP is not configured, this will fail. We handle it gracefully.
