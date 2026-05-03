@@ -11,6 +11,7 @@ const {
   PAYMENT_STATUS_LIST,
   TRACKING_STATUS
 } = require("../constants/orderStatus");
+const emailService = require("../services/emailService");
 
 const stripe = process.env.STRIPE_SECRET_KEY
   ? require("stripe")(process.env.STRIPE_SECRET_KEY)
@@ -159,6 +160,58 @@ const createOrderFromCart = async ({
   return { orderId, totalPrice };
 };
 
+const triggerOrderEmails = async ({ orderId, shipping, cartItems, totalPrice }) => {
+  try {
+    const shippingAddress = `${shipping.address}, ${shipping.city}, ${shipping.state} - ${shipping.pincode}`;
+    const customerResult = await emailService.notifyOrderPlaced({
+      customerName: shipping.fullName,
+      email: shipping.email,
+      orderId,
+      orderDate: new Date(),
+      items: cartItems,
+      totalPrice,
+      shippingAddress
+    });
+
+    console.log("Order placed email result:", customerResult);
+
+    const sellersMap = {};
+    cartItems.forEach((item) => {
+      if (!item.seller_id) return;
+      if (!sellersMap[item.seller_id]) sellersMap[item.seller_id] = [];
+      sellersMap[item.seller_id].push(item);
+    });
+
+    for (const sellerId of Object.keys(sellersMap)) {
+      const itemsForVendor = sellersMap[sellerId];
+      const [sellerRows] = await db.query(
+        "SELECT s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?",
+        [sellerId]
+      );
+
+      if (!sellerRows || !sellerRows.length) continue;
+
+      const vendorEmail = sellerRows[0].email;
+      const vendorName = sellerRows[0].shop_name || vendorEmail;
+      const vendorTotal = calculateTotal(itemsForVendor);
+
+      const vendorResult = await emailService.notifyVendorNewOrder(vendorEmail, {
+        vendorName,
+        orderId,
+        customerName: shipping.fullName,
+        items: itemsForVendor,
+        totalPrice: vendorTotal,
+        shippingAddress,
+        orderDate: new Date()
+      });
+
+      console.log(`Vendor email result for seller ${sellerId}:`, vendorResult);
+    }
+  } catch (emailError) {
+    console.error("Error sending post-order emails:", emailError);
+  }
+};
+
 const placeCodOrder = async (req, res) => {
   const connection = await db.getConnection();
 
@@ -176,7 +229,7 @@ const placeCodOrder = async (req, res) => {
     await connection.beginTransaction();
 
     const cartItems = await fetchCartItems(connection.query.bind(connection), userId, true);
-    const { orderId } = await createOrderFromCart({
+    const { orderId, totalPrice } = await createOrderFromCart({
       connection,
       userId,
       shipping,
@@ -186,6 +239,9 @@ const placeCodOrder = async (req, res) => {
     });
 
     await connection.commit();
+
+    // Send emails asynchronously (do not block order response)
+    void triggerOrderEmails({ orderId, shipping, cartItems, totalPrice });
 
     return res.status(201).json({
       success: true,
@@ -337,7 +393,7 @@ router.post("/razorpay/finalize", verifyToken, async (req, res) => {
       throw new Error("Cart total changed. Please try checkout again.");
     }
 
-    const { orderId } = await createOrderFromCart({
+    const { orderId, totalPrice } = await createOrderFromCart({
       connection,
       userId,
       shipping,
@@ -347,6 +403,8 @@ router.post("/razorpay/finalize", verifyToken, async (req, res) => {
     });
 
     await connection.commit();
+
+    void triggerOrderEmails({ orderId, shipping, cartItems, totalPrice });
 
     return res.status(201).json({
       success: true,
@@ -474,7 +532,7 @@ router.post("/stripe/finalize", verifyToken, async (req, res) => {
       pincode: session.metadata?.pincode || ""
     };
 
-    const { orderId } = await createOrderFromCart({
+    const { orderId, totalPrice } = await createOrderFromCart({
       connection,
       userId,
       shipping,
@@ -484,6 +542,8 @@ router.post("/stripe/finalize", verifyToken, async (req, res) => {
     });
 
     await connection.commit();
+
+    void triggerOrderEmails({ orderId, shipping, cartItems, totalPrice });
 
     return res.status(201).json({
       success: true,
@@ -640,6 +700,159 @@ router.delete("/:orderId", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Order delete error:", error);
     return res.status(500).json({ message: "Failed to delete order" });
+  }
+});
+
+// ─── UPDATE ORDER STATUS WITH EMAIL NOTIFICATIONS ─────────────────────────────
+router.put("/:orderId/status", verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status, trackingUrl, cancellationReason } = req.body;
+    const userId = req.user.id;
+
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    // Get order and customer details
+    const [orders] = await db.query(
+      `SELECT o.*, u.full_name, u.email 
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       WHERE o.id = ?`,
+      [orderId]
+    );
+
+    if (!orders.length) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const order = orders[0];
+
+    // Verify user is vendor/admin who owns this order (via products in order)
+    // Or user is the customer (for some status updates)
+    const isCustomer = Number(order.user_id) === Number(userId);
+    const isVendor = false; // You can add vendor verification logic here
+
+    if (!isCustomer && !isVendor) {
+      return res.status(403).json({ message: "Access denied - cannot update this order" });
+    }
+
+    // Update order status
+    await db.query("UPDATE orders SET order_status = ? WHERE id = ?", [status, orderId]);
+
+    // Get order items for email
+    const [items] = await db.query(
+      `SELECT oi.*, p.product_name, p.seller_id 
+       FROM order_items oi
+       JOIN product p ON oi.product_id = p.id
+       WHERE oi.order_id = ?`,
+      [orderId]
+    );
+
+    // Get shipping address from tracking
+    const [tracking] = await db.query(
+      "SELECT user_address FROM tracking WHERE order_id = ? LIMIT 1",
+      [orderId]
+    );
+
+    const shippingAddress = tracking.length ? tracking[0].user_address : "Address not available";
+
+    // Send appropriate email based on status (to customer and vendors)
+    const orderData = {
+      customerName: order.full_name,
+      email: order.email,
+      orderId: orderId,
+      items: items,
+      totalPrice: order.total_price,
+      shippingAddress: shippingAddress,
+      trackingUrl: trackingUrl || "",
+      deliveryDate: new Date(),
+      cancellationReason: cancellationReason || ""
+    };
+
+    (async () => {
+      try {
+        let emailResult = null;
+
+        if (status === ORDER_STATUS.PAYMENT_CONFIRMED) {
+          emailResult = await emailService.notifyOrderConfirmed(orderData);
+        } else if (status === ORDER_STATUS.SHIPPED) {
+          emailResult = await emailService.notifyOrderShipped(orderData);
+        } else if (status === ORDER_STATUS.DELIVERED) {
+          emailResult = await emailService.notifyOrderDelivered(orderData);
+        } else if (status === ORDER_STATUS.CANCELLED) {
+          emailResult = await emailService.notifyOrderCancelled(orderData);
+        } else if (status === ORDER_STATUS.ORDER_CONFIRMED) {
+          // Use confirmed email for this status
+          emailResult = await emailService.notifyOrderConfirmed(orderData);
+        }
+
+        console.log("Order status email result:", { orderId, status, emailResult });
+
+        // Notify vendors about status change for their items
+        try {
+          const sellersMap = {};
+          items.forEach(item => {
+            if (!item.seller_id) return;
+            if (!sellersMap[item.seller_id]) sellersMap[item.seller_id] = [];
+            sellersMap[item.seller_id].push(item);
+          });
+
+          for (const sellerId of Object.keys(sellersMap)) {
+            const itemsForVendor = sellersMap[sellerId];
+
+            const [sellerRows] = await db.query(
+              "SELECT s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?",
+              [sellerId]
+            );
+
+            if (!sellerRows || !sellerRows.length) continue;
+
+            const vendorEmail = sellerRows[0].email;
+            const vendorName = sellerRows[0].shop_name || vendorEmail;
+            const vendorTotal = calculateTotal(itemsForVendor);
+
+            // Only notify vendors on meaningful status updates
+            const vendorStatusesToNotify = new Set([
+              ORDER_STATUS.PAYMENT_CONFIRMED,
+              ORDER_STATUS.ORDER_CONFIRMED,
+              ORDER_STATUS.PROCESSING,
+              ORDER_STATUS.SHIPPED,
+              ORDER_STATUS.OUT_FOR_DELIVERY,
+              ORDER_STATUS.DELIVERED,
+              ORDER_STATUS.CANCELLED
+            ]);
+
+            if (vendorStatusesToNotify.has(status)) {
+              const vendorResult = await emailService.notifyVendorStatusUpdate(vendorEmail, {
+                vendorName,
+                orderId,
+                status,
+                items: itemsForVendor,
+                totalPrice: vendorTotal,
+                trackingUrl: orderData.trackingUrl || ""
+              });
+
+              console.log(`Vendor status email result for seller ${sellerId}:`, vendorResult);
+            }
+          }
+        } catch (vendorEmailError) {
+          console.error("Error sending vendor status notification emails:", vendorEmailError);
+        }
+      } catch (emailError) {
+        console.error("Error sending status update email:", emailError);
+      }
+    })();
+
+    return res.json({
+      success: true,
+      message: `Order status updated to ${status}`,
+      orderId: orderId
+    });
+  } catch (error) {
+    console.error("Order status update error:", error);
+    return res.status(500).json({ message: "Failed to update order status" });
   }
 });
 
