@@ -704,19 +704,31 @@ router.delete("/:orderId", verifyToken, async (req, res) => {
 });
 
 // ─── UPDATE ORDER STATUS WITH EMAIL NOTIFICATIONS ─────────────────────────────
+// Endpoint: PUT /api/orders/:orderId/status
+// This endpoint allows vendors or admins to update order status
+// When status changes, automatic emails are sent to customers and vendors
+// Tracking table is also updated for shipping status changes
 router.put("/:orderId/status", verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status, trackingUrl, cancellationReason } = req.body;
     const userId = req.user.id;
 
+    console.log(`📦 [ORDER STATUS UPDATE] User ${userId} updating order ${orderId} to "${status}"`);
+
+    // Validate status is provided
     if (!status) {
-      return res.status(400).json({ message: "Status is required" });
+      return res.status(400).json({ success: false, message: "Status is required" });
+    }
+
+    // Validate status is one of the allowed statuses
+    if (!ORDER_STATUS_LIST.includes(status)) {
+      return res.status(400).json({ success: false, message: `Invalid status: ${status}` });
     }
 
     // Get order and customer details
     const [orders] = await db.query(
-      `SELECT o.*, u.full_name, u.email 
+      `SELECT o.*, u.full_name, u.email, u.phone_number, u.address, u.city, u.state, u.pincode
        FROM orders o
        JOIN users u ON o.user_id = u.id
        WHERE o.id = ?`,
@@ -724,42 +736,84 @@ router.put("/:orderId/status", verifyToken, async (req, res) => {
     );
 
     if (!orders.length) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     const order = orders[0];
 
-    // Verify user is vendor/admin who owns this order (via products in order)
-    // Or user is the customer (for some status updates)
+    // Check authorization: User must be either the customer or a vendor with items in this order
     const isCustomer = Number(order.user_id) === Number(userId);
-    const isVendor = false; // You can add vendor verification logic here
 
-    if (!isCustomer && !isVendor) {
-      return res.status(403).json({ message: "Access denied - cannot update this order" });
+    // Check if user is a vendor with products in this order
+    let isVendor = false;
+    if (!isCustomer) {
+      const [vendorCheck] = await db.query(
+        `SELECT DISTINCT s.id FROM seller s
+         JOIN product p ON p.seller_id = s.id
+         JOIN order_items oi ON oi.product_id = p.id
+         WHERE oi.order_id = ? AND s.user_id = ?`,
+        [orderId, userId]
+      );
+      isVendor = vendorCheck.length > 0;
     }
 
-    // Update order status
-    await db.query("UPDATE orders SET order_status = ? WHERE id = ?", [status, orderId]);
+    if (!isCustomer && !isVendor) {
+      console.log(`❌ [AUTH DENIED] User ${userId} not authorized to update order ${orderId}`);
+      return res.status(403).json({ 
+        success: false, 
+        message: "Access denied - you don't have permission to update this order" 
+      });
+    }
 
-    // Get order items for email
+    const updaterRole = isCustomer ? "CUSTOMER" : "VENDOR";
+    console.log(`✅ [AUTH PASSED] ${updaterRole} authorized to update order ${orderId}`);
+
+    // Get current order status before update
+    const oldStatus = order.order_status;
+
+    // Update order status in database
+    await db.query(
+      "UPDATE orders SET order_status = ? WHERE id = ?", 
+      [status, orderId]
+    );
+
+    console.log(`🔄 [DB UPDATE] Order ${orderId} status: "${oldStatus}" → "${status}"`);
+
+    // Update tracking table based on status
+    if (status === ORDER_STATUS.SHIPPED || status === ORDER_STATUS.OUT_FOR_DELIVERY) {
+      const trackingStatus = status === ORDER_STATUS.SHIPPED ? "Shipped" : "Out for Delivery";
+      const shippingAddress = `${order.address}, ${order.city}, ${order.state} ${order.pincode}`;
+      
+      await db.query(
+        `INSERT INTO tracking (order_id, status, user_id, user_name, user_address)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE status = ?, updated_at = NOW()`,
+        [orderId, trackingStatus, order.user_id, order.full_name, shippingAddress, trackingStatus]
+      );
+      
+      console.log(`📍 [TRACKING UPDATE] Order ${orderId} - ${trackingStatus}`);
+    } else if (status === ORDER_STATUS.DELIVERED) {
+      await db.query(
+        `UPDATE tracking SET status = 'Delivered', updated_at = NOW() WHERE order_id = ?`,
+        [orderId]
+      );
+      console.log(`📍 [TRACKING UPDATE] Order ${orderId} - Delivered`);
+    }
+
+    // Get order items for email notifications
     const [items] = await db.query(
-      `SELECT oi.*, p.product_name, p.seller_id 
+      `SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.product_name, p.seller_id 
        FROM order_items oi
        JOIN product p ON oi.product_id = p.id
        WHERE oi.order_id = ?`,
       [orderId]
     );
 
-    // Get shipping address from tracking
-    const [tracking] = await db.query(
-      "SELECT user_address FROM tracking WHERE order_id = ? LIMIT 1",
-      [orderId]
-    );
+    // Get shipping address
+    const shippingAddress = `${order.address}, ${order.city}, ${order.state} ${order.pincode}`;
 
-    const shippingAddress = tracking.length ? tracking[0].user_address : "Address not available";
-
-    // Send appropriate email based on status (to customer and vendors)
-    const orderData = {
+    // Prepare email data for customer
+    const customerEmailData = {
       customerName: order.full_name,
       email: order.email,
       orderId: orderId,
@@ -771,24 +825,26 @@ router.put("/:orderId/status", verifyToken, async (req, res) => {
       cancellationReason: cancellationReason || ""
     };
 
+    // Send emails asynchronously (don't wait for response)
     (async () => {
       try {
-        let emailResult = null;
-
-        if (status === ORDER_STATUS.PAYMENT_CONFIRMED) {
-          emailResult = await emailService.notifyOrderConfirmed(orderData);
+        // Send email to customer based on status change
+        console.log(`📧 [EMAIL NOTIFY] Attempting to notify customer for order ${orderId} - status: ${status}`);
+        
+        let customerEmailResult = null;
+        if (status === ORDER_STATUS.PAYMENT_CONFIRMED || status === ORDER_STATUS.ORDER_CONFIRMED) {
+          customerEmailResult = await emailService.notifyOrderConfirmed(customerEmailData);
         } else if (status === ORDER_STATUS.SHIPPED) {
-          emailResult = await emailService.notifyOrderShipped(orderData);
+          customerEmailResult = await emailService.notifyOrderShipped(customerEmailData);
         } else if (status === ORDER_STATUS.DELIVERED) {
-          emailResult = await emailService.notifyOrderDelivered(orderData);
+          customerEmailResult = await emailService.notifyOrderDelivered(customerEmailData);
         } else if (status === ORDER_STATUS.CANCELLED) {
-          emailResult = await emailService.notifyOrderCancelled(orderData);
-        } else if (status === ORDER_STATUS.ORDER_CONFIRMED) {
-          // Use confirmed email for this status
-          emailResult = await emailService.notifyOrderConfirmed(orderData);
+          customerEmailResult = await emailService.notifyOrderCancelled(customerEmailData);
         }
 
-        console.log("Order status email result:", { orderId, status, emailResult });
+        if (customerEmailResult) {
+          console.log(`✅ [CUSTOMER EMAIL] Order ${orderId} - Status: ${status}`, customerEmailResult);
+        }
 
         // Notify vendors about status change for their items
         try {
@@ -802,12 +858,16 @@ router.put("/:orderId/status", verifyToken, async (req, res) => {
           for (const sellerId of Object.keys(sellersMap)) {
             const itemsForVendor = sellersMap[sellerId];
 
+            // Get vendor details
             const [sellerRows] = await db.query(
-              "SELECT s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?",
+              "SELECT s.id, s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?",
               [sellerId]
             );
 
-            if (!sellerRows || !sellerRows.length) continue;
+            if (!sellerRows || !sellerRows.length) {
+              console.warn(`⚠️  [VENDOR EMAIL] Seller ${sellerId} not found`);
+              continue;
+            }
 
             const vendorEmail = sellerRows[0].email;
             const vendorName = sellerRows[0].shop_name || vendorEmail;
@@ -831,28 +891,38 @@ router.put("/:orderId/status", verifyToken, async (req, res) => {
                 status,
                 items: itemsForVendor,
                 totalPrice: vendorTotal,
-                trackingUrl: orderData.trackingUrl || ""
+                trackingUrl: trackingUrl || ""
               });
 
-              console.log(`Vendor status email result for seller ${sellerId}:`, vendorResult);
+              console.log(`✅ [VENDOR EMAIL] Seller ${sellerId} (${vendorName}) - Order ${orderId} - Status: ${status}`, vendorResult);
             }
           }
         } catch (vendorEmailError) {
-          console.error("Error sending vendor status notification emails:", vendorEmailError);
+          console.error(`❌ [VENDOR EMAIL ERROR]`, vendorEmailError);
         }
       } catch (emailError) {
-        console.error("Error sending status update email:", emailError);
+        console.error(`❌ [EMAIL ERROR]`, emailError);
       }
     })();
+
+    console.log(`✅ [ORDER UPDATE SUCCESS] Order ${orderId} status updated to "${status}"`);
 
     return res.json({
       success: true,
       message: `Order status updated to ${status}`,
-      orderId: orderId
+      orderId: orderId,
+      previousStatus: oldStatus,
+      newStatus: status,
+      updatedAt: new Date().toISOString()
     });
+    
   } catch (error) {
-    console.error("Order status update error:", error);
-    return res.status(500).json({ message: "Failed to update order status" });
+    console.error(`❌ [ORDER STATUS UPDATE ERROR] Order ${req.params.orderId}:`, error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to update order status",
+      error: error.message 
+    });
   }
 });
 
