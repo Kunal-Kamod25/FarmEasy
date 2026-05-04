@@ -4,11 +4,14 @@ import { API_URL } from "../../config";
 import { Mail, Lock, User, Store, Phone, Sprout, Sparkles, ShieldCheck, ArrowRight, Leaf, CheckCircle, RefreshCcw, X } from "lucide-react";
 import GoogleOAuthButton from "./GoogleOAuthButton";
 
+import { useLanguage } from "../../context/language/LanguageContext";
+
 const REGEX = {
   specialChar: /[!@#$%^&*]/,
 };
 
 const Register = () => {
+  const { t } = useLanguage();
   const [role, setRole] = useState("customer");
   const [step, setStep] = useState("form"); // 'form' or 'otp'
   const [formData, setFormData] = useState({
@@ -277,16 +280,16 @@ const Register = () => {
                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
                   <Mail className="text-emerald-300" size={28} />
                 </div>
-                <h2 className="text-3xl font-semibold text-white">Verify Email</h2>
+                <h2 className="text-3xl font-semibold text-white">{t("register.verifyEmail")}</h2>
                 <p className="mt-3 text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
-                  We've sent a 6-digit verification code to <span className="text-emerald-200 font-semibold">{formData.email}</span>
+                  {t("register.verifyEmailDesc").replace("{email}", formData.email)}
                 </p>
               </div>
 
               <form onSubmit={handleVerifyAndRegister} className="space-y-8">
                 <div>
                   <label className="mb-3 block text-center text-xs font-semibold uppercase tracking-[0.3em] text-white/40">
-                    Enter Verification Code
+                    {t("register.enterOtp")}
                   </label>
                   <input
                     type="text"
@@ -316,7 +319,7 @@ const Register = () => {
                       <RefreshCcw className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        Verify & Create Account
+                        {t("register.verifyButton")}
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -325,7 +328,7 @@ const Register = () => {
                   <div className="text-center">
                     {timer > 0 ? (
                       <p className="text-xs text-white/40 font-medium">
-                        Resend code in <span className="text-emerald-200 font-bold">{timer}s</span>
+                        {t("register.resendIn").replace("{timer}", timer)}
                       </p>
                     ) : (
                       <button
@@ -335,7 +338,7 @@ const Register = () => {
                         className="text-xs font-bold text-emerald-200 hover:text-emerald-100 transition flex items-center gap-2 mx-auto uppercase tracking-wider"
                       >
                         <RefreshCcw className="h-3 w-3" />
-                        Resend Code
+                        {t("register.resendOtp")}
                       </button>
                     )}
                   </div>
@@ -349,19 +352,19 @@ const Register = () => {
             <div className="animate-in fade-in duration-500">
               <div className="text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-100/70">
-                  Start here
+                  {t("login.welcome")}
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">
-                  Create Your Account
+                  {t("register.title")}
                 </h2>
                 <p className="mt-2 text-sm text-white/60 sm:text-base">
-                  Start your journey with FarmEasy
+                  {t("register.subtitle")}
                 </p>
               </div>
 
               <div className="mt-8">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-white/45">
-                  Register as
+                  {t("register.registerAs")}
                 </p>
                 <div className="flex gap-3">
                   <label className={roleButtonClass(role === "customer")}>
@@ -371,7 +374,7 @@ const Register = () => {
                       checked={role === "customer"}
                       onChange={() => setRole("customer")}
                     />
-                    Customer
+                    {t("login.customer")}
                   </label>
 
                   <label className={roleButtonClass(role === "vendor")}>
@@ -381,7 +384,7 @@ const Register = () => {
                       checked={role === "vendor"}
                       onChange={() => setRole("vendor")}
                     />
-                    Vendor
+                    {t("login.vendor")}
                   </label>
                 </div>
               </div>
@@ -540,9 +543,9 @@ const Register = () => {
               )}
 
               <p className="mt-6 text-center text-sm text-white/65">
-                Already have an account?{" "}
+                {t("register.alreadyHaveAccount")}{" "}
                 <Link to="/login" className="font-semibold text-emerald-100 transition hover:text-white">
-                  Sign In
+                  {t("nav.login")}
                 </Link>
               </p>
             </div>

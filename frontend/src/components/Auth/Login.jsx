@@ -260,14 +260,27 @@ const Login = () => {
               <label className="mb-2 block text-sm font-semibold text-white/80">
                 {t("login.loginUsing")}
               </label>
-              <select
-                value={loginType}
-                onChange={(e) => handleLoginTypeChange(e.target.value)}
-                className={`${fieldShell} appearance-none text-white`}
-              >
-                <option value="email">{t("login.email")}</option>
-                <option value="phone">{t("login.phone")}</option>
-              </select>
+              <div className="flex gap-3">
+                <label className={roleButtonClass(loginType === "email")}>
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    checked={loginType === "email"}
+                    onChange={() => handleLoginTypeChange("email")}
+                  />
+                  {t("login.email")}
+                </label>
+
+                <label className={roleButtonClass(loginType === "phone")}>
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    checked={loginType === "phone"}
+                    onChange={() => handleLoginTypeChange("phone")}
+                  />
+                  {t("login.phone")}
+                </label>
+              </div>
             </div>
 
             {loginType === "email" ? (

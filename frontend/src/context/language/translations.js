@@ -40,6 +40,17 @@ export const translations = {
     "login.noAccount": "Don't have an account?",
     "login.signUp": "Sign Up",
 
+    "register.title": "Create Your Account",
+    "register.subtitle": "Start your journey with FarmEasy",
+    "register.registerAs": "Register as",
+    "register.verifyEmail": "Verify Email",
+    "register.verifyEmailDesc": "We've sent a 6-digit verification code to {email}",
+    "register.enterOtp": "Enter Verification Code",
+    "register.verifyButton": "Verify & Create Account",
+    "register.resendOtp": "Resend Code",
+    "register.resendIn": "Resend code in {timer}s",
+    "register.alreadyHaveAccount": "Already have an account?",
+
     "login.validation.emailRequired": "Email is required.",
     "login.validation.emailInvalid": "Enter a valid email (e.g. hello@gmail.com).",
     "login.validation.phoneRequired": "Phone number is required.",
@@ -452,6 +463,17 @@ export const translations = {
     "support.faq2a": "हाँ, उपलब्ध होने पर उत्पाद पेज पर PDF मैनुअल दिए जाते हैं।",
     "support.faq3q": "कौन से भुगतान तरीके स्वीकार हैं?",
     "support.faq3a": "हम UPI, नेटबैंकिंग, डेबिट/क्रेडिट कार्ड और कुछ क्षेत्रों में COD स्वीकार करते हैं।",
+
+    "register.title": "अपना खाता बनाएँ",
+    "register.subtitle": "FarmEasy के साथ अपनी यात्रा शुरू करें",
+    "register.registerAs": "इस रूप में रजिस्टर करें",
+    "register.verifyEmail": "ईमेल सत्यापित करें",
+    "register.verifyEmailDesc": "हमने {email} पर 6 अंकों का वेरिफिकेशन कोड भेजा है",
+    "register.enterOtp": "वेरिफिकेशन कोड दर्ज करें",
+    "register.verifyButton": "सत्यापित करें और खाता बनाएँ",
+    "register.resendOtp": "कोड पुनः भेजें",
+    "register.resendIn": "{timer}s में कोड पुनः भेजें",
+    "register.alreadyHaveAccount": "क्या आपके पास पहले से खाता है?",
   },
   mr: {
     "common.language": "भाषा",
@@ -676,5 +698,16 @@ export const translations = {
     "support.faq2a": "होय. उपलब्ध असल्यास उत्पादन पेजवर PDF मॅन्युअल असतात.",
     "support.faq3q": "कोणत्या पेमेंट पद्धती स्वीकारल्या जातात?",
     "support.faq3a": "आम्ही UPI, नेटबँकिंग, डेबिट/क्रेडिट कार्ड आणि काही भागात COD स्वीकारतो.",
+
+    "register.title": "तुमचे खाते तयार करा",
+    "register.subtitle": "FarmEasy सह तुमचा प्रवास सुरू करा",
+    "register.registerAs": "याप्रमाणे नोंदणी करा",
+    "register.verifyEmail": "ईमेल सत्यापित करा",
+    "register.verifyEmailDesc": "आम्ही {email} वर 6-अंकी पडताळणी कोड पाठवला आहे",
+    "register.enterOtp": "पडताळणी कोड टाका",
+    "register.verifyButton": "सत्यापित करा आणि खाते तयार करा",
+    "register.resendOtp": "कोड पुन्हा पाठवा",
+    "register.resendIn": "{timer}s मध्ये कोड पुन्हा पाठवा",
+    "register.alreadyHaveAccount": "तुमचे आधीच खाते आहे का?",
   }
 };
