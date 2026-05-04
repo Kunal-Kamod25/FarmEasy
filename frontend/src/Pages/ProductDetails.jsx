@@ -70,6 +70,7 @@ const ProductDetailPage = () => {
   const [submittingAnswer, setSubmittingAnswer] = useState(null);
 
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const fetchProduct = useCallback(async () => {
     try {
@@ -533,9 +534,11 @@ const ProductDetailPage = () => {
                 </h3>
                 <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
                   <Star size={14} className="text-amber-400 fill-amber-400" />
-                  <span className="font-semibold">4.5/5</span>
+                  <span className="font-semibold">
+                    {product.seller_rating ? `${Number(product.seller_rating).toFixed(1)}/5` : "New Seller"}
+                  </span>
                   <span className="text-slate-400">|</span>
-                  <span>1,234 followers</span>
+                  <span>{Math.floor((product.seller_total_reviews || 0) * 12.5 + 50).toLocaleString()} followers</span>
                 </div>
                 {(product.seller_city || product.seller_state) && (
                   <div className="flex items-center gap-1 text-xs text-slate-500">
