@@ -7,35 +7,44 @@ import { Award } from "lucide-react";
 // Each brand gets a unique gradient so the section looks colorful
 // Clicking a brand navigates to /products filtered by that brand name
 // ═══════════════════════════════════════════════════════════
-const BRANDS = [
-  { id: 1, name: "Bayer", short: "BA", gradient: "from-blue-500 to-blue-700", ring: "ring-blue-200" },
-  { id: 2, name: "Syngenta", short: "SY", gradient: "from-green-600 to-emerald-700", ring: "ring-green-200" },
-  { id: 3, name: "UPL", short: "UPL", gradient: "from-red-500 to-rose-700", ring: "ring-red-200" },
-  { id: 4, name: "Tata Rallis", short: "TR", gradient: "from-indigo-500 to-violet-700", ring: "ring-indigo-200" },
-  { id: 5, name: "Dhanuka", short: "DH", gradient: "from-yellow-500 to-amber-600", ring: "ring-yellow-200" },
-  { id: 6, name: "IFFCO", short: "IF", gradient: "from-teal-500 to-cyan-700", ring: "ring-teal-200" },
-  { id: 7, name: "Godrej Agrovet", short: "GA", gradient: "from-purple-500 to-purple-700", ring: "ring-purple-200" },
-  { id: 8, name: "PI Industries", short: "PI", gradient: "from-orange-500 to-red-600", ring: "ring-orange-200" },
-  { id: 9, name: "Jain Irrigation", short: "JI", gradient: "from-sky-500 to-blue-600", ring: "ring-sky-200" },
-  { id: 10, name: "Coromandel", short: "CO", gradient: "from-lime-500 to-green-600", ring: "ring-lime-200" },
-  { id: 11, name: "Chambal Fert.", short: "CF", gradient: "from-fuchsia-500 to-pink-600", ring: "ring-fuchsia-200" },
-  { id: 12, name: "Kaveri Seeds", short: "KS", gradient: "from-emerald-500 to-teal-600", ring: "ring-emerald-200" },
-  { id: 13, name: "Mahyco", short: "MA", gradient: "from-amber-500 to-yellow-700", ring: "ring-amber-200" },
-  { id: 14, name: "Netafim", short: "NE", gradient: "from-cyan-500 to-sky-700", ring: "ring-cyan-200" },
-  { id: 15, name: "Finolex", short: "FI", gradient: "from-rose-500 to-pink-700", ring: "ring-rose-200" },
-  { id: 16, name: "Honda Power", short: "HP", gradient: "from-red-600 to-red-800", ring: "ring-red-300" },
-  { id: 17, name: "Stihl", short: "ST", gradient: "from-orange-600 to-amber-700", ring: "ring-orange-200" },
-  { id: 18, name: "VST Tillers", short: "VS", gradient: "from-slate-500 to-gray-700", ring: "ring-slate-200" },
-];
+import axios from "axios";
+import { API_URL } from "../../config";
 
 const BrandSection = () => {
-  const scrollRef = useRef(null);
+  const [brands, setBrands] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
+  const scrollRef = useRef(null);
   const navigate = useNavigate();
+
+  // Fetch brands from database
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const brandsRes = await axios.get(`${API_URL}/api/brands`);
+        const brandsData = brandsRes.data?.data || brandsRes.data || [];
+        
+        // Map to include a fallback short name if not present
+        const processedBrands = brandsData.map(b => ({
+          ...b,
+          short: b.name.slice(0, 2).toUpperCase(),
+          gradient: "from-emerald-500 to-green-700", // Generic gradient
+          ring: "ring-emerald-200"
+        }));
+
+        setBrands(processedBrands);
+      } catch (error) {
+        console.error("❌ Error fetching brands:", error);
+      }
+    };
+
+    fetchBrands();
+  }, []);
 
   // auto-scroll the brand strip — pauses when user hovers
   useEffect(() => {
     const container = scrollRef.current;
+    if (!container || brands.length === 0) return;
+    
     let animationFrame;
 
     const autoScroll = () => {
@@ -51,14 +60,14 @@ const BrandSection = () => {
 
     animationFrame = requestAnimationFrame(autoScroll);
     return () => cancelAnimationFrame(animationFrame);
-  }, [isHovered]);
+  }, [isHovered, brands]);
 
   const handleBrandClick = (brandName) => {
     navigate(`/products?search=${encodeURIComponent(brandName)}`);
   };
 
   // double the array for seamless infinite scroll
-  const allBrands = [...BRANDS, ...BRANDS];
+  const allBrands = [...brands, ...brands];
 
   return (
     <section className="py-10 bg-gradient-to-b from-white via-emerald-50/40 to-white">

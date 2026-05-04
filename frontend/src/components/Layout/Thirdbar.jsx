@@ -102,18 +102,6 @@ const NavItem = ({
   );
 };
 
-// Fallback categories if API fails
-const FALLBACK_CATEGORIES = [
-  { id: 1, name: 'Fertilizers', product_cat_name: 'Fertilizers', icon: '🌾', subcategories: [] },
-  { id: 2, name: 'Seeds', product_cat_name: 'Seeds', icon: '🌱', subcategories: [] },
-  { id: 3, name: 'Irrigation', product_cat_name: 'Irrigation', icon: '💧', subcategories: [] },
-  { id: 4, name: 'Cattle Feeds', product_cat_name: 'Cattle Feeds', icon: '🐄', subcategories: [] },
-  { id: 5, name: 'Pulses', product_cat_name: 'Pulses', icon: '🌾', subcategories: [] },
-  { id: 6, name: 'Pesticides', product_cat_name: 'Pesticides', icon: '🔬', subcategories: [] },
-  { id: 7, name: 'Tools', product_cat_name: 'Tools', icon: '⚙️', subcategories: [] },
-  { id: 8, name: 'Equipment', product_cat_name: 'Equipment', icon: '🛠️', subcategories: [] },
-];
-
 const Thirdbar = () => {
   const [navOpen, setNavOpen] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -166,38 +154,27 @@ const Thirdbar = () => {
       try {
         console.log("📡 Fetching categories from:", `${API}/api/categories`);
         const categoryRes = await axios.get(`${API}/api/categories`);
-        console.log("📥 Categories response:", categoryRes.data);
-
-        // API returns: { success: true, data: [...] } where data is array of categories
-        // Each category object includes subcategories array
+        
         let categoryData = categoryRes.data?.data || categoryRes.data || [];
 
-        // If API returns { data: { categories: [...] } }, use that
         if (Array.isArray(categoryData) === false && categoryData.categories) {
           categoryData = categoryData.categories;
         }
 
-        // Ensure we have an array
         if (!Array.isArray(categoryData)) {
           categoryData = [];
         }
 
-        console.log("🔍 Parsed category data:", categoryData);
-        console.log("📋 Categories found:", categoryData.length);
-
         if (categoryData.length === 0) {
-          console.warn("⚠️ No categories found from API, using fallback");
-          setCategories(FALLBACK_CATEGORIES);
+          console.warn("⚠️ No categories found from API");
+          setCategories([]);
           return;
         }
 
-        // API response already includes subcategories - use them directly
-        console.log("✅ Categories loaded successfully:", categoryData.length);
         setCategories(categoryData);
       } catch (error) {
         console.error("❌ Error fetching categories:", error);
-        console.warn("⚠️ Using fallback categories");
-        setCategories(FALLBACK_CATEGORIES);
+        setCategories([]);
       }
     };
 
@@ -210,39 +187,18 @@ const Thirdbar = () => {
       try {
         console.log("📡 Fetching brands from:", `${API}/api/brands`);
         const brandsRes = await axios.get(`${API}/api/brands`);
-        console.log("📥 Brands response:", brandsRes.data);
-
+        
         const brandsData = brandsRes.data?.data || brandsRes.data || [];
 
         if (Array.isArray(brandsData) && brandsData.length > 0) {
-          console.log("✅ Brands loaded:", brandsData.length);
           setBrands(brandsData);
         } else {
-          console.warn("⚠️ No brands found, using fallback");
-          setBrands([
-            { id: 1, name: 'Syngenta' },
-            { id: 2, name: 'Bayer' },
-            { id: 3, name: 'BASF' },
-            { id: 4, name: 'IFFCO' },
-            { id: 5, name: 'Godrej' },
-            { id: 6, name: 'Tata Rallis' },
-            { id: 7, name: 'UPL' },
-            { id: 8, name: 'PI Industries' },
-          ]);
+          console.warn("⚠️ No brands found");
+          setBrands([]);
         }
       } catch (error) {
         console.error("❌ Error fetching brands:", error);
-        console.warn("⚠️ Using fallback brands");
-        setBrands([
-          { id: 1, name: 'Syngenta' },
-          { id: 2, name: 'Bayer' },
-          { id: 3, name: 'BASF' },
-          { id: 4, name: 'IFFCO' },
-          { id: 5, name: 'Godrej' },
-          { id: 6, name: 'Tata Rallis' },
-          { id: 7, name: 'UPL' },
-          { id: 8, name: 'PI Industries' },
-        ]);
+        setBrands([]);
       }
     };
 

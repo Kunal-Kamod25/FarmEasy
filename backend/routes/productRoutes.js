@@ -219,11 +219,14 @@
           u.id AS vendor_id,
           u.full_name AS seller_name,
           u.city AS seller_city,
-          u.state AS seller_state
+          u.state AS seller_state,
+          vrs.average_rating AS seller_rating,
+          vrs.total_reviews AS seller_total_reviews
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN vendor_rating_summary vrs ON s.id = vrs.vendor_id
         WHERE p.id = ?
       `, [productId]);
 
