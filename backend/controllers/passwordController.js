@@ -66,6 +66,15 @@ exports.forgotPassword = async (req, res) => {
 
         // Note: If SMTP is not configured, this will fail. We handle it gracefully.
         try {
+            if (!transporter) {
+                console.warn("⚠️  SMTP not configured, using dev mode");
+                return res.status(200).json({
+                    success: true,
+                    message: "Dev mode: " + (type === 'otp' ? 'OTP' : 'Reset link') + " generated",
+                    dev_token: token // REMOVE THIS IN PRODUCTION
+                });
+            }
+
             await transporter.sendMail(mailOptions);
             res.status(200).json({ success: true, message: `Reset ${type === 'otp' ? 'OTP' : 'link'} sent to email` });
         } catch (mailError) {

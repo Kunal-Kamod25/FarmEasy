@@ -2,16 +2,10 @@
 // Handles email OTP sending and verification during registration
 
 const db = require('../config/db');
-const nodemailer = require('nodemailer');
+const { createTransporter, getEmailConfig } = require('../config/emailConfig');
 
-// Reuse the same SMTP config from passwordController
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    }
-});
+// Create transporter from emailConfig
+const transporter = createTransporter();
 
 // POST /api/authentication/send-otp
 exports.sendOTP = async (req, res) => {
@@ -42,8 +36,9 @@ exports.sendOTP = async (req, res) => {
         );
 
         // Send OTP email
+        const emailConfig = getEmailConfig();
         const mailOptions = {
-            from: `"FarmEasy" <${process.env.EMAIL_USER}>`,
+            from: `"${emailConfig.fromName}" <${emailConfig.fromEmail}>`,
             to: email,
             subject: "FarmEasy - Email Verification OTP",
             html: `
@@ -61,6 +56,15 @@ exports.sendOTP = async (req, res) => {
         };
 
         try {
+            if (!transporter) {
+                console.warn("⚠️  SMTP not configured, using dev mode OTP");
+                return res.status(200).json({
+                    success: true,
+                    message: "OTP generated (SMTP not configured)",
+                    dev_otp: otp // REMOVE IN PRODUCTION
+                });
+            }
+
             await transporter.sendMail(mailOptions);
             res.status(200).json({ success: true, message: "OTP sent to your email." });
         } catch (mailError) {
