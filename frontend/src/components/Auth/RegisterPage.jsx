@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
-import { Mail, Lock, User, Store, Phone, Sprout, Sparkles, ShieldCheck, ArrowRight, Leaf, CheckCircle, RefreshCcw, X } from "lucide-react";
+import { Mail, Lock, User, Store, Phone, Sprout, Sparkles, ShieldCheck, ArrowRight, Leaf, CheckCircle, RefreshCcw, X, Eye, EyeOff } from "lucide-react";
 import GoogleOAuthButton from "./GoogleOAuthButton";
 
 import { useLanguage } from "../../context/language/LanguageContext";
@@ -31,6 +31,8 @@ const Register = () => {
   const [passwordError, setPasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [googleError, setGoogleError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   // Timer logic for OTP resend
@@ -450,14 +452,21 @@ const Register = () => {
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="Minimum 6 characters"
-                        className={`${fieldShell} pl-11 ${passwordError ? "border-rose-300/60" : ""}`}
+                        className={`${fieldShell} pl-11 pr-11 ${passwordError ? "border-rose-300/60" : ""}`}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="pointer-events-auto absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35 hover:text-white/60 transition cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
                     </div>
                     {passwordError && <p className="mt-2 text-xs text-rose-200">{passwordError}</p>}
                   </div>
@@ -467,14 +476,21 @@ const Register = () => {
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                       <input
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="Confirm password"
-                        className={`${fieldShell} pl-11`}
+                        className={`${fieldShell} pl-11 pr-11`}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="pointer-events-auto absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35 hover:text-white/60 transition cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
                     </div>
                   </div>
                 </div>
