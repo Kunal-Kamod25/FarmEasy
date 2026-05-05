@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { RiArrowDownSLine, RiMenuLine, RiCloseLine, RiArrowRightSLine } from "react-icons/ri";
 import axios from "axios";
 import { API_URL } from "../../config";
@@ -393,13 +393,16 @@ const SimpleNavItem = ({
   onClick,
   onToggle,
   onItemSelect,
+  isActive,
 }) => {
   const navigate = useNavigate();
 
   return (
     <div className="relative" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div
-        className="flex items-center gap-1 py-3 md:py-0.5 cursor-pointer text-white"
+        className={`flex items-center gap-1 py-3 md:py-0.5 cursor-pointer transition-all ${
+          isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
+        }`}
         onClick={() => {
           if (items && items.length > 0) onToggle && onToggle();
           else {
@@ -408,7 +411,7 @@ const SimpleNavItem = ({
           }
         }}
       >
-        <span className="text-[13px] font-semibold uppercase tracking-wide hover:text-emerald-200 transition-colors text-nowrap">
+        <span className="text-[13px] font-semibold uppercase tracking-wide text-nowrap">
           {title}
         </span>
         {items && items.length > 0 && (
@@ -451,7 +454,7 @@ const SimpleNavItem = ({
 // ─────────────────────────────────────────────
 // DESKTOP CATEGORY NAV ITEM with MegaMenu
 // ─────────────────────────────────────────────
-const DesktopCategoryItem = ({ category, isOpen, onMouseEnter, onClose, onCancelClose }) => {
+const DesktopCategoryItem = ({ category, isOpen, onMouseEnter, onClose, onCancelClose, isActive }) => {
   const navigate = useNavigate();
 
   return (
@@ -461,10 +464,14 @@ const DesktopCategoryItem = ({ category, isOpen, onMouseEnter, onClose, onCancel
       onMouseLeave={onClose}
     >
       <div
-        className="flex items-center gap-1 py-3 md:py-0.5 cursor-pointer text-white"
+        className={`flex items-center gap-1.5 cursor-pointer py-4 transition-all relative group/item ${
+          isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
+        }`}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onClose}
         onClick={() => navigate(`/category/${category.id}`)}
       >
-        <span className="text-[13px] font-semibold uppercase tracking-wide hover:text-emerald-200 transition-colors text-nowrap">
+        <span className="text-[13px] font-semibold uppercase tracking-wide text-nowrap">
           {category.name}
         </span>
         <RiArrowDownSLine
@@ -492,6 +499,7 @@ const Thirdbar = () => {
   const [brands, setBrands] = useState([]);
   const [openKey, setOpenKey] = useState(null); // key of open desktop dropdown
   const navigate = useNavigate();
+  const location = useLocation();
   const navRef = useRef(null);
   const closeTimer = useRef(null);
 
@@ -609,6 +617,7 @@ const Thirdbar = () => {
             title="All Products"
             onClick={() => navigate("/products")}
             onItemSelect={closeMenu}
+            isActive={location.pathname === "/products"}
           />
 
           {/* Brands dropdown */}
@@ -620,6 +629,7 @@ const Thirdbar = () => {
             onMouseLeave={scheduleClose}
             onToggle={() => setOpenKey((p) => (p === "brands" ? null : "brands"))}
             onItemSelect={closeMenu}
+            isActive={location.search.includes("brand")}
           />
 
           {/* Dynamic category mega-menus */}
@@ -631,6 +641,10 @@ const Thirdbar = () => {
               onMouseEnter={() => { cancelClose(); setOpenKey(category.id); }}
               onClose={scheduleClose}
               onCancelClose={cancelClose}
+              isActive={
+                location.pathname === `/category/${category.id}` ||
+                location.search.includes(`category_id=${category.id}`)
+              }
             />
           ))}
         </div>
