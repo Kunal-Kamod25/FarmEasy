@@ -36,7 +36,9 @@ const server = http.createServer(app);
 const corsOptions = {
   origin: [
     "https://farmeasy-one.vercel.app",  // Vercel frontend
-    "http://localhost:5173",             // Local dev frontend
+    "http://localhost:5173",             // Local dev frontend (default Vite port)
+    "http://localhost:5174",             // Local dev frontend (fallback Vite port)
+    "http://localhost:3000",             // Local dev frontend (CRA / other)
     "http://localhost:5000"              // Local dev backend
   ],
   credentials: true,
