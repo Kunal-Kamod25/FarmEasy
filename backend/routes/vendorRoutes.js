@@ -34,6 +34,12 @@ router.post("/products", verifyToken, upload.single("product_image"), vendorCont
 router.delete("/products/:id", verifyToken, vendorController.deleteProduct);
 router.put("/products/:id", verifyToken, upload.single("product_image"), vendorController.updateProduct);
 
+// ========== CATEGORIES ==========
+const categoryController = require("../controllers/categoryController");
+router.post("/categories", verifyToken, categoryController.createCategory);
+router.post("/categories/subcategory", verifyToken, categoryController.createSubcategory);
+router.get("/categories/dropdown", categoryController.getCategoriesForDropdown);
+
 // ========== DASHBOARD ==========
 // returns real stats: total products, orders, revenue, category breakdown
 router.get("/dashboard", verifyToken, vendorController.getDashboardStats);

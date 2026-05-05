@@ -139,24 +139,33 @@ export default function VendorDashboard() {
           </p>
         </div>
 
-        {/* Date Range Selector */}
-        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-gray-100 text-sm font-medium text-gray-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all bg-gray-50 cursor-pointer"
-            max={endDate}
-          />
-          <span className="text-gray-400 font-medium">-</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-gray-100 text-sm font-medium text-gray-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all bg-gray-50 cursor-pointer"
-            min={startDate}
-            max={getToday()}
-          />
+        {/* Date Range Selector & Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-gray-100 text-sm font-medium text-gray-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all bg-gray-50 cursor-pointer"
+              max={endDate}
+            />
+            <span className="text-gray-400 font-medium">-</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-gray-100 text-sm font-medium text-gray-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all bg-gray-50 cursor-pointer"
+              min={startDate}
+              max={getToday()}
+            />
+          </div>
+          <Link 
+            to="/vendor/categories"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 text-sm whitespace-nowrap"
+          >
+            <Store size={18} />
+            Manage Categories
+          </Link>
         </div>
       </div>
 

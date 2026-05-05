@@ -239,3 +239,123 @@ exports.getProductsByFilters = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+// ===== VENDOR: CREATE NEW CATEGORY =====
+exports.createCategory = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const vendorId = req.user.id;
+
+    // Validate inputs
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: "Category name is required" });
+    }
+
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+
+    // Check if category name already exists
+    const [existing] = await db.query(
+      "SELECT id FROM categories WHERE LOWER(name) = LOWER(?)",
+      [name.trim()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, error: "Category with this name already exists" });
+    }
+
+    // Insert new category (no parent_id = it's a main category)
+    const [result] = await db.query(
+      "INSERT INTO categories (name, description, slug, sort_order) VALUES (?, ?, ?, ?)",
+      [name.trim(), description || "", slug, 0]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Category created successfully",
+      data: {
+        id: result.insertId,
+        name: name.trim(),
+        description: description || "",
+        slug,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res.status(500).json({ success: false, error: "Failed to create category" });
+  }
+};
+
+// ===== VENDOR: CREATE SUBCATEGORY UNDER PARENT =====
+exports.createSubcategory = async (req, res) => {
+  try {
+    const { parentId, name, description } = req.body;
+    const vendorId = req.user.id;
+
+    // Validate inputs
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: "Subcategory name is required" });
+    }
+
+    if (!parentId) {
+      return res.status(400).json({ success: false, error: "Parent category ID is required" });
+    }
+
+    // Verify parent category exists
+    const [parent] = await db.query("SELECT id FROM categories WHERE id = ?", [parentId]);
+    if (parent.length === 0) {
+      return res.status(404).json({ success: false, error: "Parent category not found" });
+    }
+
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+
+    // Check if subcategory name already exists under this parent
+    const [existing] = await db.query(
+      "SELECT id FROM categories WHERE parent_id = ? AND LOWER(name) = LOWER(?)",
+      [parentId, name.trim()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, error: "Subcategory with this name already exists under this parent" });
+    }
+
+    // Insert new subcategory with parent_id
+    const [result] = await db.query(
+      "INSERT INTO categories (name, description, slug, parent_id, sort_order) VALUES (?, ?, ?, ?, ?)",
+      [name.trim(), description || "", slug, parentId, 0]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Subcategory created successfully",
+      data: {
+        id: result.insertId,
+        parentId,
+        name: name.trim(),
+        description: description || "",
+        slug,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating subcategory:", error);
+    res.status(500).json({ success: false, error: "Failed to create subcategory" });
+  }
+};
+
+// ===== VENDOR: GET CATEGORIES FOR DROPDOWN =====
+exports.getCategoriesForDropdown = async (req, res) => {
+  try {
+    const [categories] = await db.query(
+      `SELECT id, name, description, parent_id
+       FROM categories
+       WHERE parent_id IS NULL
+       ORDER BY name ASC`
+    );
+
+    res.json({ success: true, data: categories });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch categories" });
+  }
+};
