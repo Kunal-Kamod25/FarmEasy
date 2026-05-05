@@ -10,6 +10,7 @@
     try {
       const categoryId = req.params.id;
 
+      // Improved Query: Fetch products from the category OR any of its direct subcategories
       const [rows] = await db.query(`
         SELECT 
           p.*,
@@ -20,9 +21,10 @@
         LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
-        WHERE p.category_id = ?
+        WHERE p.category_id = ? 
+           OR p.category_id IN (SELECT id FROM categories WHERE parent_id = ?)
         ORDER BY p.created_at DESC
-      `, [categoryId]);
+      `, [categoryId, categoryId]);
 
       res.json(rows);
     } catch (error) {
