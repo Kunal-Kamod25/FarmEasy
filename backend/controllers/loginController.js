@@ -25,7 +25,7 @@ const issueToken = (user) => {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "30m" }
   );
 };
 
@@ -265,7 +265,7 @@ exports.refresh = async (req, res) => {
         role: user[0].role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30m" }
     );
 
     res.json({
