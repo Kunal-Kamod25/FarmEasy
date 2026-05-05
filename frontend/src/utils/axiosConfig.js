@@ -52,6 +52,11 @@ export const setupAxiosInterceptors = (navigate) => {
       const config = error.config;
 
       if (status === 401 || status === 403) {
+        // Don't intercept refresh token calls to avoid loops
+        if (config.url?.includes("/api/authentication/refresh")) {
+          return Promise.reject(error);
+        }
+
         console.error("❌ Auth error:", message);
         
         // If token refresh already in progress, queue this request
@@ -74,8 +79,10 @@ export const setupAxiosInterceptors = (navigate) => {
           const token = localStorage.getItem("token");
           if (token) {
             // Try to refresh the token
+            const refreshUrl = `${import.meta.env.VITE_API_URL || ""}/api/authentication/refresh`;
+            
             return axios.post(
-              `${process.env.REACT_APP_API_URL || import.meta.env.VITE_API_URL || 'https://farmeasy-9ojh.onrender.com'}/api/auth/refresh`,
+              refreshUrl,
               {},
               {
                 headers: {
