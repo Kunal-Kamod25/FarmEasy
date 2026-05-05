@@ -187,7 +187,7 @@ const VendorProductDetail = () => {
               />
               <div className="absolute top-4 left-4">
                  <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-lg shadow-emerald-500/20 uppercase">
-                   {product.product_type || "Standard"}
+                   {product.category_name || "General"}
                  </span>
               </div>
             </div>

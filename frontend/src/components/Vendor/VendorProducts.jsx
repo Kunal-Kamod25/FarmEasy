@@ -230,7 +230,6 @@ const VendorProducts = () => {
                             </td>
                             <td className="px-4 py-5">
                               <p className="font-bold text-gray-900 line-clamp-1">{p.product_name}</p>
-                              <p className="text-[10px] text-gray-400 font-medium">{p.product_type || "Standard"}</p>
                             </td>
                             <td className="px-4 py-5 font-black text-gray-900">₹{Number(p.price).toLocaleString()}</td>
                             <td className="px-4 py-5">

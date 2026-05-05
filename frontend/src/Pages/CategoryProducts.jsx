@@ -91,8 +91,7 @@ const CategoryProducts = () => {
         if (subFilter) {
           const filtered = fetchedProducts.filter(p =>
             (p.product_name || p.name || "").toLowerCase().includes(subFilter.toLowerCase()) ||
-            (p.product_description || "").toLowerCase().includes(subFilter.toLowerCase()) ||
-            (p.product_type || "").toLowerCase().includes(subFilter.toLowerCase())
+            (p.product_description || "").toLowerCase().includes(subFilter.toLowerCase())
           );
           setProducts(filtered);
           setSelectedSubcategory(subFilter);
@@ -119,8 +118,7 @@ const CategoryProducts = () => {
     // Filter locally from the full product list by name/description/type match
     const filtered = allProducts.filter(p =>
       (p.product_name || p.name || "").toLowerCase().includes(subName.toLowerCase()) ||
-      (p.product_description || "").toLowerCase().includes(subName.toLowerCase()) ||
-      (p.product_type || "").toLowerCase().includes(subName.toLowerCase())
+      (p.product_description || "").toLowerCase().includes(subName.toLowerCase())
     );
     setProducts(filtered);
   };

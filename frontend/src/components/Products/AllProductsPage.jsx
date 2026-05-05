@@ -16,7 +16,6 @@ const DEFAULT_FILTERS = {
     color: "",
     min_price: "",
     max_price: "",
-    product_type: "",
     seller_id: "",
     sort: "newest"
 };
@@ -40,8 +39,6 @@ const getInitialFiltersFromQuery = (searchParams) => {
         color: getParam("color"),
         min_price: getParam("min_price"),
         max_price: getParam("max_price"),
-        // Support a shorter alias for type-based links.
-        product_type: getParam("product_type", "type"),
         seller_id: getParam("seller_id")
     };
 
@@ -62,7 +59,6 @@ const AllProductsPage = () => {
 
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [productTypes, setProductTypes] = useState([]);
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtersOpen, setFiltersOpen] = useState(false);
@@ -85,18 +81,14 @@ const AllProductsPage = () => {
     useEffect(() => {
         const fetchFilterMeta = async () => {
             try {
-                const [catRes, typeRes, sellerRes] = await Promise.all([
+                const [catRes, sellerRes] = await Promise.all([
                     axios.get(`${API_URL}/api/categories`),
-                    axios.get(`${API_URL}/api/products/meta/types`),
                     axios.get(`${API_URL}/api/products/meta/sellers`)
                 ]);
                 
                 // Fix: Extract data correctly from the response object
                 const catData = catRes.data?.data || catRes.data || [];
                 setCategories(Array.isArray(catData) ? catData : []);
-
-                const typeData = typeRes.data?.data || typeRes.data || [];
-                setProductTypes(Array.isArray(typeData) ? typeData : []);
 
                 const sellerData = sellerRes.data?.data || sellerRes.data || [];
                 setSellers(Array.isArray(sellerData) ? sellerData : []);
@@ -105,7 +97,6 @@ const AllProductsPage = () => {
                 console.error("Failed to load filter data:", err);
                 // Fallback to empty arrays on error
                 setCategories([]);
-                setProductTypes([]);
                 setSellers([]);
             }
         };
@@ -304,25 +295,6 @@ const AllProductsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Product Type Filter */}
-                            {productTypes.length > 0 && (
-                                <div className="space-y-3">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                                        {t("products.productType")}
-                                    </label>
-                                    <div className="relative group">
-                                        <select
-                                            value={filters.product_type}
-                                            onChange={e => handleFilterChange("product_type", e.target.value)}
-                                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
-                                        >
-                                            <option value="">{t("products.allTypes")}</option>
-                                            {productTypes.map(type => (
-                                                <option key={type} value={type}>{td(type)}</option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
-                                    </div>
                                 </div>
                             )}
 

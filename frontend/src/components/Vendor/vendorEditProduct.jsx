@@ -226,21 +226,8 @@ const VendorEditProduct = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                    Product Type
-                  </label>
-                  <input
-                    type="text"
-                    name="product_type"
-                    value={formData.product_type}
-                    onChange={handleChange}
-                    placeholder="e.g. Seeds, Fertilizer, Equipment"
-                    className="w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-3 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Price & Stock */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-semibold text-white/80 mb-1.5">
                       Category <span className="text-rose-500">*</span>
