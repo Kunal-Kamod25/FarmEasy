@@ -13,6 +13,7 @@ import AllProductsProductCard from "./AllProductsProductCard";
 const DEFAULT_FILTERS = {
     search: "",
     category_id: "",
+    brand_id: "",
     color: "",
     min_price: "",
     max_price: "",
@@ -36,6 +37,7 @@ const getInitialFiltersFromQuery = (searchParams) => {
         search: getParam("search"),
         // Support both `category_id` and existing legacy `category` links.
         category_id: getParam("category_id", "category"),
+        brand_id: getParam("brand_id", "brand"),
         color: getParam("color"),
         min_price: getParam("min_price"),
         max_price: getParam("max_price"),
@@ -59,6 +61,7 @@ const AllProductsPage = () => {
 
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtersOpen, setFiltersOpen] = useState(false);
@@ -81,14 +84,18 @@ const AllProductsPage = () => {
     useEffect(() => {
         const fetchFilterMeta = async () => {
             try {
-                const [catRes, sellerRes] = await Promise.all([
+                const [catRes, brandRes, sellerRes] = await Promise.all([
                     axios.get(`${API_URL}/api/categories`),
+                    axios.get(`${API_URL}/api/products/meta/brands`),
                     axios.get(`${API_URL}/api/products/meta/sellers`)
                 ]);
                 
                 // Fix: Extract data correctly from the response object
                 const catData = catRes.data?.data || catRes.data || [];
                 setCategories(Array.isArray(catData) ? catData : []);
+
+                const brandData = brandRes.data?.data || brandRes.data || [];
+                setBrands(Array.isArray(brandData) ? brandData : []);
 
                 const sellerData = sellerRes.data?.data || sellerRes.data || [];
                 setSellers(Array.isArray(sellerData) ? sellerData : []);
@@ -97,6 +104,7 @@ const AllProductsPage = () => {
                 console.error("Failed to load filter data:", err);
                 // Fallback to empty arrays on error
                 setCategories([]);
+                setBrands([]);
                 setSellers([]);
             }
         };
@@ -259,6 +267,28 @@ const AllProductsPage = () => {
                                         {Array.isArray(categories) && categories.map(cat => (
                                             <option key={cat.id} value={cat.id}>
                                                 {td(cat.name || cat.product_cat_name)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
+                                </div>
+                            </div>
+
+                            {/* Brand Filter */}
+                            <div className="space-y-3">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                    {t("products.brand")}
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={filters.brand_id}
+                                        onChange={e => handleFilterChange("brand_id", e.target.value)}
+                                        className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
+                                    >
+                                        <option value="">{t("products.allBrands")}</option>
+                                        {Array.isArray(brands) && brands.map(brand => (
+                                            <option key={brand.id} value={brand.id}>
+                                                {brand.name}
                                             </option>
                                         ))}
                                     </select>

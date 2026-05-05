@@ -87,19 +87,20 @@ const CategoryProducts = () => {
           image: categoryImage
         });
 
-        // Apply sub-filter from URL param if present
+        // Apply sub-filter from URL param if present (sub is subcategory id or name)
         if (subFilter) {
           const filtered = fetchedProducts.filter(p =>
-            (p.product_name || p.name || "").toLowerCase().includes(subFilter.toLowerCase()) ||
-            (p.product_description || "").toLowerCase().includes(subFilter.toLowerCase())
+            p.category_id == subFilter || 
+            (p.product_name || p.name || "").toLowerCase().includes(subFilter.toLowerCase())
           );
           setProducts(filtered);
-          setSelectedSubcategory(subFilter);
+          
+          // Find the name for the selected subcategory id if possible
+          const subObj = (mainCategory?.subcategories || []).find(s => s.id == subFilter);
+          setSelectedSubcategory(subObj ? subObj.name : subFilter);
         } else {
           setProducts(fetchedProducts);
         }
-
-        // Sub-filter already handled above
       } catch (error) {
         console.error("Error fetching category products:", error.message);
       } finally {
@@ -113,13 +114,10 @@ const CategoryProducts = () => {
   }, [categoryId, subFilter]);
 
   // ===== HANDLE SUBCATEGORY FILTER (local, no API call needed) =====
-  const handleSubcategoryClick = (subName) => {
-    setSelectedSubcategory(subName);
-    // Filter locally from the full product list by name/description/type match
-    const filtered = allProducts.filter(p =>
-      (p.product_name || p.name || "").toLowerCase().includes(subName.toLowerCase()) ||
-      (p.product_description || "").toLowerCase().includes(subName.toLowerCase())
-    );
+  const handleSubcategoryClick = (sub) => {
+    setSelectedSubcategory(sub.name || sub.subcategory_name);
+    // Filter locally from the full product list by exact category_id match
+    const filtered = allProducts.filter(p => p.category_id == sub.id);
     setProducts(filtered);
   };
 
@@ -219,7 +217,7 @@ const CategoryProducts = () => {
                     <button
                       key={sub.id}
                       onClick={() => {
-                        handleSubcategoryClick(sub.name || sub.subcategory_name);
+                        handleSubcategoryClick(sub);
                         setSubDropdownOpen(false);
                       }}
                       className={`w-full text-left px-4 py-3 hover:bg-emerald-50 border-b border-gray-200 transition ${
