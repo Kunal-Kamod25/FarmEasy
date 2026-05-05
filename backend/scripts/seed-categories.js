@@ -91,12 +91,12 @@ async function seedCategories() {
         const categoryId = catResult.insertId;
         console.log(`✅ Added Category: ${category.name} (ID: ${categoryId})`);
 
-        // Insert subcategories into `product_category` table with reference to parent
-        for (let i = 0; i < category.subcategories.length; i++) {
-          const sub = category.subcategories[i];
+        // Insert subcategories into the SAME `categories` table with parent_id
+        for (const sub of category.subcategories) {
+          const subSlug = sub.name.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-");
           await db.query(
-            "INSERT INTO product_category (product_cat_name) VALUES (?)",
-            [sub.name]
+            "INSERT INTO categories (name, description, slug, parent_id, sort_order) VALUES (?, ?, ?, ?, ?)",
+            [sub.name, sub.description, subSlug, categoryId, 0]
           );
           console.log(`   └─ ✅ Subcategory: ${sub.name}`);
         }

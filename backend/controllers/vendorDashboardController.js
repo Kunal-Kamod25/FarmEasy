@@ -127,13 +127,14 @@ exports.getDashboardStats = async (req, res) => {
 
     const [categoryBreakdown] = await db.query(`
       SELECT 
-        COALESCE(pc.product_cat_name, 'Uncategorized') as name,
+        COALESCE(pc.name, 'Uncategorized') as name,
         COUNT(p.id) as count
       FROM product p
-      LEFT JOIN product_category pc ON p.category_id = pc.id
+      LEFT JOIN categories pc ON p.category_id = pc.id
       WHERE p.seller_id = ?
-      GROUP BY pc.product_cat_name
+      GROUP BY pc.name
       ORDER BY count DESC
+      LIMIT 10
     `, [sellerId]);
 
     const [chartRows] = await db.query(`

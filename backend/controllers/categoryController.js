@@ -1,6 +1,7 @@
 // =====================================================
 // CATEGORY CONTROLLER
-// Uses: product_category (main cats) + product_subcategory (sub-cats)
+// Uses: hierarchical categories table (parent_id system)
+// Note: product_category and product_subcategory tables are obsolete.
 // =====================================================
 
 const db = require("../config/db");
