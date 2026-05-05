@@ -51,9 +51,9 @@
     try {
       const {
         category_id,
+        brand_id,
         min_price,
         max_price,
-        product_type,
         seller_id,
         search,
         sort,
@@ -67,19 +67,21 @@
           p.id,
           p.product_name,
           p.product_description,
-          p.product_type,
           p.product_quantity,
           p.price,
           p.product_image,
           p.created_at,
           p.seller_id,
+          p.brand_id,
           pc.name AS category_name,
           pc.id AS category_id,
+          b.name AS brand_name,
           s.id AS seller_table_id,
           s.shop_name,
           u.full_name AS seller_name
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
+        LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         WHERE 1=1
@@ -89,8 +91,8 @@
       const params = [];
 
       if (category_id) {
-        sql += " AND p.category_id = ?";
-        params.push(category_id);
+        sql += " AND (p.category_id = ? OR p.category_id IN (SELECT id FROM categories WHERE parent_id = ?))";
+        params.push(category_id, category_id);
       }
 
       if (min_price) {
@@ -103,9 +105,9 @@
         params.push(Number(max_price));
       }
 
-      if (product_type) {
-        sql += " AND p.product_type = ?";
-        params.push(product_type);
+      if (brand_id) {
+        sql += " AND p.brand_id = ?";
+        params.push(brand_id);
       }
 
       if (seller_id) {
@@ -159,22 +161,19 @@
 
 
   // =====================================================
-  // GET ALL DISTINCT PRODUCT TYPES
+  // GET ALL BRANDS LIST
   // frontend can use this to build the filter dropdown dynamically
   // =====================================================
-  router.get("/meta/types", async (req, res) => {
+  router.get("/meta/brands", async (req, res) => {
     try {
       const [rows] = await db.query(`
-        SELECT DISTINCT product_type 
-        FROM product 
-        WHERE product_type IS NOT NULL AND product_type != ''
-        ORDER BY product_type
+        SELECT id, name FROM brands ORDER BY name ASC
       `);
 
-      res.json(rows.map(r => r.product_type));
+      res.json(rows);
 
     } catch (error) {
-      console.error("Error fetching product types:", error);
+      console.error("Error fetching brands:", error);
       res.status(500).json({ message: "Database error" });
     }
   });
@@ -216,6 +215,7 @@
         SELECT 
           p.*,
           pc.name AS category_name,
+          b.name AS brand_name,
           s.shop_name,
           s.id AS seller_table_id,
           u.id AS vendor_id,
@@ -226,6 +226,7 @@
           vrs.total_reviews AS seller_total_reviews
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
+        LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         LEFT JOIN vendor_rating_summary vrs ON s.id = vrs.vendor_id
@@ -242,7 +243,7 @@
       // also get other products from the same seller so we can show "More from this seller" section
       const product = rows[0];
       const [moreFromSeller] = await db.query(`
-        SELECT id, product_name, price, product_quantity, product_type, product_image
+        SELECT id, product_name, price, product_quantity, product_image
         FROM product
         WHERE seller_id = ? AND id != ?
         LIMIT 4

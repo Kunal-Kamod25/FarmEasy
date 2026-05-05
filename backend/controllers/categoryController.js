@@ -80,7 +80,7 @@ exports.getAllCategories = async (req, res) => {
         c.icon,
         c.slug,
         c.image,
-        (SELECT COUNT(*) FROM product WHERE category_id = c.id) AS product_count,
+        (SELECT COUNT(*) FROM product WHERE category_id = c.id OR category_id IN (SELECT id FROM categories WHERE parent_id = c.id)) AS product_count,
         (SELECT COUNT(*) FROM categories WHERE parent_id = c.id) AS subcategory_count
       FROM categories c
       WHERE c.parent_id IS NULL
@@ -233,8 +233,8 @@ exports.getProductsByFilters = async (req, res) => {
     const params = [];
 
     if (categoryId) {
-      where += " AND p.category_id = ?";
-      params.push(categoryId);
+      where += " AND (p.category_id = ? OR p.category_id IN (SELECT id FROM categories WHERE parent_id = ?))";
+      params.push(categoryId, categoryId);
     }
 
     if (subcategoryName) {
