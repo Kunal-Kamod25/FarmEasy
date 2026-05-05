@@ -60,24 +60,34 @@ const GoogleOAuthButton = ({
 
         buttonRef.current.innerHTML = "";
 
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            if (response?.credential) {
-              callbackRef.current?.(response.credential);
-            }
-          },
-        });
+        try {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (response) => {
+              if (response?.credential) {
+                callbackRef.current?.(response.credential);
+              }
+            },
+          });
 
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: "outline",
-          size: "large",
-          shape: "pill",
-          text: buttonText,
-          width: Math.min(420, Math.max(280, buttonRef.current.offsetWidth || 360)),
-        });
+          const containerWidth = buttonRef.current.offsetWidth || 360;
+          const calculatedWidth = Math.min(420, Math.max(280, containerWidth));
 
-        setStatus("ready");
+          window.google.accounts.id.renderButton(buttonRef.current, {
+            theme: "outline",
+            size: "large",
+            shape: "pill",
+            text: buttonText,
+            width: Math.max(280, Math.min(420, calculatedWidth)),
+          });
+
+          setStatus("ready");
+        } catch (error) {
+          console.error("Google button render error:", error);
+          if (isMounted) {
+            setStatus("error");
+          }
+        }
       })
       .catch(() => {
         if (isMounted) {
