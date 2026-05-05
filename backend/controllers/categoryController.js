@@ -5,6 +5,67 @@
 
 const db = require("../config/db");
 
+// ===== GET NAV MEGA-MENU DATA =====
+// Returns: categories → subcategories → top 3 products per subcategory
+exports.getNavData = async (req, res) => {
+  try {
+    // 1. Get all parent categories
+    const [categories] = await db.query(`
+      SELECT id, name, slug
+      FROM categories
+      WHERE parent_id IS NULL
+      ORDER BY sort_order ASC, name ASC
+    `);
+
+    // 2. For each category, get subcategories + top products
+    const result = await Promise.all(
+      categories.map(async (cat) => {
+        // Get subcategories
+        const [subs] = await db.query(
+          `SELECT id, name, slug FROM categories WHERE parent_id = ? ORDER BY sort_order ASC, name ASC`,
+          [cat.id]
+        );
+
+        // For each subcategory, get top 3 products
+        const subsWithProducts = await Promise.all(
+          subs.map(async (sub) => {
+            const [products] = await db.query(
+              `SELECT id, product_name, price, product_image
+               FROM product
+               WHERE category_id = ?
+               ORDER BY created_at DESC
+               LIMIT 3`,
+              [sub.id]
+            );
+            return { ...sub, products };
+          })
+        );
+
+        // Also get products directly under the parent category (not in any subcategory)
+        const [directProducts] = await db.query(
+          `SELECT id, product_name, price, product_image
+           FROM product
+           WHERE category_id = ?
+           ORDER BY created_at DESC
+           LIMIT 3`,
+          [cat.id]
+        );
+
+        return {
+          ...cat,
+          subcategories: subsWithProducts,
+          directProducts,
+        };
+      })
+    );
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error fetching nav data:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch nav data" });
+  }
+};
+
 // ===== GET ALL CATEGORIES WITH SUBCATEGORIES =====
 exports.getAllCategories = async (req, res) => {
   try {
