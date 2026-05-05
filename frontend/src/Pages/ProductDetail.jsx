@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import { Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown } from "lucide-react";
+import { Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown, ShieldCheck } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import StarRating from "../components/Common/StarRating";
 
@@ -222,18 +222,19 @@ const ProductDetail = () => {
         {/* PRODUCT INFO SECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 bg-white p-8 rounded-lg shadow">
           {/* LEFT: PRODUCT IMAGE */}
-          <div className="flex items-center justify-center bg-gray-100 rounded-lg p-8">
+          <div className="flex items-center justify-center bg-gray-50/50 rounded-3xl p-8 border border-slate-100 overflow-hidden relative group">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.05),_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity" />
             <img
-              src={product.image}
-              alt={product.name}
-              className="max-w-full max-h-96 object-contain"
+              src={product.product_image ? (product.product_image.startsWith('http') ? product.product_image : `${API_URL}${product.product_image}`) : "/placeholder-product.png"}
+              alt={product.product_name}
+              className="max-w-full max-h-96 object-contain relative z-10 transition-transform duration-500 group-hover:scale-105"
             />
           </div>
 
           {/* RIGHT: PRODUCT DETAILS */}
           <div>
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">
-              {product.name}
+            <h1 className="text-4xl font-black mb-3 text-slate-800 tracking-tight">
+              {product.product_name}
             </h1>
 
             <div className="flex items-center gap-4 mb-4">
@@ -246,9 +247,10 @@ const ProductDetail = () => {
             </div>
 
             {product.brand_name && (
-              <p className="text-sm text-gray-600 mb-2">
-                Brand: <span className="font-semibold">{product.brand_name}</span>
-              </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-black uppercase tracking-widest mb-6 border border-emerald-100">
+                <ShieldCheck size={14} />
+                {product.brand_name}
+              </div>
             )}
 
             <div className="text-3xl font-bold text-emerald-600 mb-4">

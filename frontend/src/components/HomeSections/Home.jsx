@@ -57,17 +57,37 @@ const Home = () => {
     }
   };
 
-  // Group by numeric category_id for reliable matching
+  // Group by numeric category_id for reliable matching, including subcategory products in parents
   const productsByCategory = useMemo(() => {
     const grouped = {};
+    
+    // Create a map of child categories to their parents
+    const childToParent = {};
+    categories.forEach(cat => {
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        cat.subcategories.forEach(sub => {
+          childToParent[sub.id] = cat.id;
+        });
+      }
+    });
+
     allProducts.forEach((p) => {
       const catId = p.category_id;
       if (catId === null || catId === undefined) return;
+      
+      // Add to its specific category
       if (!grouped[catId]) grouped[catId] = [];
       grouped[catId].push(p);
+
+      // If it belongs to a subcategory, also add it to the parent category group
+      const parentId = childToParent[catId];
+      if (parentId) {
+        if (!grouped[parentId]) grouped[parentId] = [];
+        grouped[parentId].push(p);
+      }
     });
     return grouped;
-  }, [allProducts]);
+  }, [allProducts, categories]);
 
   const newArrivals = useMemo(() => {
     return [...allProducts]
