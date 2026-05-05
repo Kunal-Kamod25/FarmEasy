@@ -59,9 +59,11 @@ exports.getProducts = async (req, res) => {
     const [products] = await db.query(`
       SELECT 
         p.*,
-        c.name AS category_name
+        c.name AS category_name,
+        b.name AS brand_name
       FROM product p
       LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN brands b ON p.brand_id = b.id
       WHERE p.seller_id = ?
       ORDER BY p.created_at DESC
     `, [sellerId]);
@@ -110,8 +112,10 @@ exports.updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
     const userId = req.user.id;
-    const { product_name, product_description, product_type, price, category_id, product_quantity } = req.body;
+    const { product_name, product_description, price, category_id, brand_id, product_quantity } = req.body;
+    
     const normalizedCategoryId = toNullableInt(category_id);
+    const normalizedBrandId = toNullableInt(brand_id);
     const normalizedQuantity = toNullableInt(product_quantity) ?? 0;
 
     const [seller] = await db.query("SELECT id FROM seller WHERE user_id = ?", [userId]);
@@ -124,21 +128,20 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found or unauthorized" });
     }
 
-    // req.file.path is the full S3 HTTPS URL from S3Storage middleware
     const productImage = req.file ? req.file.path : null;
 
     if (productImage) {
       await db.query(`
         UPDATE product 
-        SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?, product_image = ?
+        SET product_name = ?, product_description = ?, price = ?, category_id = ?, brand_id = ?, product_quantity = ?, product_image = ?
         WHERE id = ? AND seller_id = ?
-      `, [product_name, product_description || null, product_type || null, price, normalizedCategoryId, normalizedQuantity, productImage, productId, sellerId]);
+      `, [product_name, product_description || null, price, normalizedCategoryId, normalizedBrandId, normalizedQuantity, productImage, productId, sellerId]);
     } else {
       await db.query(`
         UPDATE product 
-        SET product_name = ?, product_description = ?, product_type = ?, price = ?, category_id = ?, product_quantity = ?
+        SET product_name = ?, product_description = ?, price = ?, category_id = ?, brand_id = ?, product_quantity = ?
         WHERE id = ? AND seller_id = ?
-      `, [product_name, product_description || null, product_type || null, price, normalizedCategoryId, normalizedQuantity, productId, sellerId]);
+      `, [product_name, product_description || null, price, normalizedCategoryId, normalizedBrandId, normalizedQuantity, productId, sellerId]);
     }
 
     res.json({ message: "Product updated successfully" });
@@ -153,8 +156,10 @@ exports.updateProduct = async (req, res) => {
 // ===========================================================================
 exports.addProduct = async (req, res) => {
   try {
-    const { product_name, product_description, product_type, price, category_id, product_quantity } = req.body;
+    const { product_name, product_description, price, category_id, brand_id, product_quantity } = req.body;
+    
     const normalizedCategoryId = toNullableInt(category_id);
+    const normalizedBrandId = toNullableInt(brand_id);
     const normalizedQuantity = toNullableInt(product_quantity) ?? 0;
 
     if (!product_name || !price) {
@@ -173,20 +178,18 @@ exports.addProduct = async (req, res) => {
     }
 
     const sellerId = seller[0].id;
-
-    // S3Storage middleware uploads to S3 and req.file.path is the full S3 URL
     const productImage = req.file ? req.file.path : null;
 
     await db.query(
       `INSERT INTO product 
-        (product_name, product_description, product_type, price, category_id, product_quantity, seller_id, product_image) 
+        (product_name, product_description, price, category_id, brand_id, product_quantity, seller_id, product_image) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         product_description || null,
-        product_type || null,
         price,
         normalizedCategoryId,
+        normalizedBrandId,
         normalizedQuantity,
         sellerId,
         productImage
@@ -202,7 +205,7 @@ exports.addProduct = async (req, res) => {
 };
 
 // ===========================================================================
-// DELETE PRODUCT - WITH S3 IMAGE DELETION ⭐
+// DELETE PRODUCT
 // ===========================================================================
 exports.deleteProduct = async (req, res) => {
   try {
@@ -220,7 +223,6 @@ exports.deleteProduct = async (req, res) => {
 
     const sellerId = seller[0].id;
 
-    // Get product details including image URL
     const [product] = await db.query(
       "SELECT * FROM product WHERE id = ? AND seller_id = ?",
       [productId, sellerId]
@@ -230,7 +232,6 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found or you don't own this product" });
     }
 
-    // Delete image from S3 if it exists
     if (product[0].product_image) {
       const s3Key = extractS3KeyFromUrl(product[0].product_image);
       
@@ -242,13 +243,11 @@ exports.deleteProduct = async (req, res) => {
         (error) => {
           if (error) {
             console.error("S3 Delete Error:", error);
-            // Continue with product deletion even if image delete fails
           }
         }
       );
     }
 
-    // Delete from database
     const [result] = await db.query(
       "DELETE FROM product WHERE id = ? AND seller_id = ?",
       [productId, sellerId]
