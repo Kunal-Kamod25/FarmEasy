@@ -13,9 +13,11 @@ import { API_URL } from "../config";
 import { Loader, Send, Check, X, MessageCircle, User } from "lucide-react";
 import ExchangeChat from "../components/Exchange/ExchangeChat";
 import ErrorNotification from "../components/Common/ErrorNotification";
+import { useToast } from "../context/ToastContext";
 
 const ExchangeDetail = () => {
   const { id } = useParams();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   // ===== STATE =====
@@ -74,7 +76,7 @@ const ExchangeDetail = () => {
     }
 
     if (listing.user_id === user_id) {
-      alert("You can't propose to your own listing");
+      showToast("You can't propose to your own listing", "error");
       return;
     }
 
@@ -92,11 +94,11 @@ const ExchangeDetail = () => {
         }
       );
 
-      alert("✅ Proposal sent! The farmer will review it soon.");
+      showToast("Proposal sent! The farmer will review it soon.", "success");
       setProposalReason("");
     } catch (_err) {
       console.error("Proposal error:", _err);
-      alert("Error: " + (_err.response?.data?.error || _err.message));
+      showToast("Error: " + (_err.response?.data?.error || _err.message), "error");
     } finally {
       setSubmittingProposal(false);
     }

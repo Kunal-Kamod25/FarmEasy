@@ -3,9 +3,11 @@ import axios from "axios";
 import { Upload, X, ArrowLeft, Save } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from '../../config';
+import { useToast } from "../../context/ToastContext";
 
 const VendorEditProduct = () => {
   const { id } = useParams();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -158,11 +160,11 @@ const VendorEditProduct = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Product updated successfully!");
+      showToast("Product updated successfully!", "success");
       navigate("/vendor/products");
     } catch (error) {
       console.error("Update error:", error);
-      alert("Update failed");
+      showToast("Update failed", "error");
     } finally {
       setLoading(false);
     }

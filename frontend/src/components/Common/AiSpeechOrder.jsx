@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { HiMicrophone, HiSparkles } from "react-icons/hi2";
+import { useToast } from "../../context/ToastContext";
 
 const AiSpeechOrder = ({ className = "" }) => {
+  const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
 
@@ -43,7 +45,7 @@ const AiSpeechOrder = ({ className = "" }) => {
             className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition"
             onClick={() => {
               // 🔥 later integrate AI logic here
-              alert("AI Speech Coming Soon 🚀");
+              showToast("AI Speech Coming Soon 🚀", "info");
             }}
           >
             <HiMicrophone className="text-lg" />

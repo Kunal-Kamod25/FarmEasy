@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
 import { Mail, Lock, User, Store, Phone, Sprout, Sparkles, ShieldCheck, ArrowRight, Leaf, CheckCircle, RefreshCcw, X, Eye, EyeOff } from "lucide-react";
 import GoogleOAuthButton from "./GoogleOAuthButton";
-
+import { useToast } from "../../context/ToastContext";
 import { useLanguage } from "../../context/language/LanguageContext";
 
 const REGEX = {
@@ -11,6 +11,7 @@ const REGEX = {
 };
 
 const Register = () => {
+  const { showToast } = useToast();
   const { t } = useLanguage();
   const [role, setRole] = useState("customer");
   const [step, setStep] = useState("form"); // 'form' or 'otp'
@@ -141,7 +142,7 @@ const Register = () => {
       const regData = await regResponse.json();
 
       if (regResponse.ok) {
-        alert("Registration Successful! Your account has been verified.");
+        showToast("Registration Successful! Your account has been verified.", "success");
         navigate("/login");
       } else {
         setSubmitError(regData.message || "Registration failed.");
@@ -168,7 +169,7 @@ const Register = () => {
       if (response.ok) {
         setTimer(60);
         setOtpError("");
-        alert("A new verification code has been sent to your email.");
+        showToast("A new verification code has been sent to your email.", "success");
       }
     } catch (err) {
       setOtpError("Failed to resend OTP.");

@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
 import { Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 import StarRating from "../components/Common/StarRating";
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const token = localStorage.getItem("token");
 
   // ===== STATE =====
@@ -173,7 +175,7 @@ const ProductDetail = () => {
         { product_id: productId, quantity: cartQuantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Added to cart!");
+      showToast("Added to cart!", "success");
     } catch {
       setError("Failed to add to cart");
     }

@@ -4,6 +4,7 @@ import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { LanguageProvider } from "./context/language/LanguageContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ToastProvider } from "./context/ToastContext";
 import { setupAxiosInterceptors } from "./utils/axiosConfig";
 
 const App = () => {
@@ -13,13 +14,15 @@ const App = () => {
   }, []);
   return (
     <LanguageProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <NotificationProvider>
-            <AppRoutes />
-          </NotificationProvider>
-        </WishlistProvider>
-      </CartProvider>
+      <ToastProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <NotificationProvider>
+              <AppRoutes />
+            </NotificationProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </ToastProvider>
     </LanguageProvider>
   );
 };

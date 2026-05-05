@@ -13,7 +13,7 @@ import { AlertCircle, X } from "lucide-react";
  *   autoCloseTime={5000}
  * />
  */
-const ErrorNotification = ({ message, onClose, autoCloseTime = null, className = "" }) => {
+const ErrorNotification = ({ message, onClose, autoCloseTime = 3000, className = "" }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const handleClose = useCallback(() => {

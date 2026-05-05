@@ -7,8 +7,10 @@ import {
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { API_URL, getImageUrl } from '../../config';
+import { useToast } from "../../context/ToastContext";
 
 const VendorAddProduct = () => {
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -111,7 +113,7 @@ const VendorAddProduct = () => {
         }
       );
 
-      alert("Product added successfully!");
+      showToast("Product added successfully!", "success");
       setFormData({
         product_name: "",
         product_description: "",
@@ -124,7 +126,7 @@ const VendorAddProduct = () => {
       navigate("/vendor/products");
     } catch (error) {
       console.error("Add product error:", error.response?.data || error);
-      alert(error.response?.data?.message || "Failed to add product");
+      showToast(error.response?.data?.message || "Failed to add product", "error");
     } finally {
       setLoading(false);
     }

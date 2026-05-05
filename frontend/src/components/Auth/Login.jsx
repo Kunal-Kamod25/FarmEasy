@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_URL } from "../../config";
 import { useLanguage } from "../../context/language/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 import {
   ArrowRight,
   Eye,
@@ -24,6 +25,7 @@ const REGEX = {
 
 const Login = () => {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [loginAs, setLoginAs] = useState("customer");
@@ -105,7 +107,7 @@ const Login = () => {
     const identifier = loginType === "email" ? email.trim() : phone.trim();
 
     if (!identifier || !password) {
-      alert(t("login.error.identifierRequired"));
+      showToast(t("login.error.identifierRequired"), "error");
       return;
     }
 
@@ -121,10 +123,10 @@ const Login = () => {
       if (response.ok) {
         persistSession(data);
       } else {
-        alert(data.message || t("login.error.failed"));
+        showToast(data.message || t("login.error.failed"), "error");
       }
     } catch {
-      alert(t("login.error.server"));
+      showToast(t("login.error.server"), "error");
     }
   };
 
@@ -141,10 +143,10 @@ const Login = () => {
       if (response.ok) {
         persistSession(data);
       } else {
-        alert(data.message || t("login.error.failed"));
+        showToast(data.message || t("login.error.failed"), "error");
       }
     } catch {
-      alert(t("login.error.server"));
+      showToast(t("login.error.server"), "error");
     }
   };
 
