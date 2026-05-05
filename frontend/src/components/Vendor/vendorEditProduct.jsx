@@ -14,10 +14,10 @@ const VendorEditProduct = () => {
   const [formData, setFormData] = useState({
     product_name: "",
     product_description: "",
-    product_type: "",
     price: "",
     category_id: "",
     subcategory_id: "",
+    brand_id: "",
     product_quantity: "",
   });
 
@@ -26,6 +26,7 @@ const VendorEditProduct = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
 
   const resolveImageUrl = (imagePath) => {
@@ -42,6 +43,13 @@ const VendorEditProduct = () => {
         setCategories(Array.isArray(data) ? data : []);
       })
       .catch((err) => console.error("Categories fetch error:", err));
+
+    axios.get(`${API_URL}/api/brands`)
+      .then(res => {
+        const data = res.data?.data || res.data || [];
+        setBrands(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error("Brands fetch error:", err));
   }, []);
 
   useEffect(() => {
@@ -81,10 +89,10 @@ const VendorEditProduct = () => {
         setFormData({
           product_name: product.product_name ?? "",
           product_description: product.product_description ?? "",
-          product_type: product.product_type ?? "",
           price: product.price ?? "",
           category_id: parentId,
           subcategory_id: subId,
+          brand_id: product.brand_id ?? "",
           product_quantity: product.product_quantity ?? "",
         });
         setCurrentImagePath(product.product_image || "");
@@ -267,6 +275,25 @@ const VendorEditProduct = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                    Brand
+                  </label>
+                  <select
+                    name="brand_id"
+                    value={formData.brand_id}
+                    onChange={handleChange}
+                    className="w-full border border-white/15 bg-[#0a2a1d]/40 text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:outline-none transition appearance-none"
+                  >
+                    <option value="" className="bg-[#0a2a1d]">Select brand</option>
+                    {brands.map(brand => (
+                      <option key={brand.id} value={brand.id} className="bg-[#0a2a1d]">
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

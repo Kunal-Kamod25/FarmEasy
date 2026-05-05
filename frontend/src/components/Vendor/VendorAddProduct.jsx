@@ -20,10 +20,12 @@ const VendorAddProduct = () => {
     price: "",
     category_id: "",
     subcategory_id: "",
+    brand_id: "",
     product_quantity: "",
   });
 
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState([]);
   const [images, setImages] = useState([]);
@@ -36,6 +38,13 @@ const VendorAddProduct = () => {
         setCategories(Array.isArray(data) ? data : []);
       })
       .catch(() => setCategories([]));
+
+    axios.get(`${API_URL}/api/brands`)
+      .then(res => {
+        const data = res.data?.data || res.data || [];
+        setBrands(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setBrands([]));
   }, []);
 
   useEffect(() => {
@@ -96,7 +105,7 @@ const VendorAddProduct = () => {
       // Send the most specific ID (subcategory if selected, otherwise category)
       const finalCategoryId = formData.subcategory_id || formData.category_id;
       submitData.append("category_id", finalCategoryId);
-      
+      submitData.append("brand_id", formData.brand_id);
       submitData.append("product_quantity", formData.product_quantity);
 
       if (images.length > 0) {
@@ -120,6 +129,7 @@ const VendorAddProduct = () => {
         price: "",
         category_id: "",
         subcategory_id: "",
+        brand_id: "",
         product_quantity: "",
       });
       setImages([]);
@@ -270,6 +280,28 @@ const VendorAddProduct = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-emerald-300/60" />
+                  Brand
+                </label>
+                <div className="relative">
+                  <select
+                    name="brand_id"
+                    value={formData.brand_id}
+                    onChange={handleChange}
+                    className={`${fieldShell} appearance-none`}
+                  >
+                    <option value="" className="bg-[#0a2a1d]">Select brand</option>
+                    {brands.map(brand => (
+                      <option key={brand.id} value={brand.id} className="bg-[#0a2a1d]">
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
