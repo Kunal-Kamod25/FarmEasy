@@ -90,8 +90,11 @@ const VendorAddProduct = () => {
       submitData.append("product_name", formData.product_name);
       submitData.append("product_description", formData.product_description);
       submitData.append("price", formData.price);
-      submitData.append("category_id", formData.category_id);
-      submitData.append("subcategory_id", formData.subcategory_id);
+      
+      // Send the most specific ID (subcategory if selected, otherwise category)
+      const finalCategoryId = formData.subcategory_id || formData.category_id;
+      submitData.append("category_id", finalCategoryId);
+      
       submitData.append("product_quantity", formData.product_quantity);
 
       if (images.length > 0) {

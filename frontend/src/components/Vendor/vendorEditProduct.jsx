@@ -15,6 +15,7 @@ const VendorEditProduct = () => {
     product_type: "",
     price: "",
     category_id: "",
+    subcategory_id: "",
     product_quantity: "",
   });
 
@@ -22,6 +23,8 @@ const VendorEditProduct = () => {
   const [currentImagePath, setCurrentImagePath] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
 
   const resolveImageUrl = (imagePath) => {
     if (!imagePath) return "";
@@ -29,20 +32,57 @@ const VendorEditProduct = () => {
     return `${API_URL}${imagePath}`;
   };
 
+  // Fetch categories first
+  useEffect(() => {
+    axios.get(`${API_URL}/api/categories`)
+      .then(res => {
+        const data = res.data?.data || res.data || [];
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error("Categories fetch error:", err));
+  }, []);
+
   useEffect(() => {
     const fetchProduct = async () => {
+      if (categories.length === 0) return; // Wait for categories to load
+      
       try {
         const res = await axios.get(
           `${API_URL}/api/vendor/products/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const product = res.data || {};
+        
+        let parentId = "";
+        let subId = "";
+
+        // Determine if category_id is a subcategory
+        const findCatAndParent = () => {
+          for (const cat of categories) {
+            if (cat.id === product.category_id) {
+              parentId = cat.id;
+              return;
+            }
+            if (cat.subcategories) {
+              const sub = cat.subcategories.find(s => s.id === product.category_id);
+              if (sub) {
+                parentId = cat.id;
+                subId = sub.id;
+                return;
+              }
+            }
+          }
+        };
+
+        findCatAndParent();
+
         setFormData({
           product_name: product.product_name ?? "",
           product_description: product.product_description ?? "",
           product_type: product.product_type ?? "",
           price: product.price ?? "",
-          category_id: product.category_id ?? "",
+          category_id: parentId,
+          subcategory_id: subId,
           product_quantity: product.product_quantity ?? "",
         });
         setCurrentImagePath(product.product_image || "");
@@ -54,23 +94,27 @@ const VendorEditProduct = () => {
     };
 
     fetchProduct();
-  }, [id, token]);
+  }, [id, token, categories]);
 
-  const [categories, setCategories] = useState([]);
-  
-  // Fetch categories
+  // Update subcategories when category changes
   useEffect(() => {
-    axios.get(`${API_URL}/api/categories`)
-      .then(res => {
-        const data = res.data?.data || res.data || [];
-        setCategories(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => console.error("Categories fetch error:", err));
-  }, []);
+    if (formData.category_id) {
+      const selectedCat = categories.find(c => c.id === parseInt(formData.category_id));
+      setSubCategories(selectedCat?.subcategories || []);
+    } else {
+      setSubCategories([]);
+    }
+  }, [formData.category_id, categories]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const newState = { ...prev, [name]: value };
+      if (name === "category_id") {
+        newState.subcategory_id = ""; // Reset subcategory when parent changes
+      }
+      return newState;
+    });
   };
 
   const handleImageUpload = (e) => {
@@ -95,7 +139,14 @@ const VendorEditProduct = () => {
 
       const toFormValue = (value) => (value === null || value === undefined ? "" : value);
       const data = new FormData();
-      Object.keys(formData).forEach((key) => data.append(key, toFormValue(formData[key])));
+      Object.keys(formData).forEach((key) => {
+        if (key === 'category_id' || key === 'subcategory_id') return; // Skip these, handle separately
+        data.append(key, toFormValue(formData[key]));
+      });
+
+      // Send the most specific ID
+      const finalCategoryId = formData.subcategory_id || formData.category_id;
+      data.append("category_id", finalCategoryId);
 
       if (images.length > 0) {
         data.append("product_image", images[0].file);
@@ -187,24 +238,46 @@ const VendorEditProduct = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                    Category <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    name="category_id"
-                    value={formData.category_id}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-white/15 bg-[#0a2a1d]/40 text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:outline-none transition appearance-none"
-                  >
-                    <option value="" className="bg-[#0a2a1d]">Select category</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id} className="bg-[#0a2a1d]">
-                        {cat.name || cat.product_cat_name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                      Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      name="category_id"
+                      value={formData.category_id}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-white/15 bg-[#0a2a1d]/40 text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:outline-none transition appearance-none"
+                    >
+                      <option value="" className="bg-[#0a2a1d]">Select category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id} className="bg-[#0a2a1d]">
+                          {cat.name || cat.product_cat_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                      Subcategory
+                    </label>
+                    <select
+                      name="subcategory_id"
+                      value={formData.subcategory_id}
+                      onChange={handleChange}
+                      disabled={subCategories.length === 0}
+                      className={`w-full border border-white/15 bg-[#0a2a1d]/40 text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-300/35 focus:outline-none transition appearance-none ${subCategories.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="" className="bg-[#0a2a1d]">Select subcategory</option>
+                      {subCategories.map(sub => (
+                        <option key={sub.id} value={sub.id} className="bg-[#0a2a1d]">
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div>
