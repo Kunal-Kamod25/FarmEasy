@@ -3,7 +3,7 @@ import axios from "axios";
 import { 
   Upload, X, Plus, ArrowLeft, Sprout, Sparkles, 
   Leaf, ShieldCheck, Tag, ShoppingBag, Package, 
-  Layers, Palette, IndianRupee, FileText
+  Layers, Palette, IndianRupee, FileText, AlertCircle, Check
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { API_URL, getImageUrl } from '../../config';
@@ -31,25 +31,140 @@ const VendorAddProduct = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    axios.get(`${API_URL}/api/categories`)
-      .then(res => {
-        const data = res.data?.data || res.data || [];
-        setCategories(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setCategories([]));
+  // Modal states for inline add
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showAddSubcategoryModal, setShowAddSubcategoryModal] = useState(false);
+  const [showAddBrandModal, setShowAddBrandModal] = useState(false);
 
-    axios.get(`${API_URL}/api/brands`)
-      .then(res => {
-        const data = res.data?.data || res.data || [];
-        setBrands(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setBrands([]));
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [addingSubcategory, setAddingSubcategory] = useState(false);
+  const [addingBrand, setAddingBrand] = useState(false);
+
+  const [newCategoryData, setNewCategoryData] = useState({ name: "", description: "" });
+  const [newSubcategoryData, setNewSubcategoryData] = useState({ name: "", description: "" });
+  const [newBrandData, setNewBrandData] = useState({ name: "", description: "" });
+
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/categories`);
+      const data = res.data?.data || res.data || [];
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+      setCategories([]);
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/brands`);
+      const data = res.data?.data || res.data || [];
+      setBrands(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching brands:", err);
+      setBrands([]);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryData.name.trim()) {
+      showToast("Category name is required", "error");
+      return;
+    }
+
+    setAddingCategory(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/vendor/categories`,
+        newCategoryData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        showToast("Category added successfully!", "success");
+        await fetchCategories();
+        setFormData(prev => ({ ...prev, category_id: res.data.data.id, subcategory_id: "" }));
+        setNewCategoryData({ name: "", description: "" });
+        setShowAddCategoryModal(false);
+        setSubcategories([]);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.error || "Failed to add category", "error");
+    } finally {
+      setAddingCategory(false);
+    }
+  };
+
+  const handleAddSubcategory = async () => {
+    if (!newSubcategoryData.name.trim()) {
+      showToast("Subcategory name is required", "error");
+      return;
+    }
+    if (!formData.category_id) {
+      showToast("Please select a parent category first", "error");
+      return;
+    }
+
+    setAddingSubcategory(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/vendor/categories/subcategory`,
+        { parentId: formData.category_id, ...newSubcategoryData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        showToast("Subcategory added successfully!", "success");
+        const catRes = await axios.get(`${API_URL}/api/categories/${formData.category_id}`);
+        const subs = catRes.data?.data?.subcategories || [];
+        setSubcategories(Array.isArray(subs) ? subs : []);
+        setFormData(prev => ({ ...prev, subcategory_id: res.data.data.id }));
+        setNewSubcategoryData({ name: "", description: "" });
+        setShowAddSubcategoryModal(false);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.error || "Failed to add subcategory", "error");
+    } finally {
+      setAddingSubcategory(false);
+    }
+  };
+
+  const handleAddBrand = async () => {
+    if (!newBrandData.name.trim()) {
+      showToast("Brand name is required", "error");
+      return;
+    }
+
+    setAddingBrand(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/brands`,
+        newBrandData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        showToast("Brand added successfully!", "success");
+        await fetchBrands();
+        setFormData(prev => ({ ...prev, brand_id: res.data.data.id }));
+        setNewBrandData({ name: "", description: "" });
+        setShowAddBrandModal(false);
+      }
+    } catch (err) {
+      showToast(err.response?.data?.error || "Failed to add brand", "error");
+    } finally {
+      setAddingBrand(false);
+    }
+  }
 
   useEffect(() => {
     if (formData.category_id) {
-      axios.get(`${API_URL}/api/categories/${formData.category_id}/subcategories`)
+      axios.get(`${API_URL}/api/categories/${formData.category_id}`)
         .then(res => {
           const subs = res.data?.data?.subcategories || [];
           setSubcategories(Array.isArray(subs) ? subs : []);
@@ -243,13 +358,13 @@ const VendorAddProduct = () => {
                   <Layers size={14} className="text-emerald-300/60" />
                   Category *
                 </label>
-                <div className="relative">
+                <div className="flex gap-2">
                   <select
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleChange}
                     required
-                    className={`${fieldShell} appearance-none`}
+                    className={`${fieldShell} appearance-none flex-1`}
                   >
                     <option value="" className="bg-[#0a2a1d]">Select category</option>
                     {categories.map(cat => (
@@ -258,6 +373,13 @@ const VendorAddProduct = () => {
                       </option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCategoryModal(true)}
+                    className="rounded-2xl border border-emerald-400/50 bg-emerald-500/10 px-4 py-3 text-emerald-300 hover:bg-emerald-500/20 transition flex items-center justify-center"
+                  >
+                    <Plus size={18} />
+                  </button>
                 </div>
               </div>
 
@@ -266,20 +388,34 @@ const VendorAddProduct = () => {
                   <Tag size={14} className="text-emerald-300/60" />
                   Sub-Category
                 </label>
-                <select
-                  name="subcategory_id"
-                  value={formData.subcategory_id}
-                  onChange={handleChange}
-                  disabled={subcategories.length === 0}
-                  className={`${fieldShell} appearance-none ${subcategories.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <option value="" className="bg-[#0a2a1d]">Select sub-category</option>
-                  {subcategories.map(sub => (
-                    <option key={sub.id} value={sub.id} className="bg-[#0a2a1d]">
-                      {sub.name || sub.subcategory_name}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    name="subcategory_id"
+                    value={formData.subcategory_id}
+                    onChange={handleChange}
+                    disabled={subcategories.length === 0}
+                    className={`${fieldShell} appearance-none flex-1 ${subcategories.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <option value="" className="bg-[#0a2a1d]">Select sub-category</option>
+                    {subcategories.map(sub => (
+                      <option key={sub.id} value={sub.id} className="bg-[#0a2a1d]">
+                        {sub.name || sub.subcategory_name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubcategoryModal(true)}
+                    disabled={!formData.category_id}
+                    className={`rounded-2xl border px-4 py-3 transition flex items-center justify-center ${
+                      formData.category_id
+                        ? "border-cyan-400/50 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
+                        : "border-white/10 bg-white/5 text-white/30 cursor-not-allowed"
+                    }`}
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -287,12 +423,12 @@ const VendorAddProduct = () => {
                   <ShieldCheck size={14} className="text-emerald-300/60" />
                   Brand
                 </label>
-                <div className="relative">
+                <div className="flex gap-2">
                   <select
                     name="brand_id"
                     value={formData.brand_id}
                     onChange={handleChange}
-                    className={`${fieldShell} appearance-none`}
+                    className={`${fieldShell} appearance-none flex-1`}
                   >
                     <option value="" className="bg-[#0a2a1d]">Select brand</option>
                     {brands.map(brand => (
@@ -301,6 +437,13 @@ const VendorAddProduct = () => {
                       </option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBrandModal(true)}
+                    className="rounded-2xl border border-violet-400/50 bg-violet-500/10 px-4 py-3 text-violet-300 hover:bg-violet-500/20 transition flex items-center justify-center"
+                  >
+                    <Plus size={18} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -422,8 +565,210 @@ const VendorAddProduct = () => {
           </div>
         </div>
       )}
+
+      {/* MODALS */}
+      <AddCategoryModal
+        open={showAddCategoryModal}
+        onClose={() => setShowAddCategoryModal(false)}
+        onSubmit={handleAddCategory}
+        loading={addingCategory}
+        data={newCategoryData}
+        onChange={setNewCategoryData}
+      />
+
+      <AddSubcategoryModal
+        open={showAddSubcategoryModal}
+        onClose={() => setShowAddSubcategoryModal(false)}
+        onSubmit={handleAddSubcategory}
+        loading={addingSubcategory}
+        data={newSubcategoryData}
+        onChange={setNewSubcategoryData}
+      />
+
+      <AddBrandModal
+        open={showAddBrandModal}
+        onClose={() => setShowAddBrandModal(false)}
+        onSubmit={handleAddBrand}
+        loading={addingBrand}
+        data={newBrandData}
+        onChange={setNewBrandData}
+      />
     </div>
   );
 };
 
 export default VendorAddProduct;
+
+// Modal for adding category
+function AddCategoryModal({ open, onClose, onSubmit, loading, data, onChange }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="rounded-[2rem] border border-white/10 bg-[#04110d] p-8 shadow-2xl max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-white">Add New Category</h3>
+          <button onClick={onClose} className="text-white/40 hover:text-white/60">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Category Name *</label>
+            <input
+              type="text"
+              placeholder="e.g. Organic Seeds"
+              value={data.name}
+              onChange={(e) => onChange({ ...data, name: e.target.value })}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-emerald-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Description</label>
+            <textarea
+              placeholder="Describe this category..."
+              value={data.description}
+              onChange={(e) => onChange({ ...data, description: e.target.value })}
+              rows="3"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-emerald-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="flex-1 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition disabled:opacity-50"
+            >
+              {loading ? "Adding..." : "Add Category"}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/5 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal for adding subcategory
+function AddSubcategoryModal({ open, onClose, onSubmit, loading, data, onChange }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="rounded-[2rem] border border-white/10 bg-[#04110d] p-8 shadow-2xl max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-white">Add New Subcategory</h3>
+          <button onClick={onClose} className="text-white/40 hover:text-white/60">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Subcategory Name *</label>
+            <input
+              type="text"
+              placeholder="e.g. Hybrid Seeds"
+              value={data.name}
+              onChange={(e) => onChange({ ...data, name: e.target.value })}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-cyan-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Description</label>
+            <textarea
+              placeholder="Describe this subcategory..."
+              value={data.description}
+              onChange={(e) => onChange({ ...data, description: e.target.value })}
+              rows="3"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-cyan-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 transition disabled:opacity-50"
+            >
+              {loading ? "Adding..." : "Add Subcategory"}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/5 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal for adding brand
+function AddBrandModal({ open, onClose, onSubmit, loading, data, onChange }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="rounded-[2rem] border border-white/10 bg-[#04110d] p-8 shadow-2xl max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-white">Add New Brand</h3>
+          <button onClick={onClose} className="text-white/40 hover:text-white/60">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Brand Name *</label>
+            <input
+              type="text"
+              placeholder="e.g. Syngenta"
+              value={data.name}
+              onChange={(e) => onChange({ ...data, name: e.target.value })}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-violet-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-white/80 mb-2">Description</label>
+            <textarea
+              placeholder="Describe this brand..."
+              value={data.description}
+              onChange={(e) => onChange({ ...data, description: e.target.value })}
+              rows="3"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-violet-300/60 focus:bg-white/10"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="flex-1 rounded-xl bg-violet-500 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-600 transition disabled:opacity-50"
+            >
+              {loading ? "Adding..." : "Add Brand"}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/5 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
