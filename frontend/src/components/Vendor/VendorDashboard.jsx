@@ -172,7 +172,7 @@ export default function VendorDashboard() {
             className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 text-sm whitespace-nowrap"
           >
             <Store size={18} />
-            Manage Categories
+            Catalog Master
           </Link>
         </div>
       </div>
@@ -181,16 +181,18 @@ export default function VendorDashboard() {
       {!gstVerified && (
         <Link
           to="/vendor/profile"
-          className="flex items-center gap-3 px-5 py-3 bg-amber-500/10 border border-amber-400/20 rounded-2xl text-amber-100 hover:bg-amber-500/15 transition-all group"
+          className="flex items-center gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 hover:bg-amber-100 transition-all group shadow-sm shadow-amber-900/5"
         >
-          <AlertTriangle size={18} className="text-amber-400 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold">Your GST is not verified</p>
-            <p className="text-xs text-amber-200/60">Verify your GST number to build customer trust and display a verified badge.</p>
+          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            <AlertTriangle size={20} className="text-amber-600" />
           </div>
-          <span className="text-xs font-bold text-amber-300 group-hover:text-amber-100 transition flex items-center gap-1 whitespace-nowrap">
-            Verify Now <BadgeCheck size={14} />
-          </span>
+          <div className="flex-1">
+            <p className="text-base font-bold tracking-tight">Your GST is not verified</p>
+            <p className="text-sm text-amber-700 font-medium opacity-90">Verify your GST number to build customer trust and display a verified badge.</p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-700 transition-colors shadow-md shadow-amber-600/20">
+            Verify Now <BadgeCheck size={16} />
+          </div>
         </Link>
       )}
 
