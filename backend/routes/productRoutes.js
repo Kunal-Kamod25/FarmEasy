@@ -16,11 +16,19 @@
           p.*,
           pc.name AS product_cat_name,
           s.shop_name,
-          u.full_name AS seller_name
+          u.full_name AS seller_name,
+          COALESCE(rs.average_rating, 0) AS average_rating,
+          COALESCE(rs.average_rating, 0) AS avg_rating,
+          COALESCE(rs.review_count, 0) AS review_count
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+          SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
+          FROM review_rating
+          GROUP BY product_id
+        ) rs ON p.id = rs.product_id
         WHERE p.category_id = ? 
            OR p.category_id IN (SELECT id FROM categories WHERE parent_id = ?)
         ORDER BY p.created_at DESC
@@ -35,17 +43,6 @@
 
   // =====================================================
   // GET ALL PRODUCTS - with optional filters
-  // 
-  // Query params you can use:
-  //   ?category_id=2          -> filter by category
-  //   ?min_price=100          -> min price filter  
-  //   ?max_price=500          -> max price filter
-  //   ?product_type=Seeds     -> filter by type
-  //   ?seller_id=3            -> filter by specific seller
-  //   ?search=wheat           -> search in name and description
-  //   ?sort=price_asc         -> sort options: price_asc, price_desc, newest, oldest
-  //
-  // all filters are optional - sending nothing returns everything
   // =====================================================
   router.get("/all", async (req, res) => {
     try {
@@ -78,12 +75,20 @@
           b.name AS brand_name,
           s.id AS seller_table_id,
           s.shop_name,
-          u.full_name AS seller_name
+          u.full_name AS seller_name,
+          COALESCE(rs.average_rating, 0) AS average_rating,
+          COALESCE(rs.average_rating, 0) AS avg_rating,
+          COALESCE(rs.review_count, 0) AS review_count
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+          SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
+          FROM review_rating
+          GROUP BY product_id
+        ) rs ON p.id = rs.product_id
         WHERE 1=1
       `;
 
@@ -223,13 +228,21 @@
           u.city AS seller_city,
           u.state AS seller_state,
           vrs.average_rating AS seller_rating,
-          vrs.total_reviews AS seller_total_reviews
+          vrs.total_reviews AS seller_total_reviews,
+          COALESCE(prs.average_rating, 0) AS average_rating,
+          COALESCE(prs.average_rating, 0) AS avg_rating,
+          COALESCE(prs.review_count, 0) AS review_count
         FROM product p
         LEFT JOIN categories pc ON p.category_id = pc.id
         LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN seller s ON p.seller_id = s.id
         LEFT JOIN users u ON s.user_id = u.id
         LEFT JOIN vendor_rating_summary vrs ON s.id = vrs.vendor_id
+        LEFT JOIN (
+          SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
+          FROM review_rating
+          GROUP BY product_id
+        ) prs ON p.id = prs.product_id
         WHERE p.id = ?
       `, [productId]);
 
