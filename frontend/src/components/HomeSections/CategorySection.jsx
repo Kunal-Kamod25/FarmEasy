@@ -59,7 +59,7 @@ const CategorySection = ({
                     </div>
                 </div>
                 <button
-                    onClick={() => navigate(`/products?category_id=${cat.id}`)}
+                    onClick={() => navigate(`/category/${cat.id}`)}
                     className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95"
                 >
                     View Collection <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />

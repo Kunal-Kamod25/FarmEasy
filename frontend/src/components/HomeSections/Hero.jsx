@@ -27,7 +27,7 @@ const slides = [
       "High-quality organic and chemical fertilizers for every soil type.",
     bgImage: Farm2,
     button: "Shop Fertilizers",
-    link: "/products?category_id=1"
+    link: "/category/1"
   },
   {
     title: "Modern Farm Equipment",
@@ -36,7 +36,7 @@ const slides = [
       "Tractors, tools, and machines designed for efficiency and durability.",
     bgImage: Fartilizers2,
     button: "View Equipment",
-    link: "/products?category_id=5"
+    link: "/category/5"
   },
   {
     title: "Seeds & Pulses",
@@ -45,7 +45,7 @@ const slides = [
       "Certified seeds and pulses for maximum germination and yield.",
     bgImage: Farm4,
     button: "Browse Seeds",
-    link: "/products?category_id=2"
+    link: "/category/2"
   },
   {
     title: "Irrigation Systems",
@@ -54,7 +54,7 @@ const slides = [
       "Drip, sprinkler, and modern irrigation solutions for every farm.",
     bgImage: Farm5,
     button: "Explore Irrigation",
-    link: "/products?category_id=3"
+    link: "/category/3"
   },
   {
     title: "Animal Feed & Medicines",
@@ -63,7 +63,7 @@ const slides = [
       "Nutritious animal feed and trusted veterinary medicines.",
     bgImage: Feed,
     button: "Shop Animal Care",
-    link: "/products?category_id=4"
+    link: "/category/4"
   },
 ];
 
