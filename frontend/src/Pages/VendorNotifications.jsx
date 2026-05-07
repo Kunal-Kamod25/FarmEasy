@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
-import { API_URL } from "../config";
 import { useNotifications } from "../context/NotificationContext";
 import { 
   Bell, Check, Trash2, Loader, Package, AlertTriangle, 
@@ -12,89 +10,33 @@ import {
 const VendorNotifications = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const { notifications: ctxNotifications, unreadCount: contextUnread, markAsRead: ctxMarkAsRead, markAllAsRead: ctxMarkAllAsRead, refreshNotifications } = useNotifications();
+  const { 
+    notifications: ctxNotifications, 
+    unreadCount: ctxUnreadCount, 
+    markAsRead: ctxMarkAsRead, 
+    markAllAsRead: ctxMarkAllAsRead, 
+    refreshNotifications 
+  } = useNotifications();
 
-  const [notifications, setNotifications] = useState([]);
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("all");
-  const [unreadCount, setUnreadCount] = useState(contextUnread || 0);
 
   const isVendorPath = location.pathname.includes("/vendor");
   const effectiveRole = isVendorPath ? "vendor" : "customer";
 
-  // Keep local list in sync with context (which has merged read state)
-  useEffect(() => {
-    if (ctxNotifications.length > 0) {
-      setNotifications(ctxNotifications);
-      setUnreadCount(ctxNotifications.filter((n) => !n.is_read).length);
-    }
-  }, [ctxNotifications]);
-
   // Auto-mark all as read when user opens the page
   useEffect(() => {
-    ctxMarkAllAsRead();
+    if (token) {
+       ctxMarkAllAsRead();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
-  const fetchNotifications = useCallback(async (isInitial = false) => {
-    if (!token) return;
-    try {
-      if (isInitial && notifications.length === 0) setLoading(true);
-      else setRefreshing(true);
-
-      const res = await axios.get(
-        `${API_URL}/api/notifications?unreadOnly=${filter === "unread"}&role=${effectiveRole}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setNotifications(res.data.data.notifications || []);
-      setUnreadCount(res.data.data.unread_count || 0);
-      refreshNotifications(); // Sync with context
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token, filter, notifications.length, refreshNotifications, effectiveRole]);
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    fetchNotifications(true);
-    const interval = setInterval(() => fetchNotifications(false), 30000);
-    return () => clearInterval(interval);
-  }, [token, filter, navigate, fetchNotifications]);
-
-  const handleMarkAsRead = (notificationId) => {
-    // Update context (persists to localStorage + drops navbar count)
-    ctxMarkAsRead(notificationId);
-    // Update local list
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleMarkAllAsRead = () => {
-    ctxMarkAllAsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    setUnreadCount(0);
-  };
-
-  const handleDelete = (notificationId) => {
-    const deleted = notifications.find((n) => n.id === notificationId);
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    if (deleted && !deleted.is_read) {
-      // Also mark as read in context so count doesn't re-appear
-      ctxMarkAsRead(notificationId);
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    }
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await refreshNotifications();
+    setRefreshing(false);
   };
 
   const getNotificationIcon = (type) => {
@@ -115,6 +57,8 @@ const VendorNotifications = () => {
       case "order_update":
       case "order_status_change":
         return <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300"><Package size={24} /></div>;
+      case "qa_answered":
+        return <div className="p-2.5 rounded-2xl bg-purple-500/20 text-purple-300"><Bell size={24} /></div>;
       default:
         return <div className="p-2.5 rounded-2xl bg-white/10 text-white/60"><Bell size={24} /></div>;
     }
@@ -122,27 +66,32 @@ const VendorNotifications = () => {
 
   const handleNotificationClick = (notification) => {
     if (!notification.is_read) {
-      handleMarkAsRead(notification.id);
+      ctxMarkAsRead(notification.id);
     }
     if (notification.action_url) {
       navigate(notification.action_url);
     }
   };
 
-  if (loading && notifications.length === 0) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#04110d]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader className="w-12 h-12 animate-spin text-emerald-400" />
-          <p className="text-white/40 text-sm font-Lora tracking-widest uppercase">Fetching Alerts</p>
-        </div>
-      </div>
-    );
-  }
+  // Filter context notifications based on user selection
+  const displayNotifications = useMemo(() => {
+    let filtered = [...ctxNotifications];
+    
+    // 1. Role filter (vendor/customer)
+    // The context already filters by role, so we just use what it gives us.
+    
+    // 2. Read/Unread filter
+    if (filter === "unread") {
+      filtered = filtered.filter((n) => !n.is_read);
+    }
+    
+    return filtered;
+  }, [ctxNotifications, filter]);
 
-  const displayNotifications = filter === "unread"
-    ? notifications.filter((n) => !n.is_read)
-    : notifications;
+  if (!token) {
+    navigate("/login");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#04110d] font-Lora text-white overflow-x-hidden relative">
@@ -173,14 +122,15 @@ const VendorNotifications = () => {
           </div>
 
           <div className="flex items-center gap-3">
-             {refreshing && (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">
-                   <RefreshCw size={10} className="animate-spin" /> Syncing...
-                </div>
-             )}
-             {unreadCount > 0 && (
+             <button 
+               onClick={handleManualRefresh}
+               className={`p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/70 transition ${refreshing ? "animate-spin" : ""}`}
+             >
+               <RefreshCw size={16} />
+             </button>
+             {ctxUnreadCount > 0 && (
                 <button
-                  onClick={handleMarkAllAsRead}
+                  onClick={ctxMarkAllAsRead}
                   className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
                 >
                   Mark all as read
@@ -195,13 +145,13 @@ const VendorNotifications = () => {
              onClick={() => setFilter("all")}
              className={`px-6 py-1.5 rounded-[14px] text-xs font-bold transition-all ${filter === "all" ? "bg-white/10 text-white shadow-xl" : "text-white/40 hover:text-white/70"}`}
            >
-             All ({notifications.length})
+             All ({ctxNotifications.length})
            </button>
            <button
              onClick={() => setFilter("unread")}
              className={`px-6 py-1.5 rounded-[14px] text-xs font-bold transition-all ${filter === "unread" ? "bg-white/10 text-white shadow-xl" : "text-white/40 hover:text-white/70"}`}
            >
-             Unread ({unreadCount})
+             Unread ({ctxUnreadCount})
            </button>
         </div>
 
@@ -222,11 +172,11 @@ const VendorNotifications = () => {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`group relative rounded-[2.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl transition-all duration-300 hover:bg-white/8 hover:-translate-y-1 cursor-pointer overflow-hidden ${!notification.is_read ? "border-l-4 border-l-emerald-400" : ""}`}
+                className={`group relative rounded-[2.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl transition-all duration-300 hover:bg-white/8 hover:-translate-y-1 cursor-pointer overflow-hidden ${!notification.is_read ? "border-l-4 border-l-emerald-400 shadow-[0_10px_30px_-10px_rgba(52,211,153,0.2)]" : ""}`}
               >
                   {/* UNREAD GLOW */}
                   {!notification.is_read && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.5)]" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400" />
                   )}
 
                 <div className="flex items-start gap-6">
@@ -257,20 +207,13 @@ const VendorNotifications = () => {
                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                           {!notification.is_read && (
                              <button
-                               onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notification.id); }}
+                               onClick={(e) => { e.stopPropagation(); ctxMarkAsRead(notification.id); }}
                                className="p-2 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition"
                                title="Mark as read"
                              >
                                <Check size={16} />
                              </button>
                           )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(notification.id); }}
-                            className="p-2 rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
                        </div>
                     </div>
                   </div>
