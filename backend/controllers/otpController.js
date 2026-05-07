@@ -35,6 +35,10 @@ exports.sendOTP = async (req, res) => {
             [email, otp, expiresAt]
         );
 
+        console.log(`\n-----------------------------------------`);
+        console.log(`📧 OTP for ${email}: ${otp}`);
+        console.log(`-----------------------------------------\n`);
+
         // Send OTP email
         const emailConfig = getEmailConfig();
         const mailOptions = {
