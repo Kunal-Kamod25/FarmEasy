@@ -73,6 +73,7 @@ const ProductDetailPage = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const fetchProduct = useCallback(async () => {
+    if (!id) return;
     try {
       setLoading(true);
       setError(null);
@@ -111,7 +112,7 @@ const ProductDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, t, reviewsPerPage, sortBy]);
+  }, [id, reviewsPerPage, sortBy]);
 
   useEffect(() => {
     // scroll to top when navigating to a new product

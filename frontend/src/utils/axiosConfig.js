@@ -102,12 +102,11 @@ export const setupAxiosInterceptors = (navigate) => {
               clearAuthData();
               processQueue(err, null);
               
-              if (navigate) {
-                window.dispatchEvent(new CustomEvent("farmeasy:auth-required", {
-                  detail: { message: "Session expired. Please login again." }
-                }));
-                setTimeout(() => navigate("/login"), 500);
-              }
+                if (navigate) {
+                  navigate("/login");
+                } else {
+                  window.location.href = "/login";
+                }
               return Promise.reject(err);
             });
           }
@@ -124,6 +123,8 @@ export const setupAxiosInterceptors = (navigate) => {
           
           // Redirect to login after a short delay
           setTimeout(() => navigate("/login"), 500);
+        } else {
+          window.location.href = "/login";
         }
       }
 
