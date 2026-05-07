@@ -9,7 +9,7 @@ import {
 import {
   Package, ShoppingCart, IndianRupee, TrendingUp,
   Plus, LayoutDashboard, ClipboardList, Store, Clock, CheckCircle, Truck, AlertCircle,
-  Star
+  Star, AlertTriangle, BadgeCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getDisplayOrderStatus, getOrderStatusClass } from "../../utils/orderStatus";
@@ -53,6 +53,7 @@ export default function VendorDashboard() {
 
   // fetch real vendor name from profile
   const [vendorName] = useState(user?.full_name || user?.fullname || "Vendor");
+  const [gstVerified, setGstVerified] = useState(true); // assume true to avoid flash
 
   const fetchStats = useCallback(async () => {
     try {
@@ -83,6 +84,13 @@ export default function VendorDashboard() {
   useEffect(() => {
     fetchStats();
     fetchRecentReviews();
+
+    // Check GST verification status
+    axios.get(`${API_URL}/api/vendor/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(res => {
+      setGstVerified(Boolean(res.data?.account_status?.gst_verified));
+    }).catch(() => {});
   }, [fetchStats, fetchRecentReviews]);
 
   const monthlyData = stats.monthlyBreakdown || [];
@@ -169,6 +177,23 @@ export default function VendorDashboard() {
         </div>
       </div>
 
+      {/* GST VERIFICATION WARNING BANNER */}
+      {!gstVerified && (
+        <Link
+          to="/vendor/profile"
+          className="flex items-center gap-3 px-5 py-3 bg-amber-500/10 border border-amber-400/20 rounded-2xl text-amber-100 hover:bg-amber-500/15 transition-all group"
+        >
+          <AlertTriangle size={18} className="text-amber-400 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Your GST is not verified</p>
+            <p className="text-xs text-amber-200/60">Verify your GST number to build customer trust and display a verified badge.</p>
+          </div>
+          <span className="text-xs font-bold text-amber-300 group-hover:text-amber-100 transition flex items-center gap-1 whitespace-nowrap">
+            Verify Now <BadgeCheck size={14} />
+          </span>
+        </Link>
+      )}
+
       {/* ── STAT CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, i) => (
@@ -215,7 +240,7 @@ export default function VendorDashboard() {
             </div>
           </div>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <AreaChart data={monthlyData}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -251,7 +276,7 @@ export default function VendorDashboard() {
           ) : (
             <>
               <div className="flex-1 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={220} minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={pieData.map(c => ({ name: c.name, value: c.count || c.value || 0 }))}
@@ -305,7 +330,7 @@ export default function VendorDashboard() {
             </div>
           </div>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
@@ -336,7 +361,7 @@ export default function VendorDashboard() {
             </div>
           </div>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <AreaChart data={feedbackData}>
                 <defs>
                   <linearGradient id="colorRating" x1="0" y1="0" x2="0" y2="1">

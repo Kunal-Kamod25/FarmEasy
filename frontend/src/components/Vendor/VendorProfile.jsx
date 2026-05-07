@@ -31,12 +31,14 @@ import axios from "axios";
 import { API_URL, getImageUrl } from '../../config';
 import {
   User, MapPin, Phone, Mail, Camera, Store,
-  Globe, CreditCard, Shield, CheckCircle, Edit3, Save, X
+  Globe, CreditCard, Shield, CheckCircle, Edit3, Save, X,
+  BadgeCheck, AlertTriangle, Loader2, Lock
 } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 
 const VendorProfile = () => {
-  // grab the JWT token that was stored after login — every API call needs this
   const token = localStorage.getItem("token");
+  const { showToast } = useToast();
 
   const [profile, setProfile] = useState({
     vendor_name: "",
@@ -67,6 +69,10 @@ const VendorProfile = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [saved, setSaved] = useState(false);
+
+  // GST verification state
+  const [gstVerifying, setGstVerifying] = useState(false);
+  const [gstVerifyError, setGstVerifyError] = useState("");
 
   // ── FETCH PROFILE ──
   // calls GET /api/vendor/profile which reads from users + seller table using the JWT token
@@ -202,6 +208,39 @@ const VendorProfile = () => {
     }
   };
 
+  // ── VERIFY GST ──
+  const handleVerifyGST = async () => {
+    if (!profile.gst_number || profile.gst_number.trim().length === 0) {
+      setGstVerifyError("Please enter a GST number first.");
+      return;
+    }
+
+    setGstVerifying(true);
+    setGstVerifyError("");
+
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/vendor/verify-gst`,
+        { gstin: profile.gst_number.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success && res.data.verified) {
+        showToast("GST verified successfully! ✅", "success");
+        await fetchProfile(); // re-fetch to get updated data
+      } else if (res.data.already_verified) {
+        showToast("GST is already verified.", "success");
+      } else {
+        setGstVerifyError(res.data.message || "GST verification failed.");
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || "Verification failed. Please try again.";
+      setGstVerifyError(msg);
+    } finally {
+      setGstVerifying(false);
+    }
+  };
+
   if (fetching) {
     return (
       <div className="min-h-screen bg-[#04110d] p-6">
@@ -299,7 +338,7 @@ const VendorProfile = () => {
                 <Shield size={15} className="text-emerald-100" />
                 Account Status
               </h3>
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-white/60">Profile</span>
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.profile_verified
@@ -320,11 +359,18 @@ const VendorProfile = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-white/60">GST</span>
-                  <span className={`px-2 py-0.5 rounded-full font-semibold ${profile.account_status?.gst_submitted
-                    ? "bg-emerald-300/20 text-emerald-100"
-                    : "bg-amber-300/20 text-amber-100"
-                    }`}>
-                    {profile.account_status?.gst_submitted ? "Submitted" : "Pending"}
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${
+                    profile.account_status?.gst_verified
+                      ? "bg-emerald-300/20 text-emerald-100"
+                      : profile.account_status?.gst_submitted
+                        ? "bg-amber-300/20 text-amber-100"
+                        : "bg-red-300/20 text-red-100"
+                  }`}>
+                    {profile.account_status?.gst_verified
+                      ? "✅ Verified"
+                      : profile.account_status?.gst_submitted
+                        ? "⚠️ Not Verified"
+                        : "Not Submitted"}
                   </span>
                 </div>
               </div>
@@ -444,13 +490,87 @@ const VendorProfile = () => {
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <FormField
-                  label="GST Number"
-                  name="gst_number"
-                  value={profile.gst_number}
-                  onChange={handleChange}
-                  placeholder="22AAAAA0000A1Z5"
-                />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-white/80 mb-1.5 flex items-center gap-2">
+                    GST Number
+                    {profile.account_status?.gst_verified && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-400/15 text-emerald-200 text-[10px] font-bold rounded-full border border-emerald-300/25">
+                        <BadgeCheck size={11} /> Verified
+                      </span>
+                    )}
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        name="gst_number"
+                        value={profile.gst_number || ""}
+                        onChange={handleChange}
+                        placeholder="22AAAAA0000A1Z5"
+                        readOnly={profile.account_status?.gst_verified}
+                        className={`w-full border border-white/15 bg-white/5 text-white rounded-xl px-4 py-2.5 text-sm placeholder:text-white/35 focus:ring-2 focus:ring-emerald-300/35 focus:border-transparent focus:outline-none transition ${
+                          profile.account_status?.gst_verified ? 'opacity-70 cursor-not-allowed pr-10' : ''
+                        }`}
+                      />
+                      {profile.account_status?.gst_verified && (
+                        <Lock size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
+                      )}
+                    </div>
+                    {!profile.account_status?.gst_verified && profile.gst_number && (
+                      <button
+                        type="button"
+                        onClick={handleVerifyGST}
+                        disabled={gstVerifying}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 rounded-xl text-sm font-semibold hover:bg-cyan-500/30 transition disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {gstVerifying ? (
+                          <><Loader2 size={14} className="animate-spin" /> Verifying...</>
+                        ) : (
+                          <><BadgeCheck size={14} /> Verify GST</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  {gstVerifyError && (
+                    <p className="mt-2 text-xs text-rose-300 flex items-center gap-1.5">
+                      <AlertTriangle size={12} />
+                      {gstVerifyError}
+                    </p>
+                  )}
+                </div>
+
+                {/* Verified GST Info Card */}
+                {profile.account_status?.gst_verified && (
+                  <div className="md:col-span-2 bg-emerald-400/10 border border-emerald-300/20 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-emerald-400/20 p-2 rounded-lg mt-0.5">
+                        <BadgeCheck size={18} className="text-emerald-200" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-emerald-100">GST Verified Business</p>
+                        {profile.account_status?.gst_legal_name && (
+                          <p className="text-xs text-emerald-200/80 mt-1">
+                            <span className="text-white/50">Legal Name:</span> {profile.account_status.gst_legal_name}
+                          </p>
+                        )}
+                        {profile.account_status?.gst_trade_name && (
+                          <p className="text-xs text-emerald-200/80 mt-0.5">
+                            <span className="text-white/50">Trade Name:</span> {profile.account_status.gst_trade_name}
+                          </p>
+                        )}
+                        <p className="text-xs text-emerald-200/80 mt-0.5">
+                          <span className="text-white/50">Status:</span> {profile.account_status.gst_status || "Active"}
+                        </p>
+                        {profile.account_status?.gst_verified_at && (
+                          <p className="text-[10px] text-white/40 mt-1">
+                            Verified on {new Date(profile.account_status.gst_verified_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <FormField
                   label="Bank Account Number"
                   name="bank_account"
