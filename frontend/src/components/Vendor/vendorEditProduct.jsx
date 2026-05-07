@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Upload, X, ArrowLeft, Save } from "lucide-react";
+import { Upload, X, ArrowLeft, Save, Plus, Check, AlertCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from '../../config';
 import { useToast } from "../../context/ToastContext";
@@ -28,6 +28,11 @@ const VendorEditProduct = () => {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  
+  // Quick Add State
+  const [quickAddModal, setQuickAddModal] = useState({ type: "", isOpen: false });
+  const [quickAddForm, setQuickAddForm] = useState({ name: "", description: "", parentId: "" });
+  const [quickAddLoading, setQuickAddLoading] = useState(false);
 
   const resolveImageUrl = (imagePath) => {
     if (!imagePath) return "";
@@ -178,6 +183,65 @@ const VendorEditProduct = () => {
     }
   };
 
+  const handleQuickAdd = async (e) => {
+    e.preventDefault();
+    if (!quickAddForm.name.trim()) return;
+
+    setQuickAddLoading(true);
+    try {
+      let url = "";
+      let body = {};
+      
+      if (quickAddModal.type === "category") {
+        url = `${API_URL}/api/vendor/categories`;
+        body = { name: quickAddForm.name.trim(), description: quickAddForm.description.trim() };
+      } else if (quickAddModal.type === "subcategory") {
+        url = `${API_URL}/api/vendor/categories/subcategory`;
+        body = { 
+          name: quickAddForm.name.trim(), 
+          description: quickAddForm.description.trim(),
+          parentId: quickAddForm.parentId || formData.category_id 
+        };
+      } else {
+        url = `${API_URL}/api/brands`;
+        body = { name: quickAddForm.name.trim(), description: quickAddForm.description.trim() };
+      }
+
+      const res = await axios.post(url, body, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.success) {
+        showToast(`${quickAddModal.type} added!`, "success");
+        
+        // Refresh lists
+        if (quickAddModal.type === "brand") {
+          const bRes = await axios.get(`${API_URL}/api/brands`);
+          setBrands(bRes.data.data || []);
+          setFormData(prev => ({ ...prev, brand_id: res.data.data.id }));
+        } else {
+          const cRes = await axios.get(`${API_URL}/api/categories`);
+          const newCats = cRes.data.data || [];
+          setCategories(newCats);
+          
+          if (quickAddModal.type === "category") {
+            setFormData(prev => ({ ...prev, category_id: res.data.data.id, subcategory_id: "" }));
+          } else {
+            setFormData(prev => ({ ...prev, subcategory_id: res.data.data.id }));
+          }
+        }
+        
+        setQuickAddModal({ type: "", isOpen: false });
+        setQuickAddForm({ name: "", description: "", parentId: "" });
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to add", "error");
+    } finally {
+      setQuickAddLoading(false);
+    }
+  };
+
   if (fetching) {
     return (
       <div className="min-h-screen bg-[#04110d] p-6 flex justify-center items-center">
@@ -234,12 +298,21 @@ const VendorEditProduct = () => {
                   />
                 </div>
 
-                {/* Price & Stock */}
+                {/* Category & Subcategory Row */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                      Category <span className="text-rose-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-white/80">
+                        Category <span className="text-rose-500">*</span>
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={() => setQuickAddModal({ type: "category", isOpen: true })}
+                        className="text-[10px] flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-lg transition"
+                      >
+                        <Plus size={10} /> Add
+                      </button>
+                    </div>
                     <select
                       name="category_id"
                       value={formData.category_id}
@@ -250,16 +323,26 @@ const VendorEditProduct = () => {
                       <option value="" className="bg-[#0a2a1d]">Select category</option>
                       {categories.map(cat => (
                         <option key={cat.id} value={cat.id} className="bg-[#0a2a1d]">
-                          {cat.name || cat.product_cat_name}
+                          {cat.name}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                      Subcategory
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-white/80">
+                        Subcategory
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={() => setQuickAddModal({ type: "subcategory", isOpen: true })}
+                        disabled={!formData.category_id}
+                        className="text-[10px] flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-lg transition disabled:opacity-30"
+                      >
+                        <Plus size={10} /> Add
+                      </button>
+                    </div>
                     <select
                       name="subcategory_id"
                       value={formData.subcategory_id}
@@ -278,9 +361,18 @@ const VendorEditProduct = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                    Brand
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-semibold text-white/80">
+                      Brand
+                    </label>
+                    <button 
+                      type="button" 
+                      onClick={() => setQuickAddModal({ type: "brand", isOpen: true })}
+                      className="text-[10px] flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded-lg transition"
+                    >
+                      <Plus size={10} /> Add
+                    </button>
+                  </div>
                   <select
                     name="brand_id"
                     value={formData.brand_id}
@@ -466,8 +558,74 @@ const VendorEditProduct = () => {
           </div>
         </div>
       </form>
+      {/* Quick Add Modal */}
+      {quickAddModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#0a2a1d] border border-white/10 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold capitalize text-white">Add New {quickAddModal.type}</h3>
+              <button onClick={() => setQuickAddModal({ ...quickAddModal, isOpen: false })} className="text-white/40 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAdd} className="space-y-4">
+              {quickAddModal.type === "subcategory" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-2">Parent Category</label>
+                  <select 
+                    value={quickAddForm.parentId || formData.category_id}
+                    onChange={(e) => setQuickAddForm({...quickAddForm, parentId: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  >
+                    {categories.map(c => <option key={c.id} value={c.id} className="bg-[#0a2a1d]">{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-2">{quickAddModal.type} Name</label>
+                <input 
+                  autoFocus
+                  type="text"
+                  value={quickAddForm.name}
+                  onChange={(e) => setQuickAddForm({...quickAddForm, name: e.target.value})}
+                  placeholder={`Enter ${quickAddModal.type} name...`}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-2">Description (Optional)</label>
+                <textarea 
+                  value={quickAddForm.description}
+                  onChange={(e) => setQuickAddForm({...quickAddForm, description: e.target.value})}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none h-24"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="submit" 
+                  disabled={quickAddLoading || !quickAddForm.name}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-400 py-3 rounded-xl font-bold text-sm text-white transition disabled:opacity-50"
+                >
+                  {quickAddLoading ? "Adding..." : `Add ${quickAddModal.type}`}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setQuickAddModal({ ...quickAddModal, isOpen: false })}
+                  className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 py-3 rounded-xl font-bold text-sm text-white transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default VendorEditProduct;
+export default VendorEditProduct;
