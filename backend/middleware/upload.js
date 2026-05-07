@@ -20,10 +20,18 @@
 
 const multer = require("multer");
 const s3 = require("../config/s3");
+const path = require("path");
+const fs = require("fs");
 
+// Ensure local uploads directory exists
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Custom S3 Storage Engine
 class S3Storage {
   _handleFile(req, file, cb) {
-    // timestamp + random string so two uploads at the same time dont overwrite each other
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(7);
     const extension = file.originalname.split('.').pop();
@@ -32,11 +40,10 @@ class S3Storage {
     const s3params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: filename,
-      Body: file.stream, // file.buffer doesnt exist in custom storage engine, stream works
+      Body: file.stream,
       ContentType: file.mimetype,
     };
 
-    // putObject doesnt handle streams well, upload() is the right one here
     s3.upload(s3params, (error, result) => {
       if (error) {
         console.error('S3 upload failed:', error);
@@ -49,23 +56,35 @@ class S3Storage {
         fieldname: file.fieldname,
         originalname: file.originalname,
         mimetype: file.mimetype,
-        path: s3Url, // full URL, frontend can use this directly
+        path: s3Url,
         size: file.size,
-        filename: filename, // S3 key, keep this if you need to delete later
+        filename: filename,
       });
     });
   }
 
-  // multer auto-calls this when any error happens in the route after upload
-  // that was silently deleting images from S3 without us knowing
-  // leaving it empty so images stay safe, use deleteS3Image util for manual deletes
   _removeFile(req, file, cb) {
     cb(null);
   }
 }
 
-const upload = multer({
-  storage: new S3Storage(),
+// Local Storage Engine (Fallback for local dev)
+const localStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const extension = path.extname(file.originalname);
+    cb(null, `${timestamp}${extension}`);
+  }
+});
+
+// Decide which storage to use based on ENV
+const useS3 = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_S3_BUCKET_NAME;
+
+const multerInstance = multer({
+  storage: useS3 ? new S3Storage() : localStorage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10mb limit
   fileFilter: (req, file, cb) => {
     const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'application/pdf'];
@@ -77,15 +96,33 @@ const upload = multer({
   },
 });
 
+// Wrapper to fix local paths
+const upload = {
+  single: (fieldname) => (req, res, next) => {
+    multerInstance.single(fieldname)(req, res, (err) => {
+      if (err) return next(err);
+      if (req.file && !useS3) {
+        // Convert absolute path to relative URL path for local storage
+        // e.g. "C:\...\uploads\123.jpg" -> "/uploads/123.jpg"
+        req.file.path = `/uploads/${req.file.filename}`;
+      }
+      next();
+    });
+  },
+  array: (fieldname, maxCount) => (req, res, next) => {
+    multerInstance.array(fieldname, maxCount)(req, res, (err) => {
+      if (err) return next(err);
+      if (req.files && !useS3) {
+        req.files.forEach(file => {
+          file.path = `/uploads/${file.filename}`;
+        });
+      }
+      next();
+    });
+  }
+};
+
 module.exports = upload;
-
-
-
-
-
-
-
-
 
 // // ===========================================================================
 // // Upload Middleware - Multer + AWS S3 Configuration for File Uploads

@@ -27,6 +27,7 @@ require("dotenv").config();   // loads .env variables (DB credentials, JWT secre
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
@@ -48,6 +49,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));              // CORS with specific origins
 app.use(express.json());      // parses JSON request bodies
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve local uploads
 
 // Images are now stored on AWS S3 — automatic handling via multer + S3Storage middleware
 
