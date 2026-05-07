@@ -11,7 +11,7 @@ import {
   getOrderStatusClass,
 } from "../../utils/orderStatus";
 
-// Status options that a vendor is allowed to set
+// Statuses a vendor is allowed to set
 const VENDOR_ALLOWED_STATUSES = [
   "Order Confirmed",
   "Processing",
@@ -27,7 +27,7 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [updating, setUpdating] = useState(false);
-  const [updateMsg, setUpdateMsg] = useState(null); // { type: "success"|"error", text }
+  const [updateMsg, setUpdateMsg] = useState(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -72,8 +72,6 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
     }
   };
 
-  const statusStyle = (status) => getOrderStatusClass(status);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
@@ -110,7 +108,7 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
               {/* Current Status Badge */}
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-500 font-medium">Current Status:</span>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full border ${statusStyle(detail.order_status)}`}>
+                <span className={`px-3 py-1 text-xs font-bold rounded-full border ${getOrderStatusClass(detail.order_status)}`}>
                   {getDisplayOrderStatus(detail.order_status)}
                 </span>
               </div>
@@ -190,9 +188,11 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
                 </div>
               </div>
 
-              {/* Status Update Section */}
-              <div className="border border-gray-200 rounded-xl p-4 space-y-3">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Update Order Status</h3>
+              {/* ── STATUS UPDATE SECTION ── */}
+              <div className="border-2 border-emerald-100 rounded-xl p-4 space-y-3 bg-emerald-50/30">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  🔄 Update Order Status
+                </h3>
                 <div className="relative">
                   <select
                     value={selectedStatus}
@@ -206,7 +206,6 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
                   <ChevronDown size={16} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
                 </div>
 
-                {/* Success / Error Message */}
                 {updateMsg && (
                   <div className={`text-sm px-4 py-2.5 rounded-xl font-medium ${
                     updateMsg.type === "success"
@@ -223,10 +222,7 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
                   className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
                 >
                   {updating ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      Updating...
-                    </>
+                    <><Loader2 size={15} className="animate-spin" /> Updating...</>
                   ) : (
                     "Update Status"
                   )}
@@ -236,7 +232,6 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
                 )}
               </div>
 
-              {/* Order Date */}
               <p className="text-xs text-gray-400 text-right">
                 Ordered on:{" "}
                 {detail.order_date
@@ -255,8 +250,10 @@ const OrderDetailModal = ({ orderId, token, onClose, onStatusUpdated }) => {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const VendorOrders = () => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState([]);       // customer orders for vendor's products
+  const [myOrders, setMyOrders] = useState([]);   // orders placed BY this vendor as buyer
   const [search, setSearch] = useState("");
+  const [orderTab, setOrderTab] = useState("All");
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
@@ -265,10 +262,26 @@ const VendorOrders = () => {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/api/vendor/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setOrders(res.data || []);
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?.id;
+
+      const [ordersRes] = await Promise.all([
+        axios.get(`${API_URL}/api/vendor/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      let myOrdersRes = { data: [] };
+      if (userId) {
+        myOrdersRes = await axios
+          .get(`${API_URL}/api/orders/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch(() => ({ data: [] }));
+      }
+
+      setOrders(ordersRes.data || []);
+      setMyOrders(myOrdersRes.data || []);
     } catch (error) {
       console.error("Orders fetch error:", error);
     } finally {
@@ -280,54 +293,89 @@ const VendorOrders = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Called from modal when status is updated — update list in place
+  // Update status in the orders list after modal update
   const handleStatusUpdated = (orderId, newStatus) => {
     setOrders((prev) =>
-      prev.map((o) =>
-        o.id === orderId ? { ...o, status: newStatus } : o
-      )
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
   };
 
-  const normalizedOrders = orders.map((o) => ({
+  // ── Normalize vendor (customer) orders ──
+  const normalizedVendorOrders = orders.map((o) => ({
     ...o,
+    orderSource: "Orders",
     normalizedStatus: getDisplayOrderStatus(o.status),
   }));
 
-  const totalOrders = normalizedOrders.length;
-  const pendingOrders = normalizedOrders.filter(
-    (o) => ["Payment Pending", "Order Confirmed", "Processing"].includes(o.normalizedStatus)
-  ).length;
-  const deliveredOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Delivered").length;
-  const cancelledOrders = normalizedOrders.filter((o) => o.normalizedStatus === "Cancelled").length;
+  // ── Normalize "my purchases" (vendor as buyer) ──
+  const normalizedMyOrders = myOrders.map((o) => {
+    const items = o.items || o.orderItems || [];
+    const sellerNames = [
+      ...new Set(items.map((item) => item?.seller_shop).filter(Boolean)),
+    ];
+    return {
+      ...o,
+      id: o.id || o.order_id,
+      customer_name: sellerNames.length ? sellerNames.join(", ") : "Various Sellers",
+      total_amount: o.total_amount || o.total_price || o.totalPrice || 0,
+      created_at: o.created_at || o.order_date || o.createdAt,
+      orderSource: "My Orders",
+      normalizedStatus: getDisplayOrderStatus(o.order_status || o.status),
+    };
+  });
 
-  const filteredOrders = normalizedOrders.filter((order) => {
+  // ── Merge based on active tab ──
+  const allCombined =
+    orderTab === "Orders"
+      ? normalizedVendorOrders
+      : orderTab === "My Orders"
+      ? normalizedMyOrders
+      : [...normalizedVendorOrders, ...normalizedMyOrders].sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+        );
+
+  // ── Stats (always from combined "All") ──
+  const allForStats = [...normalizedVendorOrders, ...normalizedMyOrders];
+  const totalOrders = allForStats.length;
+  const pendingOrders = allForStats.filter((o) =>
+    ["Payment Pending", "Order Confirmed", "Processing", "Payment Confirmed"].includes(o.normalizedStatus)
+  ).length;
+  const deliveredOrders = allForStats.filter((o) => o.normalizedStatus === "Delivered").length;
+  const cancelledOrders = allForStats.filter((o) => o.normalizedStatus === "Cancelled").length;
+
+  // ── Search filter ──
+  const filteredOrders = allCombined.filter((order) => {
     const s = search.toLowerCase();
     return (
-      String(order.id).includes(s) ||
+      String(order.id || "").includes(s) ||
       order.customer_name?.toLowerCase().includes(s) ||
-      order.normalizedStatus?.toLowerCase().includes(s)
+      order.normalizedStatus?.toLowerCase().includes(s) ||
+      order.orderSource?.toLowerCase().includes(s)
     );
   });
 
+  const getPartyLabel = () => {
+    if (orderTab === "Orders") return "Customer";
+    if (orderTab === "My Orders") return "Seller";
+    return "Customer / Seller";
+  };
+
   const statusBadge = (status) =>
-    getOrderStatusClass(status)
-      .replace(/border-\S+/g, "")
-      .trim();
+    getOrderStatusClass(status).replace(/border-\S+/g, "").trim();
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 pb-6 space-y-6">
-      {/* HEADER */}
+      {/* STICKY HEADER */}
       <div className="sticky top-0 z-30 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-md border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Orders</h1>
           <p className="text-gray-500 font-medium mt-1 text-sm">
-            View and manage orders containing your products
+            Manage vendor orders and orders you placed
           </p>
         </div>
       </div>
 
-      {/* STATS */}
+      {/* STATS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Orders", value: totalOrders, icon: ShoppingCart, gradient: "from-emerald-500 to-green-600" },
@@ -335,7 +383,10 @@ const VendorOrders = () => {
           { label: "Delivered", value: deliveredOrders, icon: CheckCircle, gradient: "from-blue-500 to-cyan-500" },
           { label: "Cancelled", value: cancelledOrders, icon: XCircle, gradient: "from-red-500 to-rose-500" },
         ].map(({ label, value, icon: Icon, gradient }) => (
-          <div key={label} className={`bg-gradient-to-br ${gradient} rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
+          <div
+            key={label}
+            className={`bg-gradient-to-br ${gradient} rounded-2xl p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}
+          >
             <div className="bg-white/20 p-2 rounded-xl w-fit mb-3">
               <Icon size={18} />
             </div>
@@ -347,21 +398,50 @@ const VendorOrders = () => {
 
       {/* ORDERS TABLE */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Search */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-800">Customer Orders</h2>
-          <div className="relative">
+
+        {/* Controls: Tabs + Search */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 px-6 pt-4 pb-0">
+          {/* ── Tabs ── */}
+          <div className="relative -mb-px flex items-end gap-1 rounded-t-[1.25rem] border border-slate-200 bg-slate-100 px-2 pt-2">
+            {["All", "Orders", "My Orders"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => { setOrderTab(tab); setSearch(""); }}
+                className={`relative -mb-px px-4 py-2 text-xs font-semibold rounded-t-[1rem] border border-b-0 transition ${
+                  orderTab === tab
+                    ? "z-10 bg-white text-emerald-700 border-slate-200 shadow-[0_2px_10px_rgba(15,23,42,0.08)]"
+                    : "bg-slate-100 text-slate-500 border-transparent hover:bg-slate-200 hover:text-slate-700"
+                }`}
+              >
+                {tab}
+                {/* Badge count */}
+                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
+                  orderTab === tab ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
+                }`}>
+                  {tab === "All"
+                    ? allForStats.length
+                    : tab === "Orders"
+                    ? normalizedVendorOrders.length
+                    : normalizedMyOrders.length}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* ── Search ── */}
+          <div className="relative w-full sm:w-72 mb-1">
             <Search size={15} className="absolute left-3 top-2.5 text-gray-400" />
             <input
               type="text"
               placeholder="Search by ID, customer, status..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-64 transition-all"
+              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full transition-all"
             />
           </div>
         </div>
 
+        {/* Table */}
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4].map((i) => (
@@ -375,7 +455,7 @@ const VendorOrders = () => {
             </div>
             <p className="text-gray-600 font-semibold">No orders found</p>
             <p className="text-gray-400 text-sm mt-1">
-              {search ? "Try adjusting your search" : "Orders from customers will appear here"}
+              {search ? "Try adjusting your search" : "Orders will appear here"}
             </p>
           </div>
         ) : (
@@ -384,8 +464,9 @@ const VendorOrders = () => {
               <thead>
                 <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                   <th className="text-left px-6 py-3">Order ID</th>
-                  <th className="text-left px-6 py-3">Customer</th>
+                  <th className="text-left px-6 py-3">{getPartyLabel()}</th>
                   <th className="text-left px-6 py-3">Amount</th>
+                  <th className="text-left px-6 py-3">Type</th>
                   <th className="text-left px-6 py-3">Status</th>
                   <th className="text-left px-6 py-3">Date</th>
                   <th className="text-left px-6 py-3">Action</th>
@@ -393,7 +474,7 @@ const VendorOrders = () => {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition">
+                  <tr key={`${order.orderSource}-${order.id}`} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4 font-semibold text-gray-800">#{order.id}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -406,7 +487,16 @@ const VendorOrders = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800">
-                      ₹{Number(order.total_amount).toLocaleString()}
+                      ₹{Number(order.total_amount || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-[11px] font-semibold rounded-full ${
+                        order.orderSource === "My Orders"
+                          ? "bg-blue-50 text-blue-700"
+                          : "bg-emerald-50 text-emerald-700"
+                      }`}>
+                        {order.orderSource}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusBadge(order.normalizedStatus)}`}>
@@ -421,14 +511,19 @@ const VendorOrders = () => {
                         : "—"}
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => setSelectedOrderId(order.id)}
-                        title="View & Manage Order"
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition"
-                      >
-                        <Eye size={13} />
-                        Manage
-                      </button>
+                      {/* Manage button only for vendor's customer orders */}
+                      {order.orderSource === "Orders" ? (
+                        <button
+                          onClick={() => setSelectedOrderId(order.id)}
+                          title="View & Manage Order"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition"
+                        >
+                          <Eye size={13} />
+                          Manage
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400 px-2">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -440,13 +535,13 @@ const VendorOrders = () => {
         {!loading && filteredOrders.length > 0 && (
           <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
             <p className="text-xs text-gray-500">
-              Showing {filteredOrders.length} of {totalOrders} orders
+              Showing {filteredOrders.length} of {allCombined.length} orders
             </p>
           </div>
         )}
       </div>
 
-      {/* ORDER DETAIL MODAL */}
+      {/* ORDER DETAIL MODAL — only for vendor's customer orders */}
       {selectedOrderId && (
         <OrderDetailModal
           orderId={selectedOrderId}
