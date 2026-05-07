@@ -45,6 +45,10 @@ router.get("/categories/dropdown", categoryController.getCategoriesForDropdown);
 router.get("/dashboard", verifyToken, vendorController.getDashboardStats);
 router.get("/sales-summary", verifyToken, vendorController.getSalesSummary);
 
+// ========== GST VERIFICATION ==========
+const gstVerificationController = require("../controllers/gstVerificationController");
+router.post("/verify-gst", verifyToken, gstVerificationController.verifyGST);
+
 // ========== PROFILE ==========
 // vendor profile reads from users + seller table joined
 router.get("/profile", verifyToken, vendorController.getProfile);

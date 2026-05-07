@@ -17,6 +17,7 @@
   "dependencies": {
     "@google-cloud/translate": "^9.3.0",
     "aws-sdk": "^2.1693.0",
+    "axios": "^1.16.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "crypto-js": "^4.2.0",

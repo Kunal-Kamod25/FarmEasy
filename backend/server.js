@@ -193,7 +193,25 @@ async function initializeDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
     `);
     
-    console.log("✅ Database table checks complete!\n");
+    console.log("✅ Database table checks complete!");
+    
+    // ===== ADD GST VERIFICATION COLUMNS to seller table if missing =====
+    try {
+      const [cols] = await db.query(`SHOW COLUMNS FROM seller LIKE 'gst_verified'`);
+      if (cols.length === 0) {
+        console.log("🔄 Adding GST verification columns to seller table...");
+        await db.query(`ALTER TABLE seller ADD COLUMN gst_verified TINYINT(1) DEFAULT 0`);
+        await db.query(`ALTER TABLE seller ADD COLUMN gst_legal_name VARCHAR(255) DEFAULT NULL`);
+        await db.query(`ALTER TABLE seller ADD COLUMN gst_trade_name VARCHAR(255) DEFAULT NULL`);
+        await db.query(`ALTER TABLE seller ADD COLUMN gst_status VARCHAR(50) DEFAULT NULL`);
+        await db.query(`ALTER TABLE seller ADD COLUMN gst_verified_at TIMESTAMP NULL DEFAULT NULL`);
+        console.log("✅ GST verification columns added!");
+      }
+    } catch (colErr) {
+      console.error("⚠️ GST columns migration note:", colErr.message);
+    }
+    
+    console.log("");
     
   } catch (error) {
     console.error("⚠️ Database initialization error:", error.message);
@@ -211,6 +229,8 @@ console.log("✓ DB_PASSWORD:", process.env.DB_PASSWORD ? "SET" : "❌ MISSING")
 console.log("✓ DB_NAME:", process.env.DB_NAME ? "SET" : "❌ MISSING");
 console.log("✓ DB_PORT:", process.env.DB_PORT ? "SET" : "❌ MISSING");
 console.log("✓ JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "❌ MISSING");
+console.log("✓ CASHFREE_CLIENT_ID:", process.env.CASHFREE_CLIENT_ID ? "SET" : "❌ MISSING");
+console.log("✓ CASHFREE_ENV:", process.env.CASHFREE_ENV || "sandbox (default)");
 
 // Initialize database and start server
 initializeDatabase().then(() => {

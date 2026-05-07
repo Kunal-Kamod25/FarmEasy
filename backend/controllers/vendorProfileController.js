@@ -24,7 +24,12 @@ exports.getProfile = async (req, res) => {
         u.profile_pic as profile_image,
         s.shop_name as store_name,
         s.gst_no as gst_number,
-        s.id as seller_id
+        s.id as seller_id,
+        s.gst_verified,
+        s.gst_legal_name,
+        s.gst_trade_name,
+        s.gst_status,
+        s.gst_verified_at
       FROM users u
       LEFT JOIN seller s ON s.user_id = u.id
       WHERE u.id = ?
@@ -62,7 +67,12 @@ exports.getProfile = async (req, res) => {
       account_status: {
         profile_verified: profileVerified,
         email_verified: Boolean(profile.email),
-        gst_submitted: Boolean(profile.gst_number)
+        gst_submitted: Boolean(profile.gst_number),
+        gst_verified: Boolean(profile.gst_verified),
+        gst_legal_name: profile.gst_legal_name || null,
+        gst_trade_name: profile.gst_trade_name || null,
+        gst_status: profile.gst_status || null,
+        gst_verified_at: profile.gst_verified_at || null
       }
     });
 
