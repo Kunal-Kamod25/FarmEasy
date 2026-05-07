@@ -83,12 +83,17 @@ const Register = () => {
     // Step 1: Send OTP before registration
     setOtpLoading(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
       const response = await fetch(`${API_URL}/api/authentication/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (response.ok) {
@@ -98,7 +103,11 @@ const Register = () => {
         setSubmitError(data.message || "Failed to send verification code.");
       }
     } catch (err) {
-      setSubmitError("Server not reachable. Please try again later.");
+      if (err.name === "AbortError") {
+        setSubmitError("Request timed out. The server may be starting up — please try again in a few seconds.");
+      } else {
+        setSubmitError("Server not reachable. Please try again later.");
+      }
     } finally {
       setOtpLoading(false);
     }
@@ -160,11 +169,17 @@ const Register = () => {
     
     setOtpLoading(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(`${API_URL}/api/authentication/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         setTimer(60);
@@ -172,7 +187,11 @@ const Register = () => {
         showToast("A new verification code has been sent to your email.", "success");
       }
     } catch (err) {
-      setOtpError("Failed to resend OTP.");
+      if (err.name === "AbortError") {
+        setOtpError("Request timed out. Please try again.");
+      } else {
+        setOtpError("Failed to resend OTP.");
+      }
     } finally {
       setOtpLoading(false);
     }
