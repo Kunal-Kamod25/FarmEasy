@@ -788,8 +788,8 @@ const ProductDetailPage = () => {
                         ) : (
                           <div className="text-slate-500 italic text-sm">
                             No answer yet.
-                            {/* If the current user is the vendor, they can answer */}
-                            {user?.role === 'vendor' && (
+                            {/* Only show answer box to the EXACT vendor who owns this product */}
+                            {user && product.vendor_id && Number(user.id) === Number(product.vendor_id) && (
                               <div className="mt-3 flex gap-2">
                                 <input 
                                   type="text" 
