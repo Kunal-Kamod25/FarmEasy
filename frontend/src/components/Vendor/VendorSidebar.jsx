@@ -62,6 +62,7 @@ const VendorSidebar = () => {
                     
                     <SidebarLink to="/vendor" icon={<LayoutDashboard size={22} />} label="Dashboard" />
                     <SidebarLink to="/vendor/products" icon={<Package size={22} />} label="My Products" />
+                    <SidebarLink to="/vendor/categories" icon={<LayoutDashboard size={22} />} label="Catalog Master" />
                     <SidebarLink to="/vendor/orders" icon={<ShoppingCart size={22} />} label="Orders" />
                     <SidebarLink to="/vendor/sales" icon={<BarChart3 size={22} />} label="Sales" />
 
