@@ -190,7 +190,43 @@ exports.getNotifications = async (req, res) => {
       created_at: o.order_date
     }));
 
-    customerAlerts = [loginNotification, ...customerOrderNotifications];
+    // Q&A answer notifications — show when vendor answered a question by this user
+    let qaNotifications = [];
+    try {
+      const [answeredQueries] = await db.query(
+        `SELECT
+           pq.id AS query_id,
+           pq.answer_text,
+           pq.created_at,
+           p.product_name,
+           p.id AS product_id,
+           s.shop_name AS vendor_shop
+         FROM product_queries pq
+         JOIN product p ON pq.product_id = p.id
+         JOIN seller s ON p.seller_id = s.id
+         WHERE pq.user_id = ?
+           AND pq.answer_text IS NOT NULL
+           AND pq.answer_text != ''
+         ORDER BY pq.created_at DESC
+         LIMIT 20`,
+        [user_id]
+      );
+
+      qaNotifications = answeredQueries.map((q) => ({
+        id: `qa_answer_${q.query_id}`,
+        type: "qa_answered",
+        title: `Your question was answered! 💬`,
+        message: `${q.vendor_shop || "The vendor"} answered your question about "${q.product_name}": "${String(q.answer_text).substring(0, 80)}${q.answer_text.length > 80 ? "…" : ""}"`,
+        is_read: false,
+        related_product_id: q.product_id,
+        action_url: `/products/${q.product_id}`,
+        created_at: q.created_at,
+      }));
+    } catch (qaErr) {
+      console.error("Error fetching Q&A notifications:", qaErr);
+    }
+
+    customerAlerts = [loginNotification, ...customerOrderNotifications, ...qaNotifications];
 
     // Combine based on requested role
     if (requestedRole === "vendor") {

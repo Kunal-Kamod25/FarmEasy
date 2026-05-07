@@ -834,8 +834,54 @@ router.put("/:orderId/status", verifyToken, async (req, res) => {
         let customerEmailResult = null;
         if (status === ORDER_STATUS.PAYMENT_CONFIRMED || status === ORDER_STATUS.ORDER_CONFIRMED) {
           customerEmailResult = await emailService.notifyOrderConfirmed(customerEmailData);
+        } else if (status === ORDER_STATUS.PROCESSING) {
+          // Notify customer that vendor is preparing their order
+          customerEmailResult = await emailService.sendEmail(
+            customerEmailData.email,
+            `Your Order #${orderId} is Being Prepared | FarmEasy`,
+            `<div style="font-family:Arial,sans-serif;background:#f4f6f8;padding:20px;">
+              <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;">
+                <div style="background:#0f8f5b;color:#fff;padding:16px 20px;font-size:18px;font-weight:700;">FarmEasy</div>
+                <div style="padding:22px;line-height:1.6;">
+                  <h2 style="color:#111827;margin:0 0 12px;">Order Processing 🔄</h2>
+                  <p>Hi <strong>${customerEmailData.customerName}</strong>,</p>
+                  <p>Great news! Your order <strong>#${orderId}</strong> is now being prepared by the vendor.</p>
+                  <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:12px 16px;margin:16px 0;border-radius:4px;">
+                    <p style="margin:0;color:#1e40af;font-weight:600;">Status: Processing</p>
+                    <p style="margin:4px 0 0;color:#1e40af;font-size:13px;">Your items are being packed and will be shipped soon.</p>
+                  </div>
+                  <p>We will notify you as soon as your order is shipped.</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;"/>
+                  <p style="color:#6b7280;font-size:12px;margin:0;">This is an automated email from FarmEasy.</p>
+                </div>
+              </div>
+            </div>`
+          );
         } else if (status === ORDER_STATUS.SHIPPED) {
           customerEmailResult = await emailService.notifyOrderShipped(customerEmailData);
+        } else if (status === ORDER_STATUS.OUT_FOR_DELIVERY) {
+          // Notify customer that order is out for delivery
+          customerEmailResult = await emailService.sendEmail(
+            customerEmailData.email,
+            `Your Order #${orderId} is Out for Delivery! | FarmEasy`,
+            `<div style="font-family:Arial,sans-serif;background:#f4f6f8;padding:20px;">
+              <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;">
+                <div style="background:#0f8f5b;color:#fff;padding:16px 20px;font-size:18px;font-weight:700;">FarmEasy</div>
+                <div style="padding:22px;line-height:1.6;">
+                  <h2 style="color:#111827;margin:0 0 12px;">Out for Delivery 🏍️</h2>
+                  <p>Hi <strong>${customerEmailData.customerName}</strong>,</p>
+                  <p>Your order <strong>#${orderId}</strong> is out for delivery right now!</p>
+                  <div style="background:#ecfdf5;border-left:4px solid #10b981;padding:12px 16px;margin:16px 0;border-radius:4px;">
+                    <p style="margin:0;color:#065f46;font-weight:600;">Status: Out for Delivery 🚴</p>
+                    <p style="margin:4px 0 0;color:#065f46;font-size:13px;">Please be available to receive your order. Delivery address: ${customerEmailData.shippingAddress}</p>
+                  </div>
+                  <p>Thank you for shopping with FarmEasy!</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;"/>
+                  <p style="color:#6b7280;font-size:12px;margin:0;">This is an automated email from FarmEasy.</p>
+                </div>
+              </div>
+            </div>`
+          );
         } else if (status === ORDER_STATUS.DELIVERED) {
           customerEmailResult = await emailService.notifyOrderDelivered(customerEmailData);
         } else if (status === ORDER_STATUS.CANCELLED) {

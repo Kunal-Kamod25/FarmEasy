@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const emailService = require('../services/emailService');
 
 exports.getProductQueries = async (req, res) => {
   try {
@@ -66,6 +67,56 @@ exports.answerQuery = async (req, res) => {
       `UPDATE product_queries SET answer_text = ?, answered_by = ? WHERE id = ?`,
       [answer_text, vendor_id, queryId]
     );
+
+    // ── Notify customer via email ──────────────────────────────────────────
+    try {
+      const [queryDetails] = await db.query(
+        `SELECT
+           pq.query_text,
+           pq.user_id,
+           u.email AS customer_email,
+           u.full_name AS customer_name,
+           p.product_name,
+           s.shop_name AS vendor_shop
+         FROM product_queries pq
+         JOIN users u ON pq.user_id = u.id
+         JOIN product p ON pq.product_id = p.id
+         JOIN seller s ON p.seller_id = s.id
+         WHERE pq.id = ?`,
+        [queryId]
+      );
+
+      if (queryDetails.length > 0) {
+        const { customer_email, customer_name, query_text, product_name, vendor_shop } = queryDetails[0];
+
+        const subject = `Your question about "${product_name}" has been answered | FarmEasy`;
+        const html = `
+          <div style="font-family:Arial,sans-serif;background:#f4f6f8;padding:20px;">
+            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;">
+              <div style="background:#0f8f5b;color:#fff;padding:16px 20px;font-size:18px;font-weight:700;">FarmEasy — Q&amp;A Reply</div>
+              <div style="padding:22px;line-height:1.6;">
+                <p>Hi <strong>${customer_name}</strong>,</p>
+                <p>The vendor <strong>${vendor_shop || "on FarmEasy"}</strong> has answered your question about <strong>${product_name}</strong>.</p>
+                <div style="background:#f9fafb;border-left:4px solid #0f8f5b;padding:12px 16px;margin:16px 0;border-radius:4px;">
+                  <p style="margin:0 0 8px;color:#6b7280;font-size:12px;">YOUR QUESTION</p>
+                  <p style="margin:0 0 14px;color:#111;">${query_text}</p>
+                  <p style="margin:0 0 8px;color:#6b7280;font-size:12px;">VENDOR'S ANSWER</p>
+                  <p style="margin:0;color:#111;font-weight:600;">${answer_text}</p>
+                </div>
+                <p style="margin-top:16px;">Visit FarmEasy to view the full product page and ask more questions.</p>
+                <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;"/>
+                <p style="color:#6b7280;font-size:12px;margin:0;">This is an automated email from FarmEasy. Do not reply to this email.</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        void emailService.sendEmail(customer_email, subject, html);
+      }
+    } catch (emailErr) {
+      console.error("Q&A answer email error:", emailErr);
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
     res.json({ message: "Answer submitted successfully" });
   } catch (error) {
