@@ -120,7 +120,7 @@ const VendorAddProduct = () => {
 
       if (res.data.success) {
         showToast("Subcategory added successfully!", "success");
-        const catRes = await axios.get(`${API_URL}/api/categories/${formData.category_id}`);
+        const catRes = await axios.get(`${API_URL}/api/categories/${formData.category_id}/subcategories`);
         const subs = catRes.data?.data?.subcategories || [];
         setSubcategories(Array.isArray(subs) ? subs : []);
         setFormData(prev => ({ ...prev, subcategory_id: res.data.data.id }));
@@ -164,7 +164,7 @@ const VendorAddProduct = () => {
 
   useEffect(() => {
     if (formData.category_id) {
-      axios.get(`${API_URL}/api/categories/${formData.category_id}`)
+      axios.get(`${API_URL}/api/categories/${formData.category_id}/subcategories`)
         .then(res => {
           const subs = res.data?.data?.subcategories || [];
           setSubcategories(Array.isArray(subs) ? subs : []);
