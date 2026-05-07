@@ -24,12 +24,14 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/auth");
 const vendorController = require("../controllers/vendorController");
+const vendorOrderController = require("../controllers/vendorOrderController");
 const upload = require("../middleware/upload");
 
 // ========== PRODUCTS ==========
 router.get("/products", verifyToken, vendorController.getProducts);
 router.get("/products/:id", verifyToken, vendorController.getProduct);
 router.get("/orders", verifyToken, vendorController.getVendorOrders);
+router.get("/orders/:orderId", verifyToken, vendorOrderController.getOrderDetail);
 router.post("/products", verifyToken, upload.single("product_image"), vendorController.addProduct);
 router.delete("/products/:id", verifyToken, vendorController.deleteProduct);
 router.put("/products/:id", verifyToken, upload.single("product_image"), vendorController.updateProduct);
