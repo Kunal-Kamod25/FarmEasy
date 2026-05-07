@@ -325,9 +325,6 @@ const AllProductsPage = () => {
                                 </div>
                             </div>
 
-                                </div>
-                            )}
-
                             {/* Seller Filter */}
                             {sellers.length > 0 && (
                                 <div className="space-y-3">
