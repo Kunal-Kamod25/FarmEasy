@@ -224,8 +224,23 @@ async function getRatingSummary(productId) {
      WHERE product_id = ?`,
     [productId]
   );
-  return rows[0] || {
+  
+  const raw = rows[0] || {
     total_reviews: 0, average_rating: 0,
     five_star: 0, four_star: 0, three_star: 0, two_star: 0, one_star: 0,
+  };
+
+  // Return both formats for compatibility, and add the 'distribution' object the frontend needs
+  return {
+    ...raw,
+    totalReviews: raw.total_reviews,
+    averageRating: parseFloat(raw.average_rating || 0),
+    distribution: {
+      5: parseInt(raw.five_star || 0),
+      4: parseInt(raw.four_star || 0),
+      3: parseInt(raw.three_star || 0),
+      2: parseInt(raw.two_star || 0),
+      1: parseInt(raw.one_star || 0)
+    }
   };
 }
