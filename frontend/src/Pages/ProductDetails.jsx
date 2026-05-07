@@ -360,7 +360,7 @@ const ProductDetailPage = () => {
                   {inStock ? (
                     <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-emerald-100">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-emerald-700 font-bold text-sm">{t("product.inStock")} ({product.product_quantity})</span>
+                      <span className="text-emerald-700 font-bold text-sm">{t("product.inStock", { count: product.product_quantity })}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-red-100">

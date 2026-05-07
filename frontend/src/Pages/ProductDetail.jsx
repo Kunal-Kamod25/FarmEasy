@@ -5,11 +5,13 @@ import { API_URL } from "../config";
 import { Heart, Share2, MessageCircle, Loader, AlertCircle, ChevronDown, ShieldCheck, Star } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import StarRating from "../components/Common/StarRating";
+import { useLanguage } from "../context/language/LanguageContext";
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const token = localStorage.getItem("token");
 
   // ===== STATE =====
@@ -263,10 +265,10 @@ const ProductDetail = () => {
               </p>
               {product.stock_quantity > 0 ? (
                 <p className="text-green-600 font-semibold">
-                  ✅ In Stock ({product.stock_quantity} available)
+                  ✅ {t("product.inStock", { count: product.stock_quantity })}
                 </p>
               ) : (
-                <p className="text-red-600 font-semibold">❌ Out of Stock</p>
+                <p className="text-red-600 font-semibold">❌ {t("product.outOfStock")}</p>
               )}
             </div>
 

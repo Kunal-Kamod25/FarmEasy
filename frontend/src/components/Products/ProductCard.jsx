@@ -22,12 +22,14 @@ import StarRating from '../Common/StarRating';
 import { useWishlist } from '../../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
+import { useLanguage } from '../../context/language/LanguageContext';
 import LoginModal from '../Common/LoginModal';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const token = localStorage.getItem("token");
+  const { t } = useLanguage();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
 
@@ -90,13 +92,13 @@ const ProductCard = ({ product }) => {
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm shadow-sm border border-emerald-50 px-2.5 py-1 rounded-xl flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-emerald-700 text-[9px] font-bold uppercase tracking-wider">
-              In Stock
+              {t("product.inStock", { count: product.product_quantity })}
             </span>
           </div>
         ) : (
           <div className="absolute top-3 right-3 bg-slate-100/90 backdrop-blur-sm shadow-sm border border-slate-200 px-2.5 py-1 rounded-xl">
             <span className="text-slate-500 text-[9px] font-bold uppercase tracking-wider">
-              Out of Stock
+              {t("product.outOfStock")}
             </span>
           </div>
         )}
