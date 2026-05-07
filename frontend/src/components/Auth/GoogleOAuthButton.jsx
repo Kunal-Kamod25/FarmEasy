@@ -46,7 +46,7 @@ const GoogleOAuthButton = ({
     let isMounted = true;
 
     if (!clientId) {
-      setStatus("missing");
+      setTimeout(() => setStatus("missing"), 0);
       return () => {
         isMounted = false;
       };

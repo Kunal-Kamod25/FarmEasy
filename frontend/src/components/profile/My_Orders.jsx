@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import {
     getDisplayOrderStatus,
-    getOrderStatusClass,
 } from "../../utils/orderStatus";
 
 // real order history for users - fetches from the orders + order_items tables
@@ -17,7 +16,6 @@ import {
 const My_Orders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeTab, setActiveTab] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +50,6 @@ const My_Orders = () => {
             });
         } catch (err) {
             console.error("Order delete error:", err);
-            setError(err.response?.data?.message || "Failed to delete order");
         } finally {
             setDeletingOrderId(null);
         }
@@ -67,7 +64,6 @@ const My_Orders = () => {
             const userId = user?.id;
 
             if (!userId) {
-                setError("Please login to view orders");
                 return;
             }
 

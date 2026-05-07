@@ -6,7 +6,6 @@ const VendorManageCategories = () => {
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showSubcategoryForm, setShowSubcategoryForm] = useState(false);
-  const [selectedParent, setSelectedParent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -119,7 +118,6 @@ const VendorManageCategories = () => {
         showNotification("success", "Subcategory created successfully!");
         setSubcategoryForm({ name: "", description: "", parentId: null });
         setShowSubcategoryForm(false);
-        setSelectedParent(null);
         fetchCategories();
       } else {
         showNotification("error", data.error || "Failed to create subcategory");

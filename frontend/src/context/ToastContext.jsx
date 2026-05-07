@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { CheckCircle, X, AlertCircle, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+/* eslint-disable react-refresh/only-export-components */
 
+const MotionDiv = motion.div;
 const ToastContext = createContext();
 
 export const useToast = () => useContext(ToastContext);
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
+
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
 
   const showToast = useCallback((message, type = "success", duration = 3000) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -18,19 +24,17 @@ export const ToastProvider = ({ children }) => {
         removeToast(id);
       }, duration);
     }
-  }, []);
+  }, [removeToast]);
 
-  const removeToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  const value = React.useMemo(() => ({ showToast }), [showToast]);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
         <AnimatePresence>
           {toasts.map((toast) => (
-            <motion.div
+            <MotionDiv
               key={toast.id}
               initial={{ opacity: 0, x: 50, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -41,7 +45,7 @@ export const ToastProvider = ({ children }) => {
                 {...toast} 
                 onClose={() => removeToast(toast.id)} 
               />
-            </motion.div>
+            </MotionDiv>
           ))}
         </AnimatePresence>
       </div>

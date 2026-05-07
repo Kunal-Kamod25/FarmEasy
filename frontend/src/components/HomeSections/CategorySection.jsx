@@ -32,8 +32,7 @@ const CategorySection = ({
     navigate,
     addToCart,
     toggleWishlist,
-    isWishlisted,
-    idx
+    isWishlisted
 }) => {
     const catName = cat.name || cat.product_cat_name || "Category";
     const catKey = catName.toLowerCase();

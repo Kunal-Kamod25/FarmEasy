@@ -13,9 +13,6 @@ import { Star, StarHalf } from 'lucide-react';
  */
 const StarRating = ({ rating = 0, size = 16, className = "" }) => {
     const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0 && (rating % 1) >= 0.3 && (rating % 1) <= 0.7;
-    const roundedRating = Math.round(rating * 2) / 2; // Round to nearest 0.5
 
     for (let i = 1; i <= 5; i++) {
         if (i <= rating) {

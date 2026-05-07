@@ -29,7 +29,7 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = React.useMemo(() => JSON.parse(localStorage.getItem("user") || "{}"), []);
 
   // Fetch raw notifications from server, then apply local read state
   const fetchNotifications = useCallback(async () => {
@@ -80,18 +80,18 @@ export const NotificationProvider = ({ children }) => {
   // Poll on mount and every 30 seconds
   useEffect(() => {
     if (!token) {
-      setUnreadCount(0);
+      setTimeout(() => setUnreadCount(0), 0);
       return;
     }
 
-    fetchNotifications();
+    setTimeout(() => fetchNotifications(), 0);
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [token, fetchNotifications]);
 
   // Listen for login/logout to refresh
   useEffect(() => {
-    fetchNotifications();
+    setTimeout(() => fetchNotifications(), 0);
   }, [user.id, user.role, fetchNotifications]);
 
   return (

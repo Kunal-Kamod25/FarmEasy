@@ -12,14 +12,12 @@ import {
 const VendorNotifications = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const { notifications: ctxNotifications, unreadCount: contextUnread, markAsRead: ctxMarkAsRead, markAllAsRead: ctxMarkAllAsRead, refreshNotifications } = useNotifications();
 
   const [notifications, setNotifications] = useState([]);
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [unreadCount, setUnreadCount] = useState(contextUnread || 0);
 
@@ -54,15 +52,13 @@ const VendorNotifications = () => {
       setNotifications(res.data.data.notifications || []);
       setUnreadCount(res.data.data.unread_count || 0);
       refreshNotifications(); // Sync with context
-      setError("");
     } catch (err) {
       console.error("Error fetching notifications:", err);
-      if (notifications.length === 0) setError("Failed to load notifications");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, filter, notifications.length, refreshNotifications]);
+  }, [token, filter, notifications.length, refreshNotifications, effectiveRole]);
 
   useEffect(() => {
     if (!token) {
@@ -73,7 +69,7 @@ const VendorNotifications = () => {
     fetchNotifications(true);
     const interval = setInterval(() => fetchNotifications(false), 30000);
     return () => clearInterval(interval);
-  }, [token, user.id, filter, navigate, fetchNotifications]);
+  }, [token, filter, navigate, fetchNotifications]);
 
   const handleMarkAsRead = (notificationId) => {
     // Update context (persists to localStorage + drops navbar count)

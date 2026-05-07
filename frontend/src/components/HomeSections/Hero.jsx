@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowRight, Truck, ShieldCheck, Star, Headphones } from "lucide-react";
 import Farm1 from "../../assets/Farm1.jpeg";
 import Farm2 from "../../assets/Farm2.jpeg";
@@ -68,7 +68,6 @@ const slides = [
 ];
 
 const HeroCarousel = () => {
-  const navigate = useNavigate();
   const MotionDiv = motion.div;
   const MotionH1 = motion.h1;
   const MotionP = motion.p;

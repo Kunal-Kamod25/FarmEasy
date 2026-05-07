@@ -553,7 +553,7 @@ const Thirdbar = () => {
               })),
             }))
           );
-        } catch (_) {
+        } catch {
           setNavData([]);
         }
       }

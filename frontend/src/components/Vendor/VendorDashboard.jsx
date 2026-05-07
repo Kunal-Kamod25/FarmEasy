@@ -91,7 +91,7 @@ export default function VendorDashboard() {
     }).then(res => {
       setGstVerified(Boolean(res.data?.account_status?.gst_verified));
     }).catch(() => {});
-  }, [fetchStats, fetchRecentReviews]);
+  }, [fetchStats, fetchRecentReviews, token]);
 
   const monthlyData = stats.monthlyBreakdown || [];
   const feedbackData = stats.feedbackStats || [];

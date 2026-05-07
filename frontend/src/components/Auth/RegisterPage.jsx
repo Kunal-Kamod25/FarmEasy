@@ -157,7 +157,7 @@ const Register = () => {
         setSubmitError(regData.message || "Registration failed.");
         setStep("form");
       }
-    } catch (err) {
+    } catch {
       setOtpError("Connection error during verification.");
     } finally {
       setOtpLoading(false);

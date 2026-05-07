@@ -48,6 +48,7 @@ const CategoryProducts = () => {
         let categoryName = "Products";
         let categoryDesc = "Browse our collection";
         let categoryImage = null;
+        let mainCategory = null;
 
         try {
           const categoriesRes = await axios.get(`${API_URL}/api/categories`);
@@ -65,7 +66,7 @@ const CategoryProducts = () => {
             return null;
           };
 
-          const mainCategory = findCategory(allCategories, categoryId);
+          mainCategory = findCategory(allCategories, categoryId);
           if (mainCategory) {
             categoryName = mainCategory.name;
             categoryDesc = mainCategory.description || `Browse our collection of ${categoryName.toLowerCase()}`;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable react-refresh/only-export-components */
 
 /**
  * Custom Tooltip Content Component for Recharts with 3-second auto-close
@@ -15,12 +16,11 @@ export const AutoCloseTooltipContent = ({
   duration = 3000 
 }) => {
   const [displayTooltip, setDisplayTooltip] = useState(false);
-  const [visibilityTimer, setVisibilityTimer] = useState(null);
   const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (active && payload && payload.length > 0) {
-      setDisplayTooltip(true);
+      setTimeout(() => setDisplayTooltip(true), 0);
 
       // Clear existing timer
       if (timeoutRef.current) {
