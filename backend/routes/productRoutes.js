@@ -120,10 +120,10 @@
         params.push(seller_id);
       }
 
-      // search in both name and description
+      // search in name, description, and brand name
       if (search) {
-        sql += " AND (p.product_name LIKE ? OR p.product_description LIKE ?)";
-        params.push(`%${search}%`, `%${search}%`);
+        sql += " AND (p.product_name LIKE ? OR p.product_description LIKE ? OR b.name LIKE ?)";
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
 
       // sorting options

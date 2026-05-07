@@ -62,8 +62,8 @@ const BrandSection = () => {
     return () => cancelAnimationFrame(animationFrame);
   }, [isHovered, brands]);
 
-  const handleBrandClick = (brandName) => {
-    navigate(`/products?search=${encodeURIComponent(brandName)}`);
+  const handleBrandClick = (brandId) => {
+    navigate(`/products?brand_id=${brandId}`);
   };
 
   // double the array for seamless infinite scroll
@@ -109,7 +109,7 @@ const BrandSection = () => {
             {allBrands.map((brand, index) => (
               <div
                 key={index}
-                onClick={() => handleBrandClick(brand.name)}
+                onClick={() => handleBrandClick(brand.id)}
                 className={`min-w-[130px] group cursor-pointer flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 shrink-0 ring-2 ring-transparent hover:${brand.ring}`}
               >
                 {/* colorful initials circle */}
