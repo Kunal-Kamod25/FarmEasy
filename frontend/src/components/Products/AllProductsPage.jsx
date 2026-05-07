@@ -384,7 +384,7 @@ const AllProductsPage = () => {
                         ) : (
                             <div className="space-y-10">
                                 {groupedProducts.map((group) => (
-                                    <section key={group.key} className="space-y-4">
+                                    <section key={group.key} className="space-y-6 pb-12">
                                         <div className="flex items-center gap-4">
                                             <h2 className="text-sm font-black text-emerald-700 uppercase tracking-[0.2em]">
                                                 {group.label}
