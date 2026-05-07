@@ -1,5 +1,5 @@
 FarmEasy API One-by-One Testing Guide (Postman / Thunder Client)
-Date: 2026-05-02
+Date: 2026-05-07
 Backend Base URL: http://localhost:5000
 Frontend Base URL: http://localhost:5173
 
@@ -524,11 +524,18 @@ URL: {{baseUrl}}/api/vendor/products/{{productId}}
 Headers: Authorization
 Expected: 200 or 404 unauthorized/not found
 
-[TC_VENDOR_006] Vendor orders
+[TC_VENDOR_006] Vendor orders (List)
 Method: GET
 URL: {{baseUrl}}/api/vendor/orders
 Headers: Authorization
-Expected: 200
+Expected: 200 with list of order groups
+
+[TC_VENDOR_006B] Vendor order detail (Single)
+Method: GET
+URL: {{baseUrl}}/api/vendor/orders/{{orderId}}
+Headers: Authorization
+Expected: 200 with full order details, customer info, and items
+Note: Only returns items belonging to THIS vendor
 
 [TC_VENDOR_007] Vendor dashboard stats
 Method: GET
@@ -1303,5 +1310,7 @@ Body (JSON):
   "answer_text": "Yes, it is 100% organic and safe for all vegetables."
 }
 Expected: 200
+Note: Backend now triggers an email notification to the customer when their query is answered.
+Note 2: Only the specific vendor who owns the product can answer (verified by product.seller_id).
 
 

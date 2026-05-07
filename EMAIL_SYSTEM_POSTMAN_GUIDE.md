@@ -101,7 +101,43 @@
 
 ---
 
-### Test 3: Update Order to "Shipped"
+### Test 3: Update Order to "Processing" ⭐ (Sends Email)
+**Purpose:** Test order processing start email
+
+1. **Update Order Status**
+   - PUT `/api/orders/{orderId}/status`
+   - Headers: `Authorization: Bearer {JWT_TOKEN}`
+   - Body:
+     ```json
+     {
+       "status": "Processing"
+     }
+     ```
+   - **Expected Response:** success true, message updated to Processing
+   - **Email Sent:** "We are processing your order!" email
+   - **Verify Email:** Check inbox for processing notification
+
+---
+
+### Test 4: Update Order to "Out for Delivery" ⭐ (Sends Email)
+**Purpose:** Test real-time delivery start email
+
+1. **Update Order Status**
+   - PUT `/api/orders/{orderId}/status`
+   - Headers: `Authorization: Bearer {JWT_TOKEN}`
+   - Body:
+     ```json
+     {
+       "status": "Out for Delivery"
+     }
+     ```
+   - **Expected Response:** success true, message updated
+   - **Email Sent:** "Your Order is Out for Delivery! 🚚" email
+   - **Verify Email:** Check inbox for real-time delivery alert
+
+---
+
+### Test 5: Update Order to "Shipped"
 **Purpose:** Test shipping notification with tracking link
 
 1. **Update Order Status with Tracking**
@@ -127,7 +163,7 @@
 
 ---
 
-### Test 4: Update Order to "Delivered"
+### Test 6: Update Order to "Delivered"
 **Purpose:** Test delivery confirmation email
 
 1. **Update Order Status**
@@ -152,7 +188,7 @@
 
 ---
 
-### Test 5: Cancel Order
+### Test 7: Cancel Order
 **Purpose:** Test order cancellation email with reason
 
 1. **Update Order Status to Cancelled**
@@ -225,9 +261,11 @@ Then use `{{api_url}}`, `{{jwt_token}}`, etc. in requests.
 
 1. `Order #123 Placed Successfully | FarmEasy`
 2. `Order #123 Confirmed | FarmEasy`
-3. `Order #123 Shipped | FarmEasy`
-4. `Order #123 Delivered | FarmEasy`
-5. `Order #123 Cancelled | FarmEasy`
+3. `We are processing your Order #123 | FarmEasy`
+4. `Order #123 is Out for Delivery! 🚚 | FarmEasy`
+5. `Order #123 Shipped | FarmEasy`
+6. `Order #123 Delivered | FarmEasy`
+7. `Order #123 Cancelled | FarmEasy`
 
 ---
 

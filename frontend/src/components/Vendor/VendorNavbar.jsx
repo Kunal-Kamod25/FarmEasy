@@ -8,6 +8,7 @@ import { useNotifications } from "../../context/NotificationContext";
 const VendorNavbar = () => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const dropdownRef = useRef(null);
   const { unreadCount } = useNotifications();
 
@@ -97,8 +98,14 @@ const VendorNavbar = () => {
             onClick={() => setShowDropdown(!showDropdown)}
           >
             <div className="w-full h-full bg-emerald-50 rounded-[0.2rem] flex items-center justify-center overflow-hidden">
-              {user?.profile_pic ? (
-                <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+              {user?.profile_pic && !imgError ? (
+                <img 
+                  src={user.profile_pic} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover" 
+                  loading="lazy"
+                  onError={() => setImgError(true)}
+                />
               ) : (
                 <User size={22} className="text-emerald-600" />
               )}

@@ -73,6 +73,7 @@ const VendorProfile = () => {
   // GST verification state
   const [gstVerifying, setGstVerifying] = useState(false);
   const [gstVerifyError, setGstVerifyError] = useState("");
+  const [imgError, setImgError] = useState(false);
 
   // ── FETCH PROFILE ──
   // calls GET /api/vendor/profile which reads from users + seller table using the JWT token
@@ -279,17 +280,21 @@ const VendorProfile = () => {
             <div className="bg-white/5 rounded-2xl shadow-xl shadow-emerald-950/15 border border-white/10 p-6 flex flex-col items-center text-center backdrop-blur-xl">
               <div className="relative mb-4">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-emerald-300/10 flex items-center justify-center shadow-md border border-white/10">
-                  {imagePreview ? (
+                  {imagePreview && !imgError ? (
                     <img
                       src={imagePreview}
                       alt="profile"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={() => setImgError(true)}
                     />
-                  ) : profile.profile_image ? (
+                  ) : profile.profile_image && !imgError ? (
                     <img
                       src={getImageUrl(profile.profile_image)}
                       alt="profile"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={() => setImgError(true)}
                     />
                   ) : (
                     <User size={36} className="text-emerald-200" />
