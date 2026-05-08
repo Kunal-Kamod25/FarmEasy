@@ -26,7 +26,7 @@
         LEFT JOIN users u ON s.user_id = u.id
         LEFT JOIN (
           SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
-          FROM review_rating
+          FROM product_reviews
           GROUP BY product_id
         ) rs ON p.id = rs.product_id
         WHERE p.category_id = ? 
@@ -86,7 +86,7 @@
         LEFT JOIN users u ON s.user_id = u.id
         LEFT JOIN (
           SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
-          FROM review_rating
+          FROM product_reviews
           GROUP BY product_id
         ) rs ON p.id = rs.product_id
         WHERE 1=1
@@ -240,7 +240,7 @@
         LEFT JOIN vendor_rating_summary vrs ON s.id = vrs.vendor_id
         LEFT JOIN (
           SELECT product_id, ROUND(AVG(rating), 1) as average_rating, COUNT(*) as review_count
-          FROM review_rating
+          FROM product_reviews
           GROUP BY product_id
         ) prs ON p.id = prs.product_id
         WHERE p.id = ?
