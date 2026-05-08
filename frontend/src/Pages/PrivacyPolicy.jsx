@@ -3,7 +3,8 @@ import { useLanguage } from "../context/language/LanguageContext";
 import { ShieldCheck, Lock, Eye, FileText } from "lucide-react";
 
 const PrivacyPolicy = () => {
-    const { t } = useLanguage();
+    // eslint-disable-next-line no-unused-vars
+  const { t } = useLanguage();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50 py-16 px-4 md:px-8">

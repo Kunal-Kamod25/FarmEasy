@@ -112,7 +112,7 @@ const ProductDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, reviewsPerPage, sortBy]);
+  }, [id, reviewsPerPage, sortBy, t]);
 
   useEffect(() => {
     // scroll to top when navigating to a new product

@@ -65,7 +65,10 @@ const VendorManageCategories = () => {
         setShowForm(null);
         fetchCategories();
       }
-    } catch (err) { showNotification("error", "Failed to create"); }
+    } catch (err) { 
+      console.error(err);
+      showNotification("error", "Failed to create"); 
+    }
     finally { setLoading(false); }
   };
 
@@ -87,7 +90,10 @@ const VendorManageCategories = () => {
         setShowForm(null);
         fetchCategories();
       }
-    } catch (err) { showNotification("error", "Failed to create"); }
+    } catch (err) { 
+      console.error(err);
+      showNotification("error", "Failed to create"); 
+    }
     finally { setLoading(false); }
   };
 
@@ -109,7 +115,10 @@ const VendorManageCategories = () => {
         setShowForm(null);
         fetchBrands();
       }
-    } catch (err) { showNotification("error", "Failed to create"); }
+    } catch (err) { 
+      console.error(err);
+      showNotification("error", "Failed to create"); 
+    }
     finally { setLoading(false); }
   };
 

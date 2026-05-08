@@ -12,6 +12,7 @@ const HomeFilter = ({ categories, onFilterChange, activeFilters, clearFilters })
     const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPriceRange(activeFilters.price || 10000);
         setSelectedCategory(activeFilters.category || "all");
         setSelectedSort(activeFilters.sort || "newest");

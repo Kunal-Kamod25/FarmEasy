@@ -3,7 +3,8 @@ import { useLanguage } from "../context/language/LanguageContext";
 import { Truck, Clock, Globe, PackageCheck } from "lucide-react";
 
 const ShippingPolicy = () => {
-    const { t } = useLanguage();
+    // eslint-disable-next-line no-unused-vars
+  const { t } = useLanguage();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/10 to-emerald-50 py-16 px-4 md:px-8">

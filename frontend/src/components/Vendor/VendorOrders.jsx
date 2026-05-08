@@ -382,6 +382,7 @@ const VendorOrders = () => {
           { label: "Active", value: pendingOrders, icon: Clock, gradient: "from-amber-500 to-orange-500" },
           { label: "Delivered", value: deliveredOrders, icon: CheckCircle, gradient: "from-blue-500 to-cyan-500" },
           { label: "Cancelled", value: cancelledOrders, icon: XCircle, gradient: "from-red-500 to-rose-500" },
+        // eslint-disable-next-line no-unused-vars
         ].map(({ label, value, icon: Icon, gradient }) => (
           <div
             key={label}
