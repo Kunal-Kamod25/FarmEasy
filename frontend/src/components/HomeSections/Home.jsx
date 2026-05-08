@@ -6,12 +6,14 @@ import BrandSection from "./BrandSection";
 import { API_URL } from '../../config';
 import {
   Sparkles, TrendingUp, ArrowRight,
-  Truck, ShieldCheck, Headphones, Sprout, Star
+  Truck, ShieldCheck, Headphones, Sprout, Star,
+  Filter, X
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { ProductCard, LoadingSkeleton, EmptyState } from "./HomeProductCard";
 import CategorySection from "./CategorySection";
+import HomeFilter from "./HomeFilter";
 
 const API = `${API_URL}`;
 
@@ -26,11 +28,51 @@ const Home = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [activeFilters, setActiveFilters] = useState({ category: "all", price: 10000, sort: "newest" });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
+
+  const handleFilterChange = (newFilters) => {
+    setActiveFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const clearFilters = () => {
+    setActiveFilters({ category: "all", price: 10000 });
+  };
+
+  const filteredProducts = useMemo(() => {
+    let result = [...allProducts];
+    
+    if (activeFilters.category !== "all") {
+      const targetId = Number(activeFilters.category);
+      const parentCat = categories.find(c => c.id === targetId);
+      const categoryIds = [targetId];
+      
+      if (parentCat?.subcategories) {
+        parentCat.subcategories.forEach(sub => categoryIds.push(Number(sub.id)));
+      }
+      
+      result = result.filter(p => categoryIds.includes(Number(p.category_id)));
+    }
+
+    if (activeFilters.price < 10000) {
+      result = result.filter(p => Number(p.price) <= activeFilters.price);
+    }
+
+    if (activeFilters.sort === "price_asc") {
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (activeFilters.sort === "price_desc") {
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (activeFilters.sort === "newest") {
+      result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    return result;
+  }, [allProducts, activeFilters, categories]);
 
   const fetchProducts = async () => {
     try {
@@ -71,7 +113,7 @@ const Home = () => {
       }
     });
 
-    allProducts.forEach((p) => {
+    filteredProducts.forEach((p) => {
       const catId = p.category_id;
       if (catId === null || catId === undefined) return;
       
@@ -87,22 +129,21 @@ const Home = () => {
       }
     });
     return grouped;
-  }, [allProducts, categories]);
+  }, [filteredProducts, categories]);
 
   const newArrivals = useMemo(() => {
-    return [...allProducts]
+    return [...filteredProducts]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 8);
-  }, [allProducts]);
+  }, [filteredProducts]);
 
   // Generic Recommendations logic: 
-  // Pick some products that are well-stocked and maybe a mix of categories
   const recommendations = useMemo(() => {
-    return [...allProducts]
+    return [...filteredProducts]
       .filter(p => p.product_quantity > 0)
-      .sort(() => 0.5 - Math.random()) // generic random mix
-      .slice(0, 4);
-  }, [allProducts]);
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 5);
+  }, [filteredProducts]);
 
   const activeCategories = useMemo(() => {
     // Show ALL categories, not just ones with products
@@ -115,110 +156,170 @@ const Home = () => {
 
       {categoryParam === "main" && <Hero />}
 
-      {/* ═══════════════ NEW ARRIVALS SECTION ═══════════════ */}
-      <section className="w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-20 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-                <div className="h-1 w-8 bg-emerald-500 rounded-full" />
-                <span className="text-emerald-600 font-black uppercase tracking-[0.3em] text-[10px]">
-                    Fresh Harvest
-                </span>
+      <div className="w-full max-w-[1440px] mx-auto flex flex-col xl:flex-row gap-8 relative px-6 md:px-12">
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+          {/* ═══════════════ NEW ARRIVALS SECTION ═══════════════ */}
+          <section className="pt-20 pb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <div className="h-1 w-8 bg-emerald-500 rounded-full" />
+                    <span className="text-emerald-600 font-black uppercase tracking-[0.3em] text-[10px]">
+                        Fresh Harvest
+                    </span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+                    New Arrivals
+                </h2>
+                <p className="text-slate-500 text-lg max-w-xl font-medium">
+                    Discover the latest high-yield seeds and premium fertilizers recently added by our verified partners.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate("/products")}
+                className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95 h-fit"
+              >
+                Explore Catalog <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              </button>
             </div>
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-                New Arrivals
-            </h2>
-            <p className="text-slate-500 text-lg max-w-xl font-medium">
-                Discover the latest high-yield seeds and premium fertilizers recently added by our verified partners.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/products")}
-            className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95"
-          >
-            Explore Catalog <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-          </button>
+
+            {loading ? (
+              <LoadingSkeleton count={5} />
+            ) : newArrivals.length === 0 ? (
+              <EmptyState message="No products match your current filters. Try adjusting your preferences." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                {newArrivals.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={addToCart}
+                    onToggleWishlist={toggleWishlist}
+                    isWishlisted={isWishlisted(product.id)}
+                    onViewDetail={() => navigate(`/product/${product.id}`)}
+                    badge="NEW"
+                    badgeColor="bg-violet-500"
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {categoryParam === "main" && <BrandSection />}
+
+          {/* ═══════════════ RECOMMENDED FOR YOU ═══════════════ */}
+          {!loading && recommendations.length > 0 && (
+            <section className="py-20">
+              <div className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-[3rem] p-12 border border-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <div className="h-1 w-8 bg-amber-500 rounded-full" />
+                            <span className="text-amber-600 font-black uppercase tracking-[0.3em] text-[10px]">
+                                Curated Selection
+                            </span>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+                            Handpicked for You
+                        </h2>
+                        <p className="text-slate-500 text-lg max-w-xl font-medium">
+                            Personalized recommendations based on your farming needs and regional climate.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 relative z-10">
+                  {recommendations.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                      onToggleWishlist={toggleWishlist}
+                      isWishlisted={isWishlisted(product.id)}
+                      onViewDetail={() => navigate(`/product/${product.id}`)}
+                      badge="TOP"
+                      badgeColor="bg-amber-500"
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* ═══════════════ DYNAMIC CATEGORY SECTIONS ═══════════════ */}
+          {!loading &&
+            activeCategories.map((cat, idx) => {
+              const catProducts = productsByCategory[cat.id] || [];
+              if (catProducts.length === 0 && activeFilters.category !== "all") return null;
+              
+              return (
+                <CategorySection
+                  key={cat.id}
+                  cat={cat}
+                  products={catProducts}
+                  navigate={navigate}
+                  addToCart={addToCart}
+                  toggleWishlist={toggleWishlist}
+                  isWishlisted={isWishlisted}
+                  idx={idx}
+                />
+              );
+            })}
         </div>
 
-        {loading ? (
-          <LoadingSkeleton count={5} />
-        ) : newArrivals.length === 0 ? (
-          <EmptyState message="No products yet. Products will appear once vendors add them." />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {newArrivals.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleWishlist={toggleWishlist}
-                isWishlisted={isWishlisted(product.id)}
-                onViewDetail={() => navigate(`/product/${product.id}`)}
-                badge="NEW"
-                badgeColor="bg-violet-500"
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {categoryParam === "main" && <BrandSection />}
-
-      {/* ═══════════════ RECOMMENDED FOR YOU ═══════════════ */}
-      {!loading && recommendations.length > 0 && (
-        <section className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-20">
-          <div className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-[3rem] p-12 border border-white shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <div className="h-1 w-8 bg-amber-500 rounded-full" />
-                        <span className="text-amber-600 font-black uppercase tracking-[0.3em] text-[10px]">
-                            Curated Selection
-                        </span>
-                    </div>
-                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-                        Handpicked for You
-                    </h2>
-                    <p className="text-slate-500 text-lg max-w-xl font-medium">
-                        Personalized recommendations based on your farming needs and regional climate.
-                    </p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 relative z-10">
-              {recommendations.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={addToCart}
-                  onToggleWishlist={toggleWishlist}
-                  isWishlisted={isWishlisted(product.id)}
-                  onViewDetail={() => navigate(`/product/${product.id}`)}
-                  badge="TOP"
-                  badgeColor="bg-amber-500"
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════ DYNAMIC CATEGORY SECTIONS ═══════════════ */}
-      {!loading &&
-        activeCategories.map((cat, idx) => (
-          <CategorySection
-            key={cat.id}
-            cat={cat}
-            products={productsByCategory[cat.id] || []}
-            navigate={navigate}
-            addToCart={addToCart}
-            toggleWishlist={toggleWishlist}
-            isWishlisted={isWishlisted}
-            idx={idx}
+        {/* Sidebar Filter Area - Desktop */}
+        <aside className="hidden xl:block w-80 flex-shrink-0 pt-20">
+          <HomeFilter 
+            categories={categories} 
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+            clearFilters={clearFilters}
           />
-        ))}
+        </aside>
+      </div>
+
+      {/* Mobile Filter Button & Overlay */}
+      <div className="xl:hidden fixed bottom-8 right-8 z-50">
+        <button
+          onClick={() => setIsFilterOpen(true)}
+          className="bg-slate-900 text-white p-5 rounded-3xl shadow-2xl shadow-slate-900/40 border border-white/10 active:scale-90 transition-all flex items-center gap-3"
+        >
+            <Filter size={20} />
+            <span className="font-black uppercase tracking-widest text-[10px]">Filter</span>
+        </button>
+      </div>
+
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-[60] xl:hidden">
+            <div 
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                onClick={() => setIsFilterOpen(false)}
+            />
+            <div className="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className="font-black text-slate-800 uppercase tracking-widest">Explore Tools</h3>
+                    <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-slate-100 rounded-xl">
+                        <X size={20} />
+                    </button>
+                </div>
+                <HomeFilter 
+                    categories={categories} 
+                    activeFilters={activeFilters}
+                    onFilterChange={handleFilterChange}
+                    clearFilters={clearFilters}
+                />
+                <button 
+                    onClick={() => setIsFilterOpen(false)}
+                    className="w-full mt-8 py-4 bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-500/20"
+                >
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+      )}
 
       {/* ═══════════════ WHY FARMEASY ═══════════════ */}
       {categoryParam === "main" && (
