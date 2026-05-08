@@ -164,7 +164,7 @@ const Navbar = () => {
         <div className="flex flex-col md:flex-row md:items-center md:h-20 py-3 md:py-0 gap-4">
 
           {/* LOGO & MOBILE ICONS ROW */}
-          <div className="flex items-center justify-between w-full gap-2 md:gap-4">
+          <div className="flex items-center justify-between md:justify-start w-full md:flex-1 gap-2 md:gap-8">
             <Link to="/" className="flex-shrink-0 transition-transform active:scale-95">
               <img
                 src={logo}
@@ -174,7 +174,7 @@ const Navbar = () => {
             </Link>
 
             {/* SEARCH BAR - Integrated into the row, positioned left on desktop */}
-            <div className="flex-1 max-w-2xl mx-2 md:mx-0 md:ml-8">
+            <div className="flex-1 md:flex-none md:w-[350px] lg:w-[500px] xl:w-[600px] mx-2 md:mx-0">
               <Searchbar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
