@@ -560,17 +560,11 @@ const Register = () => {
                 <span className="h-px flex-1 bg-white/10" />
               </div>
 
-              {role === "vendor" ? (
-                <p className="rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-center text-xs text-amber-100">
-                  Google sign-up is available for customer accounts only. Vendors can use the manual form.
-                </p>
-              ) : (
-                <GoogleOAuthButton
-                  onCredential={handleGoogleCredential}
-                  buttonText="signup_with"
-                  className="w-full"
-                />
-              )}
+              <GoogleOAuthButton
+                onCredential={handleGoogleCredential}
+                buttonText="signup_with"
+                className="w-full"
+              />
 
               {googleError && (
                 <p className="mt-4 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
