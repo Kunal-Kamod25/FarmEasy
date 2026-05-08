@@ -173,8 +173,8 @@ const Navbar = () => {
               />
             </Link>
 
-            {/* SEARCH BAR - Integrated into the row on desktop, centered on mobile if possible */}
-            <div className="flex-1 max-w-2xl mx-2 md:mx-auto">
+            {/* SEARCH BAR - Integrated into the row, positioned left on desktop */}
+            <div className="flex-1 max-w-2xl mx-2 md:mx-0 md:ml-8">
               <Searchbar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
