@@ -51,6 +51,14 @@ The dashboard is a "Command Center" for sellers:
     *   **Performance**: Average star rating from the `vendor_rating_summary` table.
 3.  **Automatic Updates**: Every time a sale happens or a review is left, these numbers update automatically in the dashboard UI.
 
+### F. Email Communication (SMTP/Nodemailer)
+For notifications and security:
+1.  **Trigger**: User registers or places an order.
+2.  **Backend**: Uses the `nodemailer` library with an **SMTP Server** (like Gmail or SendGrid).
+3.  **Communication**: Backend connects to the SMTP server using secure credentials from `.env`.
+4.  **Delivery**: The SMTP server sends the email (OTP, Order Confirmation) to the user's inbox.
+5.  **OTP Logic**: For registration, the Backend generates a 6-digit code, saves it in the `registration_otps` table, and emails it. The user enters it in the UI, and the Backend verifies it against the database.
+
 ---
 
 ## 3. Why this communication is Secure?
