@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useLanguage } from "../context/language/LanguageContext";
+import ScrollToTop from "../components/Common/ScrollToTop";
 
 /* User Layout + Pages */
 const UserLayout = lazy(() => import("../components/Layout/UserLayout"));
@@ -69,6 +70,7 @@ const AppRoutes = () => {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Suspense fallback={RouteFallback}>
         <Routes>
 
