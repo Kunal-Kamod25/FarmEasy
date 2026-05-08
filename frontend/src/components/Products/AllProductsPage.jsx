@@ -240,7 +240,8 @@ const AllProductsPage = () => {
                         <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-emerald-500/5 p-7 space-y-9 sticky top-6">
                             <div className="flex items-center justify-between border-b border-emerald-100 pb-5">
                                 <h3 className="font-black text-slate-800 flex items-center gap-2 uppercase tracking-[0.15em] text-xs">
-                                    <Filter size={18} classN                                    {t("products.filters")}
+                                    <Filter size={18} className="text-emerald-600" />
+                                    {t("products.filters")}
                                 </h3>
                                 {hasActiveFilters && (
                                     <button
