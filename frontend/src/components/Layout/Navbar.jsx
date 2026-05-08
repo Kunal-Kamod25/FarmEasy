@@ -164,56 +164,62 @@ const Navbar = () => {
         <div className="flex flex-col md:flex-row md:items-center md:h-20 py-3 md:py-0 gap-4">
 
           {/* LOGO & MOBILE ICONS ROW */}
-          <div className="flex items-center justify-between w-full md:w-auto gap-4">
+          <div className="flex items-center justify-between w-full gap-2 md:gap-4">
             <Link to="/" className="flex-shrink-0 transition-transform active:scale-95">
               <img
                 src={logo}
                 alt="FarmEasy"
-                className="h-12 md:h-24 w-auto object-contain"
+                className="h-10 md:h-24 w-auto object-contain"
               />
             </Link>
 
+            {/* SEARCH BAR - Integrated into the row on desktop, centered on mobile if possible */}
+            <div className="flex-1 max-w-2xl mx-2 md:mx-auto">
+              <Searchbar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                handleSearch={handleSearch}
+                suggestions={searchSuggestions}
+                suggestionsLoading={searchSuggestionsLoading}
+                onSuggestionSelect={handleSuggestionSelect}
+                onViewAllMatches={handleViewAllMatches}
+              />
+            </div>
+
             {/* MOBILE ONLY ICONS */}
-            <div className="flex items-center gap-4 md:hidden">
+            <div className="flex items-center gap-3 md:hidden">
               {!user ? (
-                <Link to="/login" className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                  Login
+                <Link to="/login" className="flex flex-col items-center gap-0.5 text-white hover:text-emerald-400 transition-colors">
+                  <HiOutlineUser className="h-6 w-6" />
+                  <span className="text-[9px] font-bold uppercase tracking-tighter">Login</span>
                 </Link>
               ) : (
-                <div className="flex items-center gap-4">
-                  <Link to="/wishlist" className="relative group">
-                    <HiOutlineHeart className="h-6 w-6 text-white group-hover:text-red-400 transition-colors" />
-                    {wishlistCount > 0 && (
-                      <span className="absolute -top-3 -right-2 text-white text-[9px] rounded-full bg-red-500 w-4 h-4 flex items-center justify-center font-black">
-                        {wishlistCount > 9 ? "9+" : wishlistCount}
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={["vendor", "seller"].includes(String(user?.role || "").toLowerCase()) ? "/vendor/notifications" : "/notifications"}
+                    className="relative group"
+                  >
+                    <HiOutlineBell className="h-6 w-6 text-white group-hover:text-emerald-400 transition-colors" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-2.5 -right-1 text-white text-[9px] rounded-full bg-red-500 w-3.5 h-3.5 flex items-center justify-center font-black">
+                        {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
                   </Link>
                   <button onClick={toggleCartDrawer} className="relative group">
                     <HiOutlineShoppingCart className="h-6 w-6 text-white group-hover:text-emerald-400 transition-colors" />
                     {cartCount > 0 && (
-                      <span className="absolute -top-3 -right-2 text-white text-[9px] rounded-full bg-emerald-500 w-4 h-4 flex items-center justify-center font-black">
+                      <span className="absolute -top-2.5 -right-1 text-white text-[9px] rounded-full bg-emerald-500 w-3.5 h-3.5 flex items-center justify-center font-black">
                         {cartCount > 9 ? "9+" : cartCount}
                       </span>
                     )}
                   </button>
+                  <Link to="/profile" className="group">
+                    <HiOutlineUser className="h-6 w-6 text-white group-hover:text-emerald-400 transition-colors" />
+                  </Link>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* SEARCH BAR - Pushed below on mobile, center on desktop */}
-          <div className="w-full md:flex-1 md:max-w-2xl md:mx-auto">
-            <Searchbar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              handleSearch={handleSearch}
-              suggestions={searchSuggestions}
-              suggestionsLoading={searchSuggestionsLoading}
-              onSuggestionSelect={handleSuggestionSelect}
-              onViewAllMatches={handleViewAllMatches}
-            />
-          </div>
 
           {/* DESKTOP ONLY ICONS */}
           <div className="hidden md:flex items-center gap-6 ml-auto">
