@@ -9,6 +9,7 @@ import {
 import { useWishlist } from "../../context/WishlistContext";
 import { useLanguage } from "../../context/language/LanguageContext";
 import AllProductsProductCard from "./AllProductsProductCard";
+import ProfessionalSelect from "../Common/ProfessionalSelect";
 
 const DEFAULT_FILTERS = {
     search: "",
@@ -185,34 +186,33 @@ const AllProductsPage = () => {
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* ── SEARCH + CONTROLS BAR ── */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                    {/* search box */}
-                    <div className="relative flex-1">
-                        <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                <div className="flex flex-col sm:flex-r                    {/* search box */}
+                    <div className="relative flex-1 group">
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                         <input
                             type="text"
                             placeholder={t("products.searchPlaceholder")}
                             value={filters.search}
                             onChange={e => handleFilterChange("search", e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                            className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all shadow-sm hover:shadow-md"
                         />
                     </div>
 
                     {/* sort dropdown */}
-                    <div className="relative">
-                        <ArrowUpDown size={15} className="absolute left-3 top-3 text-slate-400" />
+                    <div className="relative group min-w-[200px]">
+                        <ArrowUpDown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-emerald-500 transition-colors pointer-events-none z-10" />
                         <select
                             value={filters.sort}
                             onChange={e => handleFilterChange("sort", e.target.value)}
-                            className="pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white appearance-none cursor-pointer"
+                            className="w-full pl-12 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none cursor-pointer transition-all shadow-sm hover:shadow-md"
                         >
                             <option value="newest">{t("products.sort.newest")}</option>
                             <option value="oldest">{t("products.sort.oldest")}</option>
                             <option value="price_asc">{t("products.sort.priceAsc")}</option>
                             <option value="price_desc">{t("products.sort.priceDesc")}</option>
                         </select>
-                        <ChevronDown size={14} className="absolute right-2.5 top-3.5 text-slate-400 pointer-events-none" />
-                    </div>
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>          </div>
 
                     {/* filter toggle button for mobile */}
                     <button
@@ -239,87 +239,66 @@ const AllProductsPage = () => {
                         <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-white shadow-2xl shadow-emerald-500/5 p-7 space-y-9 sticky top-6">
                             <div className="flex items-center justify-between border-b border-emerald-100 pb-5">
                                 <h3 className="font-black text-slate-800 flex items-center gap-2 uppercase tracking-[0.15em] text-xs">
-                                    <Filter size={18} className="text-emerald-600" />
-                                    {t("products.filters")}
+                                    <Filter size={18} classN                                    {t("products.filters")}
                                 </h3>
                                 {hasActiveFilters && (
                                     <button
                                         onClick={clearAllFilters}
-                                        className="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-xl hover:bg-red-100 font-black uppercase tracking-wider transition-all active:scale-95"
+                                        className="text-[10px] bg-red-50 text-red-500 px-4 py-2 rounded-2xl hover:bg-red-100 font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2"
                                     >
-                                        {t("products.clearAll")}
+                                        <RotateCcw size={12} /> {t("products.clearAll")}
                                     </button>
                                 )}
                             </div>
 
                             {/* Category Filter */}
-                            <div className="space-y-3">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                                    {t("products.category")}
-                                </label>
-                                <div className="relative group">
-                                    <select
-                                        value={filters.category_id}
-                                        onChange={e => handleFilterChange("category_id", e.target.value)}
-                                        className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
-                                    >
-                                        <option value="">{t("products.allCategories")}</option>
-                                        {Array.isArray(categories) && categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>
-                                                {td(cat.name || cat.product_cat_name)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
-                                </div>
-                            </div>
+                            <ProfessionalSelect 
+                                label={t("products.category")}
+                                options={[
+                                    { id: "", name: t("products.allCategories") },
+                                    ...categories.map(cat => ({ id: cat.id, name: td(cat.name || cat.product_cat_name) }))
+                                ]}
+                                value={filters.category_id}
+                                onChange={val => handleFilterChange("category_id", val)}
+                                icon={Sprout}
+                            />
 
                             {/* Brand Filter */}
-                            <div className="space-y-3">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                                    {t("products.brand")}
-                                </label>
-                                <div className="relative group">
-                                    <select
-                                        value={filters.brand_id}
-                                        onChange={e => handleFilterChange("brand_id", e.target.value)}
-                                        className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
-                                    >
-                                        <option value="">{t("products.allBrands")}</option>
-                                        {Array.isArray(brands) && brands.map(brand => (
-                                            <option key={brand.id} value={brand.id}>
-                                                {brand.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
-                                </div>
-                            </div>
+                            <ProfessionalSelect 
+                                label={t("products.brand")}
+                                options={[
+                                    { id: "", name: t("products.allBrands") },
+                                    ...brands.map(brand => ({ id: brand.id, name: brand.name }))
+                                ]}
+                                value={filters.brand_id}
+                                onChange={val => handleFilterChange("brand_id", val)}
+                                icon={Package}
+                            />
 
                             {/* Price Range */}
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                                     {t("products.priceRange")}
                                 </label>
-                                <div className="flex gap-3">
-                                    <div className="relative flex-1">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold">₹</span>
+                                <div className="flex flex-col gap-3">
+                                    <div className="relative group">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold group-focus-within:text-emerald-500 transition-colors">₹</span>
                                         <input
                                             type="number"
                                             placeholder={t("products.min")}
                                             value={filters.min_price}
                                             onChange={e => handleFilterChange("min_price", e.target.value)}
-                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-8 pr-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300"
+                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-10 pr-4 py-4 text-xs font-black uppercase tracking-widest text-slate-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300 shadow-sm"
                                         />
                                     </div>
-                                    <div className="relative flex-1">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold">₹</span>
+                                    <div className="relative group">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold group-focus-within:text-emerald-500 transition-colors">₹</span>
                                         <input
                                             type="number"
                                             placeholder={t("products.max")}
                                             value={filters.max_price}
                                             onChange={e => handleFilterChange("max_price", e.target.value)}
-                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-8 pr-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300"
+                                            className="w-full bg-white border border-slate-100 rounded-2xl pl-10 pr-4 py-4 text-xs font-black uppercase tracking-widest text-slate-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-300 shadow-sm"
                                         />
                                     </div>
                                 </div>
@@ -327,27 +306,17 @@ const AllProductsPage = () => {
 
                             {/* Seller Filter */}
                             {sellers.length > 0 && (
-                                <div className="space-y-3">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                                        {t("products.seller")}
-                                    </label>
-                                    <div className="relative group">
-                                        <select
-                                            value={filters.seller_id}
-                                            onChange={e => handleFilterChange("seller_id", e.target.value)}
-                                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm text-slate-700 font-semibold focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 focus:outline-none appearance-none transition-all cursor-pointer hover:border-emerald-200"
-                                        >
-                                            <option value="">{t("products.allSellers")}</option>
-                                            {sellers.map(seller => (
-                                                <option key={seller.id} value={seller.id}>
-                                                    {seller.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-emerald-500 transition-colors" />
-                                    </div>
-                                </div>
-                            )}
+                                <ProfessionalSelect 
+                                    label={t("products.seller")}
+                                    options={[
+                                        { id: "", name: t("products.allSellers") },
+                                        ...sellers.map(seller => ({ id: seller.id, name: seller.name }))
+                                    ]}
+                                    value={filters.seller_id}
+                                    onChange={val => handleFilterChange("seller_id", val)}
+                                    icon={Filter}
+                                />
+                            )}                            )}
                         </div>
                     </div>
 
