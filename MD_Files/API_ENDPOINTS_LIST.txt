@@ -44,6 +44,11 @@ This list covers all major API endpoints in your project. These are the "Connect
 *   `PATCH /api/delivery/:id/status` : Update package status (Picked up → Out for delivery).
 *   `POST /api/delivery/location/update` : Send live GPS coordinates to the server.
 
+### 8. Email & OTP Verification
+*   `POST /api/otp/send` : Generate and send a 6-digit OTP via Email.
+*   `POST /api/otp/verify` : Validate the OTP entered by the user.
+*   `POST /api/email/order-confirmation` : Send an automated order summary email.
+
 ---
 
 ## Technical Specs:

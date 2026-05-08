@@ -54,6 +54,6 @@ The dashboard is a "Command Center" for sellers:
 ---
 
 ## 3. Why this communication is Secure?
-*   **Environment Variables (.env)**: All API keys for AWS, Razorpay, and Cashfree are hidden in the backend and never exposed to the browser.
+*   **Environment Variables (.env)**: All API keys for AWS, Razorpay, Cashfree, and SMTP are hidden in the backend and never exposed to the browser.
 *   **JWT Authentication**: Every request to the Dashboard or Cart must have a valid JSON Web Token, ensuring users can only see their own data.
 *   **SQL Injection Protection**: We use "Prepared Statements" to prevent hackers from manipulating the database through input fields.
