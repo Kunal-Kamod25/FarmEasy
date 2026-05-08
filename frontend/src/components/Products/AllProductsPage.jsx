@@ -186,7 +186,8 @@ const AllProductsPage = () => {
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* ── SEARCH + CONTROLS BAR ── */}
-                <div className="flex flex-col sm:flex-r                    {/* search box */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                    {/* search box */}
                     <div className="relative flex-1 group">
                         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                         <input
