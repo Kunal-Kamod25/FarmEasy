@@ -40,7 +40,7 @@ const MegaMenu = ({ category, onClose }) => {
       onMouseLeave={onClose}
     >
       {/* ── COLUMN 1: Subcategories ── */}
-      <div className="bg-white w-56 flex-shrink-0 border-r border-slate-100 py-2">
+      <div className="bg-white w-40 flex-shrink-0 border-r border-slate-100 py-2">
         {/* View All link */}
         <button
           onClick={() => goTo(`/category/${category.id}`)}
@@ -61,19 +61,17 @@ const MegaMenu = ({ category, onClose }) => {
               key={sub.id}
               onMouseEnter={() => setHoveredSub(sub)}
               onClick={() => goTo(`/category/${sub.id}`)}
-              className={`w-full text-left px-4 py-2.5 flex items-center justify-between group transition-colors ${
-                activeSub?.id === sub.id
-                  ? "bg-emerald-50 text-emerald-700 font-semibold"
-                  : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
-              }`}
+              className={`w-full text-left px-4 py-2.5 flex items-center justify-between group transition-colors ${activeSub?.id === sub.id
+                ? "bg-emerald-50 text-emerald-700 font-semibold"
+                : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                }`}
             >
               <span className="text-sm">{sub.name}</span>
               {sub.products && sub.products.length > 0 && (
                 <RiArrowRightSLine
                   size={16}
-                  className={`transition-colors ${
-                    activeSub?.id === sub.id ? "text-emerald-600" : "text-slate-300 group-hover:text-emerald-400"
-                  }`}
+                  className={`transition-colors ${activeSub?.id === sub.id ? "text-emerald-600" : "text-slate-300 group-hover:text-emerald-400"
+                    }`}
                 />
               )}
             </button>
@@ -274,9 +272,8 @@ const MobileNavItem = ({ category, onClose }) => {
                   {sub.products && sub.products.length > 0 && (
                     <RiArrowDownSLine
                       size={16}
-                      className={`text-white/60 transition-transform duration-200 ${
-                        openSubId === sub.id ? "rotate-180" : ""
-                      }`}
+                      className={`text-white/60 transition-transform duration-200 ${openSubId === sub.id ? "rotate-180" : ""
+                        }`}
                     />
                   )}
                 </div>
@@ -400,9 +397,8 @@ const SimpleNavItem = ({
   return (
     <div className="relative" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div
-        className={`flex items-center gap-1 py-3 md:py-0.5 cursor-pointer transition-all ${
-          isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
-        }`}
+        className={`flex items-center gap-1 py-1.5 md:py-0.5 cursor-pointer transition-all ${isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
+          }`}
         onClick={() => {
           if (items && items.length > 0) onToggle && onToggle();
           else {
@@ -464,9 +460,8 @@ const DesktopCategoryItem = ({ category, isOpen, onMouseEnter, onClose, onCancel
       onMouseLeave={onClose}
     >
       <div
-        className={`flex items-center gap-1.5 cursor-pointer py-4 transition-all relative group/item ${
-          isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
-        }`}
+        className={`flex items-center gap-1.5 cursor-pointer py-2.5 transition-all relative group/item ${isActive ? "text-emerald-400" : "text-white hover:text-emerald-200"
+          }`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onClose}
         onClick={() => navigate(`/category/${category.id}`)}
@@ -595,7 +590,7 @@ const Thirdbar = () => {
 
       <nav
         ref={navRef}
-        className="relative container mx-auto flex items-center justify-between py-2 px-4 md:px-6"
+        className="relative container mx-auto flex items-center justify-between py-1.5 px-4 md:px-6"
       >
         {/* Mobile hamburger */}
         <div
