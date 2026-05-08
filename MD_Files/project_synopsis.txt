@@ -1,0 +1,43 @@
+================================================================================
+PROJECT SYNOPSIS: FARMEASY
+================================================================================
+
+1. PROJECT OVERVIEW (3-Line Summary)
+------------------------------------
+FarmEasy is a comprehensive agricultural marketplace connecting farmers directly with consumers, facilitating seamless agricultural product sales. The platform empowers rural vendors with digital tools for inventory management to streamline the farm-to-table supply chain. Built with a modern glassmorphism UI, it integrates robust backend services and AWS S3 storage to provide a scalable, professional e-commerce experience for the agricultural sector.
+
+2. CORE FEATURES IMPLEMENTED (Actual Status)
+--------------------------------------------
+
+A. MULTI-VENDOR MARKETPLACE
+- Product Management: Vendors can add, update, and delete products with rich descriptions and category mapping.
+- Category Hierarchy: Multi-level navigation (Main Categories & Sub-categories) for easy product discovery.
+- Order Management: End-to-end flow from cart/checkout to order tracking and status updates.
+
+B. ADVANCED REVIEWS & RATING SYSTEM
+- Product Feedback: Customers can leave detailed reviews with star ratings for products they have purchased.
+- Transparency & Trust: Features a verified purchase badge and helpful votes to build a reliable community feedback loop.
+
+C. SMART NOTIFICATION SYSTEM
+- Order Lifecycle Alerts: Instant notifications for status changes (Pending, Confirmed, Shipped, Delivered) to keep buyers fully informed.
+- Automated Vendor Alerts: Real-time system to inform vendors of newly received orders and low-stock product warnings for timely fulfillment.
+
+D. TECHNICAL ARCHITECTURE
+- Modern Frontend: React-based SPA featuring a "Farm-Modern" aesthetic with glassmorphism and responsive design.
+- Scalable Backend: Node.js/Express API with a structured MySQL database schema.
+- Optimized Cloud Storage: AWS S3 integration with automated "Smart Delete" logic to prevent orphan storage and reduce costs.
+- Security: Role-based access control (Vendor, Customer) and secure authentication.
+
+3. TECH STACK USED
+------------------
+- Frontend: React.js, Tailwind CSS/Vanilla CSS, Lucide Icons
+- Backend: Node.js, Express.js
+- Database: MySQL
+- Cloud Services: AWS S3 (Simple Storage Service)
+- API Testing: Postman
+- CI/CD: GitHub Actions
+- Deployment: Frontend (Vercel), Backend (Render), Database (Aiven)
+
+================================================================================
+Status: PRODUCTION READY FOR EVALUATION
+================================================================================

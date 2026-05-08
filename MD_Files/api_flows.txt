@@ -1,0 +1,268 @@
+===========================================================================
+FarmEasy Project - Complete API Endpoints & Flow Documentation
+===========================================================================
+This document outlines all API endpoints, their database interactions,
+backend controller logic, and frontend usage.
+
+Structure:
+[ENDPOINT] [METHOD]
+  - Database: Tables and queries involved
+  - Backend: Controller logic and key functions
+  - Frontend: Component/Page using this API
+
+===========================================================================
+1. AUTHENTICATION (Prefix: /api/authentication)
+===========================================================================
+
+[POST] /api/authentication/register
+  - Database: 
+    * Table: users
+    * Query: INSERT INTO users (full_name, email, password_hash, role, phone_number, ...)
+  - Backend: 
+    * Controller: registerController.js -> register()
+    * Logic: Validates input, hashes password (bcrypt), checks for existing user, saves to DB.
+  - Frontend: 
+    * File: RegisterPage.jsx
+    * Action: Sends formData to backend on form submit.
+
+[POST] /api/authentication/login
+  - Database: 
+    * Table: users
+    * Query: SELECT * FROM users WHERE email = ? OR phone_number = ?
+  - Backend: 
+    * Controller: loginController.js -> login()
+    * Logic: Identifies user, compares password hash, generates JWT token (jsonwebtoken).
+  - Frontend: 
+    * File: Login.jsx
+    * Action: Sends identifier and password, stores token/user in localStorage on success.
+
+[POST] /api/authentication/google
+  - Database: 
+    * Table: users
+    * Query: SELECT/INSERT based on Google email.
+  - Backend: 
+    * Controller: loginController.js -> google()
+    * Logic: Verifies Google token, finds or creates user, returns app JWT.
+  - Frontend: 
+    * File: Login.jsx (GoogleOAuthButton)
+    * Action: Sends Google credential to backend.
+
+[POST] /api/authentication/send-otp
+  - Database: 
+    * Table: otp_storage (temporary) or internal state
+  - Backend: 
+    * Controller: otpController.js -> sendOTP()
+    * Logic: Generates 6-digit OTP, sends via email (nodemailer/SMTP).
+  - Frontend: 
+    * File: RegisterPage.jsx / ForgotPassword.jsx
+
+[POST] /api/authentication/verify-otp
+  - Backend: 
+    * Controller: otpController.js -> verifyOTP()
+    * Logic: Compares submitted OTP with stored value.
+
+===========================================================================
+2. PRODUCTS & CATEGORIES (Prefix: /api/products, /api/categories)
+===========================================================================
+
+[GET] /api/products/all
+  - Database: 
+    * Tables: product, product_category
+    * Query: SELECT * FROM product JOIN product_category ... WHERE ...
+  - Backend: 
+    * Controller: productController.js -> getAllProducts()
+    * Logic: Handles search (LIKE %), category filters, and sorting (price, newest).
+  - Frontend: 
+    * File: AllProductsPage.jsx, SearchBar.jsx
+    * Action: Fetches and displays product grid with pagination.
+
+[GET] /api/products/:id
+  - Database: 
+    * Table: product
+    * Query: SELECT * FROM product WHERE id = ?
+  - Backend: 
+    * Controller: productController.js -> getProductById()
+  - Frontend: 
+    * File: ProductDetails.jsx
+    * Action: Displays single product info, images, and reviews.
+
+[GET] /api/categories
+  - Database: 
+    * Table: categories (hierarchy) or product_category
+  - Backend: 
+    * Controller: categoryController.js -> getCategories()
+  - Frontend: 
+    * File: Navbar.jsx, CategoryProducts.jsx
+    * Action: Populates category dropdown and sidebar filters.
+
+===========================================================================
+3. VENDOR / SELLER (Prefix: /api/vendor, /seller)
+===========================================================================
+
+[POST] /seller/register
+  - Database: 
+    * Table: seller
+    * Query: INSERT INTO seller (user_id, shop_name, shop_description, pan_number, aadhaar_number, gst_number)
+  - Backend: 
+    * Controller: sellerController.js
+    * Logic: Upgrades a user to a vendor role.
+  - Frontend: 
+    * File: BecomeSeller.jsx / RegisterPage (Vendor tab)
+
+[GET] /api/vendor/dashboard
+  - Database: 
+    * Tables: orders, product, order_items
+    * Query: Aggregates revenue, counts products, recent sales.
+  - Backend: 
+    * Controller: vendorController.js -> getDashboardStats()
+  - Frontend: 
+    * File: VendorDashboard.jsx
+    * Action: Displays Recharts (Pie/Bar) charts and total stats.
+
+[POST] /api/vendor/products
+  - Database: 
+    * Table: product
+    * Query: INSERT INTO product (seller_id, product_name, price, product_image (S3 URL))
+  - Backend: 
+    * Controller: vendorProductController.js -> addProduct()
+    * Logic: Uses Multer-S3 to upload image first, then saves URL to DB.
+  - Frontend: 
+    * File: VendorAddProduct.jsx
+    * Action: Uploads product data as FormData.
+
+[PUT] /api/vendor/products/:id
+  - Database: 
+    * Table: product
+    * Query: UPDATE product SET ... WHERE id = ? AND seller_id = ?
+  - Backend: 
+    * Controller: vendorProductController.js -> updateProduct()
+  - Frontend: 
+    * File: vendorEditProduct.jsx
+
+[DELETE] /api/vendor/products/:id
+  - Database: 
+    * Table: product
+    * Query: DELETE FROM product WHERE id = ?
+  - Backend: 
+    * Controller: vendorProductController.js -> deleteProduct()
+    * Logic: Deletes from DB and cleans up image from S3.
+  - Frontend: 
+    * File: VendorProducts.jsx
+
+===========================================================================
+4. CART & WISHLIST (Prefix: /api/cart, /api/wishlist)
+===========================================================================
+
+[GET] /api/cart
+  - Database: 
+    * Table: cart_items
+  - Frontend: 
+    * File: CartContext.jsx (global state)
+
+[POST] /api/cart/add
+  - Database: 
+    * Query: INSERT INTO cart_items ... ON DUPLICATE KEY UPDATE quantity = quantity + 1
+  - Frontend: 
+    * File: ProductCard.jsx, ProductDetails.jsx
+
+[GET] /api/wishlist
+  - Database: 
+    * Table: wishlist
+  - Frontend: 
+    * File: WishlistContext.jsx
+
+===========================================================================
+5. ORDERS & CHECKOUT (Prefix: /api/orders)
+===========================================================================
+
+[POST] /api/orders/cod
+  - Database: 
+    * Tables: orders, order_items
+    * Query: INSERT into orders, then multi-insert into order_items.
+  - Backend: 
+    * Controller: orderController.js -> placeCodOrder()
+  - Frontend: 
+    * File: Checkout.jsx
+
+[POST] /api/orders/razorpay/order
+  - Backend: 
+    * Controller: razorpayController.js
+    * Logic: Creates Razorpay order ID using their SDK.
+  - Frontend: 
+    * File: Checkout.jsx
+
+[GET] /api/orders/my-orders
+  - Database: 
+    * Table: orders
+  - Frontend: 
+    * File: MyOrdersPage.jsx
+
+===========================================================================
+6. REVIEWS & QUERIES (Prefix: /api/reviews, /api/queries)
+===========================================================================
+
+[POST] /api/reviews/product
+  - Database: 
+    * Table: product_reviews
+  - Backend: 
+    * Controller: productReviewController.js -> addReview()
+  - Frontend: 
+    * File: ProductDetails.jsx
+
+[GET] /api/reviews/vendor/:vendor_id/product-reviews
+  - Database: 
+    * Query: Aggregates reviews for all products belonging to a vendor.
+  - Backend: 
+    * Controller: productReviewController.js -> getVendorProductReviews()
+  - Frontend: 
+    * File: VendorDashboard.jsx (Recent Customer Reviews section)
+
+[POST] /api/queries/:product_id
+  - Database: 
+    * Table: product_queries
+  - Frontend: 
+    * File: ProductDetails.jsx
+
+===========================================================================
+7. CROP EXCHANGE (Prefix: /api/exchange)
+===========================================================================
+
+[GET] /api/exchange/browse
+  - Database: 
+    * Table: exchanges
+  - Frontend: 
+    * File: ExchangeMarketplace.jsx
+
+[POST] /api/exchange/create
+  - Backend: 
+    * Controller: exchangeController.js
+    * Logic: Farmers post crops for exchange.
+
+===========================================================================
+8. NOTIFICATIONS (Prefix: /api/notifications)
+===========================================================================
+
+[GET] /api/notifications
+  - Database: 
+    * Derived from: orders (new status), product (low stock).
+  - Backend: 
+    * Controller: notificationController.js -> getNotifications()
+    * Logic: Dynamically generates alerts based on real-time DB state.
+  - Frontend: 
+    * File: VendorNotifications.jsx, NotificationContext.jsx
+
+===========================================================================
+9. DELIVERY TRACKING (Prefix: /api/delivery)
+===========================================================================
+
+[GET] /api/delivery/order/:order_id
+  - Database: 
+    * Table: delivery_tracking
+  - Frontend: 
+    * File: OrderTracking.jsx (Leaflet Map)
+
+[PATCH] /api/delivery/update-location
+  - Database: 
+    * Query: UPDATE delivery_tracking SET latitude = ?, longitude = ?
+  - Frontend: 
+    * File: DriverDeliveryApp.jsx (GPS tracker)

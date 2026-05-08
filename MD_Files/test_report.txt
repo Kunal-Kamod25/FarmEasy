@@ -1,0 +1,173 @@
+FarmEasy Automated Test Report
+Generated Date: 2026-03-24
+Project: FarmEasy
+Workspace: C:\Users\kunal\OneDrive\Desktop\FarmEasy
+Execution Command: npm run test
+
+==================================================
+1. EXECUTIVE SUMMARY
+==================================================
+Overall Status: PASS
+Total Test Files/Suites: 5
+Total Test Cases Executed: 23
+Passed: 23
+Failed: 0
+Blocked: 0
+
+Backend Result: PASS
+- Test Suites: 2/2 passed
+- Test Cases: 8/8 passed
+
+Frontend Result: PASS
+- Test Files: 3/3 passed
+- Test Cases: 15/15 passed
+
+==================================================
+2. TEST EXECUTION TRACKING
+==================================================
+| Test ID        | Module            | Description                                        | Priority | Status | Executed On |
+|----------------|-------------------|----------------------------------------------------|----------|--------|-------------|
+| TC_AUTH_001    | Auth Middleware   | Missing Authorization header returns 401           | High     | Pass   | 2026-03-24  |
+| TC_AUTH_002    | Auth Middleware   | Token for deleted user returns 401                 | High     | Pass   | 2026-03-24  |
+| TC_AUTH_003    | Auth Middleware   | Valid token sets req.user and calls next           | High     | Pass   | 2026-03-24  |
+| TC_AUTH_004    | Auth Middleware   | Invalid token returns 403                          | High     | Pass   | 2026-03-24  |
+| TC_ORDER_001   | Order Status      | Exports expected order statuses                    | Medium   | Pass   | 2026-03-24  |
+| TC_ORDER_002   | Order Status      | Status lists contain expected values               | Medium   | Pass   | 2026-03-24  |
+| TC_ORDER_003   | Order Status      | Tracking status includes Order Placed              | Low      | Pass   | 2026-03-24  |
+| TC_ORDER_004   | Order Status      | Status constants/lists are immutable (frozen)      | Medium   | Pass   | 2026-03-24  |
+| TC_UTIL_001-007| UI Order Status   | Normalize/display/style helper behavior            | Medium   | Pass   | 2026-03-24  |
+| TC_APP_001     | App Shell         | App renders route tree inside providers            | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_001   | Login             | Required email validation blocks submit            | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_002   | Login             | Invalid phone validation blocks submit             | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_003   | Login             | Password special-char validation blocks submit     | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_004   | Login             | Valid vendor login posts correct payload           | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_005   | Login             | Vendor login redirect to /vendor/products          | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_006   | Login             | Admin login redirect to /admin                     | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_007   | Login             | API non-ok response shows failure alert            | High     | Pass   | 2026-03-24  |
+| TC_LOGIN_008   | Login             | Network error shows server-not-responding alert    | High     | Pass   | 2026-03-24  |
+
+==================================================
+3. DETAILED MODULE REPORT
+==================================================
+
+3.1 USER LOGIN (STRICT TEST CASES)
+
+Test Case ID: TC_LOGIN_004
+Module: Login
+Test Scenario: Submit valid vendor credentials and verify strict API payload
+Priority: High
+Preconditions: Login page loaded
+
+Test Steps:
+1. Select Vendor role
+2. Enter valid vendor email
+3. Enter valid password with special character
+4. Click Log In
+
+Test Data:
+- Email: vendor@test.com
+- Password: Pass@123
+- loginAs: vendor
+
+Expected Result:
+- POST request sent to /api/authentication/login
+- Content-Type is application/json
+- Body includes identifier, password, loginAs exactly
+- Token and user saved in localStorage
+- Redirect to /vendor/products
+
+Actual Result:
+- All assertions matched expected values
+
+Status: Pass
+
+
+Test Case ID: TC_LOGIN_006
+Module: Login
+Test Scenario: Redirect admin user to admin dashboard
+Priority: High
+Preconditions: Login page loaded
+
+Expected Result:
+- Successful admin response navigates to /admin
+
+Actual Result:
+- Navigation called with /admin
+
+Status: Pass
+
+
+Test Case ID: TC_LOGIN_007
+Module: Login
+Test Scenario: Handle backend login failure message
+Priority: High
+
+Expected Result:
+- Alert shows backend failure message and no redirect
+
+Actual Result:
+- Alert called with "Invalid credentials"
+- No navigation triggered
+
+Status: Pass
+
+
+Test Case ID: TC_LOGIN_008
+Module: Login
+Test Scenario: Handle fetch/network exception
+Priority: High
+
+Expected Result:
+- Alert shows "Server not responding"
+
+Actual Result:
+- Alert displayed with expected text
+
+Status: Pass
+
+
+3.2 AUTH MIDDLEWARE
+- File: backend/tests/auth.middleware.test.js
+- Cases Executed: 4
+- Passed: 4
+- Failed: 0
+
+3.3 ORDER STATUS CONSTANTS/UTILS
+- Backend File: backend/tests/orderStatus.test.js
+- Frontend File: frontend/src/utils/orderStatus.test.js
+- Cases Executed: 11
+- Passed: 11
+- Failed: 0
+
+3.4 APP INTEGRATION SMOKE
+- File: frontend/src/App.test.jsx
+- Cases Executed: 1
+- Passed: 1
+- Failed: 0
+
+==================================================
+4. PASS / NOT PASS SECTION
+==================================================
+
+THIS PASS:
+- backend/tests/auth.middleware.test.js
+- backend/tests/orderStatus.test.js
+- frontend/src/utils/orderStatus.test.js
+- frontend/src/App.test.jsx
+- frontend/src/components/Auth/Login.test.jsx
+
+THIS NOT PASS:
+- None
+
+==================================================
+5. RAW RUN SUMMARY
+==================================================
+Backend (Jest):
+- Test Suites: 2 passed, 2 total
+- Tests: 8 passed, 8 total
+
+Frontend (Vitest):
+- Test Files: 3 passed, 3 total
+- Tests: 15 passed, 15 total
+
+Final Result: ALL AUTOMATED TESTS PASSED

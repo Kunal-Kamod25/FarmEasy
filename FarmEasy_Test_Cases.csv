@@ -1,0 +1,10 @@
+Test ID,Module,Scenario,Expected Result,Status
+TC-01,Authentication,Register as a new Farmer/Vendor,"User created, OTP sent, redirect to Login",Pass
+TC-02,Marketplace,Filter products by Category & Brand,Only relevant products are displayed,Pass
+TC-03,Cart,Add multiple items to cart,Subtotal and total price update correctly,Pass
+TC-04,Checkout,Place order using Razorpay/COD,"Order ID generated, stock quantity reduced",Pass
+TC-05,Tracking,Real-time tracking of order,Delivery status updates from 'Pending' to 'Delivered',Pass
+TC-06,Reviews,Upload image and write product review,Review appears on page with average rating update,Pass
+TC-07,Barter System,Create a Crop Exchange listing,Listing visible to nearby users (Radius search),Pass
+TC-08,Responsive UI,Access site from Mobile and Tablet,Layout adjusts (Footer and Filter bar collapse correctly),Pass
+TC-09,Multi-Language,Switch from English to Hindi/Marathi,"All UI text (Shop, Support, Contact) translates",Pass
