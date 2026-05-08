@@ -174,32 +174,38 @@ exports.google = async (req, res) => {
       return sendAuthResponse(res, user, "Google login successful!");
     }
 
-    if (requestedRoleGroup === "vendor") {
-      return res.status(400).json({
-        message: "Google sign-up is only available for customer accounts. Please use manual vendor registration.",
-      });
-    }
-
+    // CREATE NEW USER (Google Sign-up)
     connection = await db.getConnection();
     await connection.beginTransaction();
 
     const fallbackName = googleProfile.name || googleProfile.given_name || googleProfile.email.split("@")[0];
     const randomSecret = crypto.randomBytes(16).toString("hex");
     const hashedPassword = await bcrypt.hash(`google:${googleProfile.sub}:${randomSecret}`, 10);
+    const targetRole = requestedRoleGroup === "vendor" ? "vendor" : "customer";
 
     const [userResult] = await connection.query(
       `INSERT INTO users (full_name, email, password_hash, role, phone_number)
        VALUES (?, ?, ?, ?, ?)`,
-      [fallbackName, googleProfile.email, hashedPassword, "customer", null]
+      [fallbackName, googleProfile.email, hashedPassword, targetRole, null]
     );
+
+    const newUserId = userResult.insertId;
+
+    // If they signed up as a vendor, we must create the seller record too
+    if (targetRole === "vendor") {
+      await connection.query(
+        `INSERT INTO seller (user_id, shop_name) VALUES (?, ?)`,
+        [newUserId, `${fallbackName}'s Shop`]
+      );
+    }
 
     await connection.commit();
 
     user = {
-      id: userResult.insertId,
+      id: newUserId,
       full_name: fallbackName,
       email: googleProfile.email,
-      role: "customer",
+      role: targetRole,
     };
 
     return sendAuthResponse(res, user, "Google sign-up successful!");
