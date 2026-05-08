@@ -34,6 +34,13 @@ const Footer = () => {
         subject
     )}&body=${encodeURIComponent(body)}`;
 
+    const customerLinks = [
+        { name: t("footer.support"), path: "/support" },
+        { name: t("footer.contactUs"), path: "/contact" },
+        { name: t("footer.aboutUs"), path: "/about" },
+        { name: t("footer.features"), path: "/support" },
+    ];
+
     const handleNewsletterSubmit = async (e) => {
         e.preventDefault();
         if (!email.trim()) return;
@@ -157,26 +164,16 @@ const Footer = () => {
                             {t("footer.customerServices")}
                         </h3>
                         <ul className="space-y-3 text-gray-400 text-sm">
-                            <li>
-                                <Link to="/support" className="hover:text-green-400 transition-colors">
-                                    {t("footer.support")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/contact" className="hover:text-green-400 transition-colors">
-                                    {t("footer.contactUs")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/about" className="hover:text-green-400 transition-colors">
-                                    {t("footer.aboutUs")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/support" className="hover:text-green-400 transition-colors">
-                                    {t("footer.features")}
-                                </Link>
-                            </li>
+                            {customerLinks.map((link, idx) => (
+                                <li key={idx}>
+                                    <Link 
+                                        to={link.path} 
+                                        className="hover:text-green-400 transition-colors"
+                                    >
+                                        {link.name}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -223,7 +220,6 @@ const Footer = () => {
 
                     {/* Policy Links */}
                     <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
-                    <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
                         <Link to="/privacy-policy" className="hover:text-green-400 transition-colors">
                             {t("footer.privacy")}
                         </Link>
@@ -233,7 +229,6 @@ const Footer = () => {
                         <Link to="/shipping-policy" className="hover:text-green-400 transition-colors">
                             {t("footer.shipping")}
                         </Link>
-                    </div>
                     </div>
 
                     <p className="text-gray-500 text-sm">
