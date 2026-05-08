@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_URL } from '../../config';
 import {
     Search, SlidersHorizontal, X, ChevronDown, Package,
-    ArrowUpDown, Filter
+    ArrowUpDown, Filter, Sprout, RotateCcw
 } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLanguage } from "../../context/language/LanguageContext";
@@ -213,7 +213,7 @@ const AllProductsPage = () => {
                             <option value="price_desc">{t("products.sort.priceDesc")}</option>
                         </select>
                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>          </div>
+                    </div>
 
                     {/* filter toggle button for mobile */}
                     <button
@@ -226,7 +226,7 @@ const AllProductsPage = () => {
                         <SlidersHorizontal size={15} />
                         {t("products.filters")}
                         {hasActiveFilters && (
-                            <span className="bg-white text-emerald-600 text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold ml-1">
+                            <span className="bg-white text-emerald-600 text-xs rounded-full w-4 h-4 flex-shrink-0 flex items-center justify-center font-bold ml-1">
                                 •
                             </span>
                         )}
@@ -318,7 +318,7 @@ const AllProductsPage = () => {
                                     onChange={val => handleFilterChange("seller_id", val)}
                                     icon={Filter}
                                 />
-                            )}                            )}
+                            )}
                         </div>
                     </div>
 
