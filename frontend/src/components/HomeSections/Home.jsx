@@ -29,7 +29,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [activeFilters, setActiveFilters] = useState({ category: "all", price: 10000, sort: "newest" });
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false); // Mobile drawer state
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Desktop sidebar toggle state
 
   useEffect(() => {
     fetchProducts();
@@ -176,12 +177,25 @@ const Home = () => {
                     Discover the latest high-yield seeds and premium fertilizers recently added by our verified partners.
                 </p>
               </div>
-              <button
-                onClick={() => navigate("/products")}
-                className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95 h-fit"
-              >
-                Explore Catalog <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-              </button>
+              <div className="flex items-center gap-4 h-fit">
+                <button
+                    onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                    className={`hidden xl:flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-black transition-all shadow-sm active:scale-95 border ${
+                        isSidebarVisible 
+                        ? "bg-slate-900 text-white border-slate-900" 
+                        : "bg-white text-slate-800 border-slate-200 hover:border-emerald-500 hover:text-emerald-600"
+                    }`}
+                >
+                    <Filter size={18} />
+                    {isSidebarVisible ? "Hide Filters" : "Show Filters"}
+                </button>
+                <button
+                    onClick={() => navigate("/products")}
+                    className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm hover:shadow-xl active:scale-95"
+                  >
+                    Explore Catalog <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+              </div>
             </div>
 
             {loading ? (
@@ -271,14 +285,16 @@ const Home = () => {
         </div>
 
         {/* Sidebar Filter Area - Desktop */}
-        <aside className="hidden xl:block w-80 flex-shrink-0 pt-20">
-          <HomeFilter 
-            categories={categories} 
-            activeFilters={activeFilters}
-            onFilterChange={handleFilterChange}
-            clearFilters={clearFilters}
-          />
-        </aside>
+        {isSidebarVisible && (
+            <aside className="hidden xl:block w-80 flex-shrink-0 pt-20 animate-in slide-in-from-right duration-500">
+                <HomeFilter 
+                    categories={categories} 
+                    activeFilters={activeFilters}
+                    onFilterChange={handleFilterChange}
+                    clearFilters={clearFilters}
+                />
+            </aside>
+        )}
       </div>
 
       {/* Mobile Filter Button & Overlay */}
