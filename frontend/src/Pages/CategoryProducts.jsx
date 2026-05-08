@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
-import { Loader, ChevronDown, ChevronRight } from "lucide-react";
+import { 
+  Loader, ChevronDown, ChevronRight, 
+  Filter, Package, Sprout, Check, RotateCcw
+} from "lucide-react";
 import { ProductCard, LoadingSkeleton, EmptyState } from "../components/HomeSections/HomeProductCard";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
@@ -153,89 +156,137 @@ const CategoryProducts = () => {
         </div>
 
         {/* HEADER */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl shadow-emerald-500/5 p-10 mb-10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-1000" />
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                  <div className="h-1 w-8 bg-emerald-500 rounded-full" />
+                  <span className="text-emerald-600 font-black uppercase tracking-[0.3em] text-[10px]">
+                      Collection / {category?.name || category?.product_cat_name}
+                  </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
                 {category?.name || category?.product_cat_name}
               </h1>
-              <p className="text-gray-600 max-w-2xl">
+              <p className="text-slate-500 text-lg max-w-2xl font-medium">
                 {category?.description ||
-                  `Browse our collection of ${(category?.name || category?.product_cat_name || "").toLowerCase()}`}
+                  `Explore our curated selection of premium ${(category?.name || category?.product_cat_name || "").toLowerCase()} tools and inputs.`}
               </p>
+              <div className="flex items-center gap-4 pt-2">
+                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-4 py-2 rounded-2xl border border-emerald-100 uppercase tracking-widest">
+                   {products.length} Items Found
+                </span>
+              </div>
             </div>
             {category?.image && (
-              <img
-                src={category.image}
-                alt={category.name}
-                className="w-32 h-32 object-cover rounded-lg"
-              />
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full" />
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-48 h-48 object-contain rounded-3xl relative z-10 drop-shadow-2xl hover:scale-110 transition-transform duration-700"
+                />
+              </div>
             )}
-          </div>
-
-          <div className="text-sm text-gray-500">
-            📦 {products.length} product{products.length !== 1 ? "s" : ""} found
           </div>
         </div>
 
         {/* SUBCATEGORIES DROPDOWN FILTER */}
         {subcategories.length > 0 && (
-          <div className="mb-8">
-            <div className="relative inline-block w-full md:w-80">
+          <div className="mb-12 flex flex-col md:flex-row items-center gap-6">
+            <div className="relative w-full md:w-96 group">
+                <label className="absolute -top-3 left-6 bg-white px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] z-10">
+                    Filter Results
+                </label>
               <button
                 onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                className="w-full px-4 py-3 bg-white border-2 border-emerald-500 rounded-lg font-semibold text-emerald-700 hover:bg-emerald-50 transition flex items-center justify-between"
+                className={`w-full flex items-center justify-between p-5 bg-white border-2 rounded-[1.5rem] transition-all duration-300 ${
+                  subDropdownOpen 
+                  ? "border-emerald-500 shadow-xl shadow-emerald-500/10" 
+                  : "border-slate-100 hover:border-emerald-400 text-slate-700"
+                }`}
               >
-                <span>
-                  {selectedSubcategory
-                    ? `Showing: ${selectedSubcategory}`
-                    : `All ${category?.name || category?.product_cat_name}`}
-                </span>
+                <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${selectedSubcategory ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"}`}>
+                        <Sprout size={18} />
+                    </div>
+                    <span className="font-black uppercase tracking-widest text-xs">
+                    {selectedSubcategory
+                        ? selectedSubcategory
+                        : `All ${category?.name || category?.product_cat_name}`}
+                    </span>
+                </div>
                 <ChevronDown
                   size={20}
-                  className={`transition-transform ${
-                    subDropdownOpen ? "rotate-180" : ""
+                  className={`transition-transform duration-300 ${
+                    subDropdownOpen ? "rotate-180 text-emerald-500" : "text-slate-400"
                   }`}
                 />
               </button>
 
               {/* Dropdown Menu */}
               {subDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-emerald-500 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-                  {/* All Products Option */}
-                  <button
-                    onClick={() => {
-                      handleResetSubcategory();
-                      setSubDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-emerald-50 border-b border-gray-200 font-semibold text-emerald-700 transition"
-                  >
-                    ✓ All {category?.name || category?.product_cat_name}
-                  </button>
-
-                  {/* Subcategory Options */}
-                  {subcategories.map((sub) => (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white border border-slate-100 rounded-[2rem] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="p-2 max-h-80 overflow-y-auto">
+                    {/* All Products Option */}
                     <button
-                      key={sub.id}
                       onClick={() => {
-                        handleSubcategoryClick(sub);
+                        handleResetSubcategory();
                         setSubDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3 hover:bg-emerald-50 border-b border-gray-200 transition ${
-                        selectedSubcategory === (sub.name || sub.subcategory_name)
-                          ? "bg-emerald-100 text-emerald-700 font-semibold"
-                          : "text-gray-700"
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
+                        !selectedSubcategory 
+                        ? "bg-emerald-50 text-emerald-600" 
+                        : "text-slate-600 hover:bg-slate-50"
                       }`}
                     >
-                      {selectedSubcategory === (sub.name || sub.subcategory_name)
-                        ? "✓ "
-                        : ""}
-                      {sub.name || sub.subcategory_name}
+                      <div className="flex items-center gap-3">
+                        <RotateCcw size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-wider">All {category?.name || category?.product_cat_name}</span>
+                      </div>
+                      {!selectedSubcategory && <Check size={14} />}
                     </button>
-                  ))}
+
+                    <div className="h-px bg-slate-50 my-2 mx-4" />
+
+                    {/* Subcategory Options */}
+                    {subcategories.map((sub) => (
+                      <button
+                        key={sub.id}
+                        onClick={() => {
+                          handleSubcategoryClick(sub);
+                          setSubDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
+                          selectedSubcategory === (sub.name || sub.subcategory_name)
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                            <Sprout size={14} />
+                            <span className="text-[10px] font-black uppercase tracking-wider">
+                                {sub.name || sub.subcategory_name}
+                            </span>
+                        </div>
+                        {selectedSubcategory === (sub.name || sub.subcategory_name) && <Check size={14} />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
+
+            {selectedSubcategory && (
+                <button 
+                    onClick={handleResetSubcategory}
+                    className="flex items-center gap-2 text-[10px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 px-6 py-3 rounded-2xl transition-all active:scale-95 border border-transparent hover:border-red-100"
+                >
+                    <RotateCcw size={14} /> Reset Filter
+                </button>
+            )}
           </div>
         )}
 

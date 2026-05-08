@@ -9,6 +9,7 @@ const HomeFilter = ({ categories, onFilterChange, activeFilters, clearFilters })
     const [priceRange, setPriceRange] = useState(activeFilters.price || 10000);
     const [selectedCategory, setSelectedCategory] = useState(activeFilters.category || "all");
     const [selectedSort, setSelectedSort] = useState(activeFilters.sort || "newest");
+    const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
 
     useEffect(() => {
         setPriceRange(activeFilters.price || 10000);
@@ -19,7 +20,12 @@ const HomeFilter = ({ categories, onFilterChange, activeFilters, clearFilters })
     const handleCategoryClick = (catId) => {
         setSelectedCategory(catId);
         onFilterChange({ category: catId });
+        setIsCatDropdownOpen(false);
     };
+
+    const selectedCategoryName = selectedCategory === "all" 
+        ? "All Products" 
+        : categories.find(c => c.id === selectedCategory)?.name || categories.find(c => c.id === selectedCategory)?.product_cat_name || "Select Category";
 
     const handleSortClick = (sortType) => {
         setSelectedSort(sortType);
@@ -85,46 +91,64 @@ const HomeFilter = ({ categories, onFilterChange, activeFilters, clearFilters })
                 </div>
             </div>
 
-            {/* Categories */}
+            {/* Categories Dropdown */}
             <div className="space-y-4">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                    What are you looking for?
+                    Select Category
                 </label>
-                <div className="space-y-2">
+                <div className="relative">
                     <button
-                        onClick={() => handleCategoryClick("all")}
+                        onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
                         className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border ${
-                            selectedCategory === "all" 
-                            ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/20" 
+                            isCatDropdownOpen 
+                            ? "bg-white border-emerald-500 shadow-lg" 
                             : "bg-white border-slate-100 text-slate-600 hover:border-emerald-500/50"
                         }`}
                     >
                         <div className="flex items-center gap-3">
-                            <Zap size={16} className={selectedCategory === "all" ? "text-emerald-400" : "text-slate-400"} />
-                            <span className="text-xs font-bold uppercase tracking-wide">All Products</span>
+                            <Sprout size={16} className="text-emerald-500" />
+                            <span className="text-xs font-bold uppercase tracking-wide truncate max-w-[150px]">
+                                {selectedCategoryName}
+                            </span>
                         </div>
-                        {selectedCategory === "all" && <Check size={14} />}
+                        <ChevronRight size={16} className={`transition-transform duration-300 ${isCatDropdownOpen ? "rotate-90 text-emerald-500" : "text-slate-400"}`} />
                     </button>
 
-                    {categories.map((cat) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => handleCategoryClick(cat.id)}
-                            className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border ${
-                                selectedCategory === cat.id 
-                                ? "bg-emerald-500 border-emerald-500 text-white shadow-xl shadow-emerald-500/20" 
-                                : "bg-white border-slate-100 text-slate-600 hover:border-emerald-500/50"
-                            }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Sprout size={16} className={selectedCategory === cat.id ? "text-white" : "text-emerald-500"} />
-                                <span className="text-xs font-bold uppercase tracking-wide truncate max-w-[120px]">
-                                    {cat.name || cat.product_cat_name}
-                                </span>
+                    {isCatDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="max-h-60 overflow-y-auto">
+                                <button
+                                    onClick={() => handleCategoryClick("all")}
+                                    className={`w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${
+                                        selectedCategory === "all" ? "bg-emerald-50 text-emerald-600" : "text-slate-600"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Zap size={14} />
+                                        <span className="text-[10px] font-black uppercase tracking-wider">All Products</span>
+                                    </div>
+                                    {selectedCategory === "all" && <Check size={14} />}
+                                </button>
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => handleCategoryClick(cat.id)}
+                                        className={`w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-t border-slate-50 ${
+                                            selectedCategory === cat.id ? "bg-emerald-50 text-emerald-600" : "text-slate-600"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Sprout size={14} />
+                                            <span className="text-[10px] font-black uppercase tracking-wider truncate max-w-[150px]">
+                                                {cat.name || cat.product_cat_name}
+                                            </span>
+                                        </div>
+                                        {selectedCategory === cat.id && <Check size={14} />}
+                                    </button>
+                                ))}
                             </div>
-                            {selectedCategory === cat.id && <Check size={14} />}
-                        </button>
-                    ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
