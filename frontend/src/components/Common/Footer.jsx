@@ -223,15 +223,17 @@ const Footer = () => {
 
                     {/* Policy Links */}
                     <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
-                        <a href="#" className="hover:text-green-400 transition-colors">
+                    <div className="flex justify-center space-x-6 mb-4 text-gray-400 text-sm">
+                        <Link to="/privacy-policy" className="hover:text-green-400 transition-colors">
                             {t("footer.privacy")}
-                        </a>
-                        <a href="#" className="hover:text-green-400 transition-colors">
+                        </Link>
+                        <Link to="/terms-of-service" className="hover:text-green-400 transition-colors">
                             {t("footer.terms")}
-                        </a>
-                        <a href="#" className="hover:text-green-400 transition-colors">
+                        </Link>
+                        <Link to="/shipping-policy" className="hover:text-green-400 transition-colors">
                             {t("footer.shipping")}
-                        </a>
+                        </Link>
+                    </div>
                     </div>
 
                     <p className="text-gray-500 text-sm">

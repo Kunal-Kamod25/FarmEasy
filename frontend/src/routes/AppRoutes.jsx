@@ -58,6 +58,9 @@ const CustomerService = lazy(() => import("../Pages/CustomerService"));
 const Support = lazy(() => import("../Pages/Support"));
 const ContactUs = lazy(() => import("../Pages/ContactUs"));
 const AboutUs = lazy(() => import("../Pages/AboutUs"));
+const PrivacyPolicy = lazy(() => import("../Pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("../Pages/TermsOfService"));
+const ShippingPolicy = lazy(() => import("../Pages/ShippingPolicy"));
 
 const AppRoutes = () => {
   const { t } = useLanguage();
@@ -108,6 +111,11 @@ const AppRoutes = () => {
           {/* Checkout & Success */}
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
+
+          {/* Policy Pages */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
         </Route>
 
 
