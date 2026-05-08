@@ -12,42 +12,48 @@ Your project follows the **Client-Server Architecture**:
 
 ---
 
-## 2. How They Communicate (The Journey of Data)
+## 2. Advanced Integrations & Communication Flows
 
-### Step 1: User Request (Frontend → Backend)
-When a user performs an action (e.g., clicks "Place Order"), the Frontend sends an **HTTP Request** to the Backend.
-*   **Format**: JSON (JavaScript Object Notation).
-*   **Communication Tool**: `axios` (used in your React code).
-*   **Security**: The request often includes a **JWT Token** in the header to prove the user is logged in.
+### A. Media Storage (Frontend → Backend → AWS S3)
+When a user uploads a product image or review photo:
+1.  **Frontend**: User selects a file. Frontend sends it to the Backend using `FormData`.
+2.  **Backend**: Uses the `aws-sdk` and `multer` to stream the image directly to an **Amazon S3 Bucket**.
+3.  **Database**: We don't store the "heavy" image in MySQL. Instead, S3 returns a **Public URL** (e.g., `https://s3.amazonaws.com/image.jpg`), which we save in the `product_image` or `review_images` column in MySQL.
+4.  **UI**: When loading the page, the browser simply follows that URL to display the image.
 
-### Step 2: Processing (Backend Logic)
-The Node.js server receives the request in a **Route**. The route calls a **Controller**.
-*   The Controller validates the data (e.g., "Is the product in stock?").
-*   It then prepares a **SQL Query**.
+### B. Payment Gateway (Frontend → Razorpay → Backend)
+For secure checkouts:
+1.  **Frontend**: User clicks "Pay Now". Frontend calls the Backend to "Create an Order" in Razorpay.
+2.  **Backend**: Communicates with **Razorpay API** to get a unique `order_id`.
+3.  **Frontend**: Opens the **Razorpay Checkout Overlay**. User pays.
+4.  **Verification**: Razorpay sends a payment signature. The Backend verifies this signature to ensure the payment is authentic before updating the `orders` table to `status = 'paid'`.
 
-### Step 3: Persistence (Backend → Database)
-The Backend communicates with MySQL using the `mysql2` driver.
-*   **Action**: `SELECT * FROM product WHERE id = 10;`
-*   **Database Response**: MySQL finds the row and sends it back to the Backend.
+### C. GST Verification (Frontend → Cashfree → Backend)
+To ensure only real vendors join the platform:
+1.  **Backend**: Takes the GST number provided during registration.
+2.  **External API**: Backend calls the **Cashfree Verification API**.
+3.  **Result**: Cashfree returns the legal business name and status.
+4.  **Database**: If valid, the `seller` table is updated with the verified business details.
 
-### Step 4: UI Rendering (Backend → Frontend)
-The Backend takes the database result, wraps it in a clean JSON object, and sends it back as an **HTTP Response**.
-*   **Frontend**: Receives the JSON data.
-*   **React State**: The data is stored in a React `useState` variable.
-*   **UI Update**: React automatically "re-renders" the page to show the new data to the user.
+### D. Review & Rating System (Real-time Sync)
+To keep the UI fast, we use a "Summary Sync" logic:
+1.  **Action**: User submits a review to the `product_reviews` table.
+2.  **Trigger**: The Backend controller immediately triggers a recalculation.
+3.  **Summarization**: It updates the `product_rating_summary` table (5-star count, average rating, etc.).
+4.  **UI Benefit**: When other users browse, they see the pre-calculated rating instantly without the database having to count thousands of rows every time.
+
+### E. Vendor Dashboard Updates
+The dashboard is a "Command Center" for sellers:
+1.  **Live Analytics**: When a seller opens the dashboard, the Backend runs "Aggregate Queries" (using `COUNT`, `SUM`, `AVG`).
+2.  **Data Sync**: It fetches data from `order_items`, `products`, and `vendor_reviews` to show:
+    *   **Total Revenue**: Sum of all successful orders.
+    *   **Order Count**: Total orders in the last 30 days.
+    *   **Performance**: Average star rating from the `vendor_rating_summary` table.
+3.  **Automatic Updates**: Every time a sale happens or a review is left, these numbers update automatically in the dashboard UI.
 
 ---
 
-## 3. Real-World Example: Product Detail Page
-1.  **UI**: User clicks on "Wheat Seeds".
-2.  **Frontend**: Calls `GET /api/products/15`.
-3.  **Backend**: `SELECT * FROM product WHERE id = 15`.
-4.  **Database**: Returns Name: "Wheat", Price: 500, Image: "wheat.jpg".
-5.  **Backend**: Sends JSON `{ "name": "Wheat", "price": 500 }`.
-6.  **Frontend**: Displays the seeds on the screen with a beautiful design.
-
----
-
-## 4. Why this communication is Secure?
-*   **Environment Variables (.env)**: Your Database credentials are never shown in the code; they are hidden in the `.env` file.
-*   **SQL Injection Protection**: We use "Prepared Statements" (the `?` in queries) so hackers cannot run malicious SQL commands through your forms.
+## 3. Why this communication is Secure?
+*   **Environment Variables (.env)**: All API keys for AWS, Razorpay, and Cashfree are hidden in the backend and never exposed to the browser.
+*   **JWT Authentication**: Every request to the Dashboard or Cart must have a valid JSON Web Token, ensuring users can only see their own data.
+*   **SQL Injection Protection**: We use "Prepared Statements" to prevent hackers from manipulating the database through input fields.
