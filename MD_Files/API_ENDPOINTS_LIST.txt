@@ -1,0 +1,54 @@
+# FarmEasy End-to-End API Documentation 🛠️
+
+This list covers all major API endpoints in your project. These are the "Connectors" between your Frontend and Backend.
+
+---
+
+### 1. Authentication & Users
+*   `POST /api/auth/register` : User signup (Farmer/Vendor/Customer).
+*   `POST /api/auth/login` : Authenticates user and returns JWT Token.
+*   `GET /api/profile/me` : Retrieves the logged-in user's profile details.
+*   `PUT /api/profile/update` : Updates user address, city, phone, etc.
+
+### 2. Product Marketplace
+*   `GET /api/products/all` : Fetch all products with filters (price, brand, category).
+*   `GET /api/products/:id` : Get detailed info for a single product (including seller info).
+*   `GET /api/products/category/:id` : Filter products by a specific category/subcategory.
+*   `GET /api/products/meta/brands` : List all available brands for the filter sidebar.
+
+### 3. Shopping Cart & Wishlist
+*   `GET /api/cart` : View items currently in the user's shopping cart.
+*   `POST /api/cart/add` : Add a product to the cart.
+*   `DELETE /api/cart/remove/:id` : Remove an item from the cart.
+*   `GET /api/wishlist` : Get all products saved in the wishlist.
+
+### 4. Orders & Payments
+*   `POST /api/orders/create` : Create a new order (Checkout).
+*   `GET /api/orders/my-orders` : List history of orders for the customer.
+*   `POST /api/payment/razorpay` : Process payment via Razorpay Integration.
+*   `GET /api/orders/track/:id` : Get the live delivery status of a specific order.
+
+### 5. Reviews & Ratings (Newly Optimized)
+*   `POST /api/reviews/product` : Submit a star rating and comment for a product.
+*   `GET /api/reviews/product/:id` : Fetch all reviews for a product.
+*   `GET /api/reviews/product/:id/summary` : Get the pre-calculated rating breakdown (5-star, 4-star, etc.).
+*   `POST /api/reviews/vendor` : Submit feedback for a specific seller.
+
+### 6. Crop Exchange (Barter System)
+*   `POST /api/exchange/create` : List a crop for exchange.
+*   `GET /api/exchange/browse` : Find other farmers' exchange listings nearby.
+*   `POST /api/exchange/match` : Propose a trade between two crops.
+
+### 7. Delivery Management
+*   `GET /api/delivery/driver/me` : Profile and stats for the delivery driver.
+*   `PATCH /api/delivery/:id/status` : Update package status (Picked up → Out for delivery).
+*   `POST /api/delivery/location/update` : Send live GPS coordinates to the server.
+
+---
+
+## Technical Specs:
+*   **Base URL**: `http://localhost:5000/api` (Development)
+*   **Authentication**: Bearer Token (JWT).
+*   **Content-Type**: `application/json`
+*   **Success Code**: `200 OK` or `201 Created`.
+*   **Error Code**: `400 Bad Request`, `401 Unauthorized`, `500 Server Error`.

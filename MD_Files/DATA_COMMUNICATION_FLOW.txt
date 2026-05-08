@@ -1,0 +1,53 @@
+# FarmEasy Technical Communication & Data Flow 📡
+
+This document explains how your project's three main layers (Frontend, Backend, and Database) communicate with each other. Use this to explain your project's "Architecture" during evaluation.
+
+---
+
+## 1. The Architecture (3-Tier)
+Your project follows the **Client-Server Architecture**:
+1.  **Frontend (UI)**: Built with **React.js**. It's what the user sees and interacts with.
+2.  **Backend (API)**: Built with **Node.js & Express.js**. It's the middleman that handles logic, security, and data processing.
+3.  **Database (Data)**: **MySQL (Aiven Cloud)**. It stores all permanent information.
+
+---
+
+## 2. How They Communicate (The Journey of Data)
+
+### Step 1: User Request (Frontend → Backend)
+When a user performs an action (e.g., clicks "Place Order"), the Frontend sends an **HTTP Request** to the Backend.
+*   **Format**: JSON (JavaScript Object Notation).
+*   **Communication Tool**: `axios` (used in your React code).
+*   **Security**: The request often includes a **JWT Token** in the header to prove the user is logged in.
+
+### Step 2: Processing (Backend Logic)
+The Node.js server receives the request in a **Route**. The route calls a **Controller**.
+*   The Controller validates the data (e.g., "Is the product in stock?").
+*   It then prepares a **SQL Query**.
+
+### Step 3: Persistence (Backend → Database)
+The Backend communicates with MySQL using the `mysql2` driver.
+*   **Action**: `SELECT * FROM product WHERE id = 10;`
+*   **Database Response**: MySQL finds the row and sends it back to the Backend.
+
+### Step 4: UI Rendering (Backend → Frontend)
+The Backend takes the database result, wraps it in a clean JSON object, and sends it back as an **HTTP Response**.
+*   **Frontend**: Receives the JSON data.
+*   **React State**: The data is stored in a React `useState` variable.
+*   **UI Update**: React automatically "re-renders" the page to show the new data to the user.
+
+---
+
+## 3. Real-World Example: Product Detail Page
+1.  **UI**: User clicks on "Wheat Seeds".
+2.  **Frontend**: Calls `GET /api/products/15`.
+3.  **Backend**: `SELECT * FROM product WHERE id = 15`.
+4.  **Database**: Returns Name: "Wheat", Price: 500, Image: "wheat.jpg".
+5.  **Backend**: Sends JSON `{ "name": "Wheat", "price": 500 }`.
+6.  **Frontend**: Displays the seeds on the screen with a beautiful design.
+
+---
+
+## 4. Why this communication is Secure?
+*   **Environment Variables (.env)**: Your Database credentials are never shown in the code; they are hidden in the `.env` file.
+*   **SQL Injection Protection**: We use "Prepared Statements" (the `?` in queries) so hackers cannot run malicious SQL commands through your forms.

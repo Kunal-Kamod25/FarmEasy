@@ -1,6 +1,6 @@
 // =====================================================
 // ProductReview Controller - Fixed to use actual DB tables
-// Real table: review_rating (id, product_id, user_id, rating, comments, created_at)
+// Real table: product_reviews (id, product_id, user_id, rating, comment, created_at)
 // =====================================================
 
 const db = require("../config/db");
@@ -21,23 +21,29 @@ exports.createProductReview = async (req, res) => {
 
     // Check if user already reviewed this product
     const [existing] = await db.query(
-      "SELECT id FROM review_rating WHERE user_id = ? AND product_id = ? LIMIT 1",
+      "SELECT id FROM product_reviews WHERE user_id = ? AND product_id = ? LIMIT 1",
       [user_id, product_id]
     );
     if (existing.length > 0) {
       return res.status(400).json({ error: "You have already reviewed this product" });
     }
 
-    // Check product exists
-    const [product] = await db.query("SELECT id FROM product WHERE id = ? LIMIT 1", [product_id]);
+    // Check product exists and get vendor_id
+    const [product] = await db.query("SELECT id, seller_id FROM product WHERE id = ? LIMIT 1", [product_id]);
     if (product.length === 0) {
       return res.status(404).json({ error: "Product not found" });
     }
 
+    const [seller] = await db.query("SELECT user_id FROM seller WHERE id = ?", [product[0].seller_id]);
+    const vendor_id = seller.length > 0 ? seller[0].user_id : null;
+
     await db.query(
-      "INSERT INTO review_rating (product_id, user_id, rating, comments, created_at) VALUES (?, ?, ?, ?, NOW())",
-      [product_id, user_id, rating, comment || title || ""]
+      "INSERT INTO product_reviews (product_id, user_id, vendor_id, rating, title, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+      [product_id, user_id, vendor_id, rating, title || "", comment || ""]
     );
+
+    // Update summaries
+    await updateRatingSummaries(product_id, vendor_id);
 
     res.status(201).json({ message: "Review submitted successfully" });
   } catch (err) {
@@ -59,10 +65,11 @@ exports.getProductReviews = async (req, res) => {
         rr.product_id,
         rr.user_id,
         rr.rating,
-        rr.comments AS comment,
+        rr.comment,
+        rr.title,
         rr.created_at,
         u.full_name AS reviewer_name
-       FROM review_rating rr
+       FROM product_reviews rr
        LEFT JOIN users u ON rr.user_id = u.id
        WHERE rr.product_id = ?
        ORDER BY rr.created_at DESC
@@ -94,7 +101,7 @@ exports.getReviewById = async (req, res) => {
 
     const [rows] = await db.query(
       `SELECT rr.*, u.full_name AS reviewer_name
-       FROM review_rating rr
+       FROM product_reviews rr
        LEFT JOIN users u ON rr.user_id = u.id
        WHERE rr.id = ? LIMIT 1`,
       [review_id]
@@ -118,14 +125,17 @@ exports.updateProductReview = async (req, res) => {
     const { rating, comment } = req.body;
     const user_id = req.user.id;
 
-    const [rows] = await db.query("SELECT * FROM review_rating WHERE id = ? LIMIT 1", [review_id]);
+    const [rows] = await db.query("SELECT * FROM product_reviews WHERE id = ? LIMIT 1", [review_id]);
     if (rows.length === 0) return res.status(404).json({ error: "Review not found" });
     if (rows[0].user_id !== user_id) return res.status(403).json({ error: "You can only edit your own reviews" });
 
     await db.query(
-      "UPDATE review_rating SET rating = ?, comments = ? WHERE id = ?",
+      "UPDATE product_reviews SET rating = ?, comment = ? WHERE id = ?",
       [rating, comment, review_id]
     );
+
+    // Update summaries
+    await updateRatingSummaries(rows[0].product_id, rows[0].vendor_id);
 
     res.json({ message: "Review updated successfully" });
   } catch (err) {
@@ -140,13 +150,17 @@ exports.deleteProductReview = async (req, res) => {
     const { review_id } = req.params;
     const user_id = req.user.id;
 
-    const [rows] = await db.query("SELECT * FROM review_rating WHERE id = ? LIMIT 1", [review_id]);
+    const [rows] = await db.query("SELECT * FROM product_reviews WHERE id = ? LIMIT 1", [review_id]);
     if (rows.length === 0) return res.status(404).json({ error: "Review not found" });
     if (rows[0].user_id !== user_id && req.user.role !== "admin") {
       return res.status(403).json({ error: "You can only delete your own reviews" });
     }
 
-    await db.query("DELETE FROM review_rating WHERE id = ?", [review_id]);
+    await db.query("DELETE FROM product_reviews WHERE id = ?", [review_id]);
+    
+    // Update summaries
+    await updateRatingSummaries(rows[0].product_id, rows[0].vendor_id);
+
     res.json({ message: "Review deleted successfully" });
   } catch (err) {
     console.error("Error deleting review:", err);
@@ -173,11 +187,12 @@ exports.getVendorProductReviews = async (req, res) => {
         rr.product_id,
         rr.user_id,
         rr.rating,
-        rr.comments AS comment,
+        rr.comment,
+        rr.title,
         rr.created_at,
         u.full_name AS reviewer_name,
         p.product_name
-       FROM review_rating rr
+       FROM product_reviews rr
        LEFT JOIN users u ON rr.user_id = u.id
        LEFT JOIN product p ON rr.product_id = p.id
        LEFT JOIN seller s ON p.seller_id = s.id
@@ -220,7 +235,7 @@ async function getRatingSummary(productId) {
       SUM(IF(rating = 3, 1, 0)) AS three_star,
       SUM(IF(rating = 2, 1, 0)) AS two_star,
       SUM(IF(rating = 1, 1, 0)) AS one_star
-     FROM review_rating
+     FROM product_reviews
      WHERE product_id = ?`,
     [productId]
   );
@@ -243,4 +258,58 @@ async function getRatingSummary(productId) {
       1: parseInt(raw.one_star || 0)
     }
   };
+}
+
+// ===== INTERNAL HELPER: Update both product and vendor summaries =====
+async function updateRatingSummaries(productId, vendorId) {
+  try {
+    // 1. Update Product Summary
+    await db.query(`
+      INSERT INTO product_rating_summary 
+      (product_id, average_rating, total_reviews, five_star, four_star, three_star, two_star, one_star)
+      SELECT
+        product_id,
+        ROUND(AVG(rating), 1),
+        COUNT(*),
+        SUM(IF(rating = 5, 1, 0)),
+        SUM(IF(rating = 4, 1, 0)),
+        SUM(IF(rating = 3, 1, 0)),
+        SUM(IF(rating = 2, 1, 0)),
+        SUM(IF(rating = 1, 1, 0))
+      FROM product_reviews
+      WHERE product_id = ?
+      GROUP BY product_id
+      ON DUPLICATE KEY UPDATE
+        average_rating = VALUES(average_rating),
+        total_reviews = VALUES(total_reviews),
+        five_star = VALUES(five_star),
+        four_star = VALUES(four_star),
+        three_star = VALUES(three_star),
+        two_star = VALUES(two_star),
+        one_star = VALUES(one_star),
+        updated_at = NOW()
+    `, [productId]);
+
+    // 2. Update Vendor Summary
+    if (vendorId) {
+      await db.query(`
+        INSERT INTO vendor_rating_summary (vendor_id, average_rating, total_reviews)
+        SELECT 
+          vendor_id, 
+          ROUND(AVG(rating), 1), 
+          COUNT(*)
+        FROM product_reviews 
+        WHERE vendor_id = ?
+        GROUP BY vendor_id
+        ON DUPLICATE KEY UPDATE 
+          average_rating = VALUES(average_rating), 
+          total_reviews = VALUES(total_reviews),
+          updated_at = NOW()
+      `, [vendorId]);
+    }
+    
+    console.log(`✅ Rating summaries updated for product ${productId} and vendor ${vendorId}`);
+  } catch (err) {
+    console.error("❌ Error updating rating summaries:", err);
+  }
 }
