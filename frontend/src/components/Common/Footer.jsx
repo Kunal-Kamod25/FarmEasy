@@ -7,11 +7,26 @@ import { useLanguage } from "../../context/language/LanguageContext";
 import { API_URL } from "../../config";
 
 const Footer = () => {
-    const { t } = useLanguage();
+    const { t, td } = useLanguage();
     const [email, setEmail] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [newsletterMessage, setNewsletterMessage] = useState("");
     const [newsletterError, setNewsletterError] = useState(false);
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await axios.get(`${API_URL}/api/categories`);
+                const data = res.data?.data || res.data || [];
+                setCategories(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error("Footer Categories Error:", err);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     const subject = t("topbar.orderInquirySubject");
     const body = t("topbar.orderInquiryBody");
 
@@ -108,26 +123,31 @@ const Footer = () => {
                             {t("footer.shop")}
                         </h3>
                         <ul className="space-y-3 text-gray-400 text-sm">
-                            <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
-                                    {t("footer.shop.fertilizers")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
-                                    {t("footer.shop.seeds")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
-                                    {t("footer.shop.equipment")}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="#" className="hover:text-green-400 transition-colors">
-                                    {t("footer.shop.irrigation")}
-                                </Link>
-                            </li>
+                            {categories.length > 0 ? (
+                                categories.slice(0, 6).map((cat) => (
+                                    <li key={cat.id}>
+                                        <Link 
+                                            to={`/category/${cat.id}`} 
+                                            className="hover:text-green-400 transition-colors capitalize"
+                                        >
+                                            {td(cat.name || cat.product_cat_name)}
+                                        </Link>
+                                    </li>
+                                ))
+                            ) : (
+                                <>
+                                    <li>
+                                        <Link to="/products" className="hover:text-green-400 transition-colors">
+                                            {t("footer.shop.fertilizers")}
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/products" className="hover:text-green-400 transition-colors">
+                                            {t("footer.shop.seeds")}
+                                        </Link>
+                                    </li>
+                                </>
+                            )}
                         </ul>
                     </div>
 
