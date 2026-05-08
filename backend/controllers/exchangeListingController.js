@@ -81,7 +81,7 @@ exports.createListing = async (req, res) => {
       offering_quantity,
       offering_unit: offering_unit || "kg",
       seeking_crop,
-      seeking_quantity,
+      seeking_quantity: seeking_quantity || null,
       seeking_unit: seeking_unit || "kg",
       latitude,
       longitude,
