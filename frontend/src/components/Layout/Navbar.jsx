@@ -220,6 +220,7 @@ const Navbar = () => {
                 </div>
               )}
             </div>
+          </div>
 
           {/* DESKTOP ONLY ICONS */}
           <div className="hidden md:flex items-center gap-6 ml-auto">
