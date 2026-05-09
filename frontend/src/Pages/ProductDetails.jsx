@@ -559,6 +559,9 @@ const ProductDetailPage = () => {
               <button className="py-4 border-b-2 border-emerald-600 text-emerald-600 font-bold text-sm whitespace-nowrap">
                 Description
               </button>
+              <button className="py-4 text-slate-600 hover:text-slate-900 font-medium text-sm whitespace-nowrap">
+                Reviews
+              </button>
             </div>
           </div>
           <div className="p-6">
@@ -574,8 +577,155 @@ const ProductDetailPage = () => {
             </div>
           </div>
         </div>
+        {/* REVIEWS & RATINGS SECTION */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-8">
+          <div className="p-6 border-b border-slate-200">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+              <Star className="text-amber-400 fill-amber-400" size={24} />
+              Reviews & Ratings
+            </h2>
+            {reviewStats && (
+              <div className="flex items-center gap-8 mt-6">
+                <div className="text-center pb-6 md:pb-0 md:pr-8 md:border-r border-slate-200">
+                  <div className="text-5xl font-black text-slate-900">{reviewStats.averageRating?.toFixed(1) || "0.0"}</div>
+                  <div className="flex justify-center my-2">
+                    <StarRating rating={reviewStats.averageRating || 0} size={20} />
+                  </div>
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{reviewStats.totalReviews || 0} Reviews</p>
+                </div>
 
+                {/* Rating Distribution */}
+                <div className="flex-1 max-w-md space-y-2">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = reviewStats.distribution?.[stars] || 0;
+                    const percentage = reviewStats.totalReviews > 0 
+                      ? (count / reviewStats.totalReviews) * 100 
+                      : 0;
+                    return (
+                      <div key={stars} className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-10">
+                          <span className="text-sm font-bold text-slate-700">{stars}</span>
+                          <Star size={12} className="text-amber-400 fill-amber-400" />
+                        </div>
+                        <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-slate-400 w-8">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
+          {/* Review Sort & Submit */}
+          <div className="p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              {token ? (
+                <button
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                  className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition"
+                >
+                  {showReviewForm ? "Cancel" : "Write a Review"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setLoginMessage("Please login to write a review");
+                    setShowLoginModal(true);
+                  }}
+                  className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition"
+                >
+                  Login to Review
+                </button>
+              )}
+              <select
+                value={sortBy}
+                onChange={(e) => handleReviewSort(e.target.value)}
+                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-emerald-600"
+              >
+                <option value="newest">Newest First</option>
+                <option value="highest">Highest Rated</option>
+                <option value="lowest">Lowest Rated</option>
+              </select>
+            </div>
+
+            {/* Review Form */}
+            {showReviewForm && (
+              <form onSubmit={handleSubmitReview} className="border border-slate-200 rounded-lg p-6 bg-slate-50 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-900 mb-2">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setUserRating(star)}
+                        className="focus:outline-none transition"
+                      >
+                        <Star
+                          size={32}
+                          className={star <= userRating ? "text-amber-400 fill-amber-400" : "text-slate-300"}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-900 mb-2">Review</label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Share your experience with this product"
+                    rows="4"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="w-full px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition disabled:bg-slate-400"
+                >
+                  {submittingReview ? "Submitting..." : "Submit Review"}
+                </button>
+              </form>
+            )}
+
+            {/* Reviews List */}
+            <div className="space-y-4">
+              {reviews && reviews.length > 0 ? (
+                reviews.map(review => (
+                  <div key={review.id} className="border border-slate-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-bold text-slate-900">{review.reviewer_name || "Anonymous"}</h4>
+                        <div className="flex gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <Star
+                              key={i}
+                              size={14}
+                              className={i <= review.rating ? "text-amber-400 fill-amber-400" : "text-slate-300"}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-xs text-slate-500">{new Date(review.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-slate-600 text-sm">{review.comment || review.review_text}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate-600 text-center py-8">No reviews yet. Be the first to review!</p>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* PRODUCT Q&A SECTION */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-8">
