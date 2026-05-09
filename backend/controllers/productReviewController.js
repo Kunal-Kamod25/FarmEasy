@@ -18,9 +18,14 @@ exports.createProductReview = async (req, res) => {
     if (rating < 1 || rating > 5) {
       return res.status(400).json({ error: "Rating must be between 1 and 5" });
     }
-
-
-
+    // Check if user already reviewed this product
+    const [existing] = await db.query(
+      "SELECT id FROM product_reviews WHERE user_id = ? AND product_id = ? LIMIT 1",
+      [user_id, product_id]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "You have already reviewed this product" });
+    }
     // Check product exists and get vendor_id
     const [product] = await db.query("SELECT id, seller_id FROM product WHERE id = ? LIMIT 1", [product_id]);
     if (product.length === 0) {
