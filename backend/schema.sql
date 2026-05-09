@@ -339,6 +339,19 @@ CREATE TABLE "payment" (
   CONSTRAINT "payment_ibfk_1" FOREIGN KEY ("order_id") REFERENCES "orders" ("id") ON DELETE CASCADE
 );
 
+-- Table structure for tracking
+CREATE TABLE "tracking" (
+  "order_id" int NOT NULL,
+  "status" varchar(100) DEFAULT 'Order Placed',
+  "user_id" int DEFAULT NULL,
+  "user_name" varchar(255) DEFAULT NULL,
+  "user_address" text,
+  "created_at" timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY ("order_id"),
+  CONSTRAINT "tracking_ibfk_1" FOREIGN KEY ("order_id") REFERENCES "orders" ("id") ON DELETE CASCADE
+);
+
 -- Table structure for product
 CREATE TABLE "product" (
   "id" int NOT NULL AUTO_INCREMENT,

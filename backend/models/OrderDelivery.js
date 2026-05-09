@@ -147,9 +147,9 @@ class OrderDelivery {
         d.current_latitude as driver_latitude,
         d.current_longitude as driver_longitude
       FROM order_deliveries od
-      LEFT JOIN order_details o_detail ON od.order_id = o_detail.order_id
+      LEFT JOIN orders o ON od.order_id = o.id
       LEFT JOIN delivery_drivers d ON od.driver_id = d.id
-      WHERE od.order_id = ? AND o_detail.user_id = ?`,
+      WHERE od.order_id = ? AND o.user_id = ?`,
       [orderId, userId]
     );
 
