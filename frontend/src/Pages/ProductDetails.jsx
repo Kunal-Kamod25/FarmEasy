@@ -46,7 +46,7 @@ const ProductDetailPage = () => {
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Main page loading error
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginMessage, setLoginMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -59,6 +59,7 @@ const ProductDetailPage = () => {
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState(null); // Action-specific error
   const [reviewsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState("newest");
 
@@ -66,6 +67,7 @@ const ProductDetailPage = () => {
   const [queries, setQueries] = useState([]);
   const [newQueryText, setNewQueryText] = useState("");
   const [submittingQuery, setSubmittingQuery] = useState(false);
+  const [queryError, setQueryError] = useState(null); // Action-specific error
   const [answerText, setAnswerText] = useState({});
   const [submittingAnswer, setSubmittingAnswer] = useState(null);
 
@@ -161,12 +163,13 @@ const ProductDetailPage = () => {
     }
 
     if (!userRating || !reviewText.trim()) {
-      setError("Please provide rating and review text");
+      setReviewError("Please provide rating and review text");
       return;
     }
 
     try {
       setSubmittingReview(true);
+      setReviewError(null);
       await axios.post(
         `${API_URL}/api/reviews/product`,
         {
@@ -197,8 +200,9 @@ const ProductDetailPage = () => {
       setUserRating(0);
       setReviewText("");
       setShowReviewForm(false);
+      setReviewError(null);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to submit review");
+      setReviewError(err.response?.data?.error || "Failed to submit review");
     } finally {
       setSubmittingReview(false);
     }
@@ -231,12 +235,13 @@ const ProductDetailPage = () => {
 
     try {
       setSubmittingQuery(true);
+      setQueryError(null);
       await axios.post(`${API_URL}/api/queries/${id}`, { query_text: newQueryText }, { headers: { Authorization: `Bearer ${token}` } });
       setNewQueryText("");
       const queryRes = await axios.get(`${API_URL}/api/queries/${id}`);
       setQueries(queryRes.data || []);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit question");
+      setQueryError(err.response?.data?.message || "Failed to submit question");
     } finally {
       setSubmittingQuery(false);
     }
@@ -247,12 +252,13 @@ const ProductDetailPage = () => {
 
     try {
       setSubmittingAnswer(queryId);
+      setQueryError(null);
       await axios.patch(`${API_URL}/api/queries/${queryId}/answer`, { answer_text: answerText[queryId] }, { headers: { Authorization: `Bearer ${token}` } });
       const queryRes = await axios.get(`${API_URL}/api/queries/${id}`);
       setQueries(queryRes.data || []);
       setAnswerText({ ...answerText, [queryId]: "" });
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit answer");
+      setQueryError(err.response?.data?.message || "Failed to submit answer");
     } finally {
       setSubmittingAnswer(null);
     }
@@ -657,6 +663,12 @@ const ProductDetailPage = () => {
             {/* Review Form */}
             {showReviewForm && (
               <form onSubmit={handleSubmitReview} className="border border-slate-200 rounded-lg p-6 bg-slate-50 space-y-4">
+                {reviewError && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    {reviewError}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-semibold text-slate-900 mb-2">Rating</label>
                   <div className="flex gap-2">
@@ -736,6 +748,12 @@ const ProductDetailPage = () => {
             </h2>
           </div>
           <div className="p-6">
+            {queryError && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
+                {queryError}
+              </div>
+            )}
             <form onSubmit={handleSubmitQuery} className="mb-8">
               <label className="block text-sm font-semibold text-slate-900 mb-2">Have a question? Ask the seller</label>
               <div className="flex gap-4">
