@@ -1,0 +1,83 @@
+===========================================================
+    FARMEASY: BACKEND CONCEPTS & ARCHITECTURE GUIDE
+===========================================================
+
+This document explains the core technical concepts used in the FarmEasy project. Use this to prepare for your evaluation!
+
+-----------------------------------------------------------
+1. WHAT IS MVC ARCHITECTURE? (Model-View-Controller)
+-----------------------------------------------------------
+FarmEasy follows the MVC design pattern, which splits the application into three logical parts to keep the code organized:
+
+* MODEL (Data Layer): Represents the structure of your data and handles all interactions with the MySQL database.
+  -> Example: `backend/models/CropExchange.js` writes the SQL queries (SELECT, INSERT) to talk to the database.
+
+* VIEW (Presentation Layer): This is what the user sees. In your project, the "View" is completely separated and handled by your React.js Frontend.
+
+* CONTROLLER (Logic Layer): The brain of the application. It takes the request from the user, processes the business logic, asks the Model for data, and sends the response back to the user.
+  -> Example: `backend/controllers/loginController.js` takes the email/password, checks if it's correct, and generates a login token.
+
+-----------------------------------------------------------
+2. WHAT IS JWT? (JSON Web Token)
+-----------------------------------------------------------
+JWT is a secure way to transmit information between your React frontend and Node.js backend. It is used for Authentication (Login).
+
+How it works in FarmEasy:
+1. User logs in with email and password.
+2. Backend verifies the password using `bcryptjs`.
+3. Backend creates a JWT token (a long, encrypted string like: "eyJhbGciOiJIUzI1...") that contains the user's ID and role (customer/vendor).
+4. The token is sent to React, which saves it in `localStorage`.
+5. For every future request (like adding an item to the cart or creating a crop exchange), React sends this token in the "Headers".
+6. The Backend `authMiddleware` checks the token. If it's valid, the backend knows exactly who the user is without asking them to log in again.
+
+-----------------------------------------------------------
+3. WHAT IS CORS? (Cross-Origin Resource Sharing)
+-----------------------------------------------------------
+CORS is a security feature implemented by web browsers. By default, browsers block a website running on one port (e.g., React on localhost:5173) from requesting data from a server running on a different port (e.g., Node.js on localhost:5000).
+
+How it works in FarmEasy:
+* In your `backend/server.js`, we use the `cors()` middleware. 
+* This explicitly tells the browser: "It is safe to allow the React frontend to fetch data from this Node.js backend."
+* Without CORS enabled on the backend, the browser would block all your API calls with a "CORS Policy Error".
+
+-----------------------------------------------------------
+4. BACKEND FILE STRUCTURE EXPLAINED
+-----------------------------------------------------------
+Here is exactly where everything lives in your backend folder and what it does:
+
+📁 backend/
+│
+├── 📁 config/              -> Configuration Files
+│   ├── db.js               -> Connects your Node.js app to the MySQL database.
+│   └── s3.js               -> Connects your app to AWS S3 for cloud image storage.
+│
+├── 📁 controllers/         -> Business Logic (The "C" in MVC)
+│   ├── cartController.js   -> Handles adding/removing items from the cart.
+│   ├── loginController.js  -> Handles user/vendor login and Google OAuth.
+│   ├── vendorProductController.js -> Handles vendors uploading new products.
+│   └── exchangeListingController.js -> Handles creating crop exchanges and searching nearby farmers.
+│
+├── 📁 middleware/          -> Gatekeepers / Security
+│   ├── authMiddleware.js   -> Checks if a user has a valid JWT token before letting them access private routes.
+│   ├── roleMiddleware.js   -> Ensures only vendors can access vendor routes, and only customers can access customer routes.
+│   └── uploadMiddleware.js -> Processes image files sent from React using 'multer'.
+│
+├── 📁 models/              -> Database Interactions (The "M" in MVC)
+│   ├── userModel.js        -> SQL queries for creating users and finding users by email.
+│   └── CropExchange.js     -> SQL queries containing the Haversine formula to calculate GPS distances between farmers.
+│
+├── 📁 routes/              -> The API Map
+│   ├── authRoutes.js       -> Maps the URL '/api/auth/login' to the 'loginController'.
+│   ├── productRoutes.js    -> Maps URLs for fetching products.
+│   └── exchangeRoutes.js   -> Maps URLs for crop exchange actions.
+│
+├── 📁 scripts/             -> Helper Utilities
+│   └── seed-data.js        -> A script to automatically fill your database with dummy data for testing.
+│
+├── .env                    -> Secret Keys (Database passwords, AWS keys, Razorpay secrets. NEVER uploaded to GitHub!)
+│
+└── server.js               -> The Main Entry Point. It starts the Express server, enables CORS, connects to MySQL, and loads all the routes.
+
+===========================================================
+END OF DOCUMENT
+===========================================================

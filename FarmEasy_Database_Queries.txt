@@ -1,0 +1,607 @@
+FarmEasy Database Queries
+=========================
+
+File: backend\analyze_products.js
+
+----------------------------------------
+SELECT id, product_image, category_id, seller_id FROM product
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\cartController.js
+
+----------------------------------------
+SELECT id, quantity FROM cart WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+Update Cart Error:
+----------------------------------------
+
+----------------------------------------
+DELETE FROM cart WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM cart WHERE user_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\categoryController.js
+
+----------------------------------------
+SELECT id FROM categories WHERE LOWER(name) = LOWER(?)
+----------------------------------------
+
+----------------------------------------
+INSERT INTO categories (name, description, slug, sort_order) VALUES (?, ?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM categories WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM categories WHERE parent_id = ? AND LOWER(name) = LOWER(?)
+----------------------------------------
+
+----------------------------------------
+INSERT INTO categories (name, description, slug, parent_id, sort_order) VALUES (?, ?, ?, ?, ?)
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\deliveryDriverController.js
+
+----------------------------------------
+Update driver status error:
+----------------------------------------
+
+----------------------------------------
+SELECT user_id FROM orders WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+Update location error:
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\deliveryManagementController.js
+
+----------------------------------------
+SELECT user_id FROM orders WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+Update delivery status error:
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\gstVerificationController.js
+
+----------------------------------------
+SELECT id, gst_verified, gst_no FROM seller WHERE user_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\loginController.js
+
+----------------------------------------
+SELECT id, role FROM users WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\notificationController.js
+
+----------------------------------------
+updated
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ? LIMIT 1
+----------------------------------------
+
+----------------------------------------
+SELECT product_name FROM product WHERE id = ? LIMIT 1
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\otpController.js
+
+----------------------------------------
+SELECT id FROM users WHERE email = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM registration_otps WHERE email = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO registration_otps (email, otp, expires_at) VALUES (?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM registration_otps WHERE email = ? AND otp = ? AND expires_at > ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM registration_otps WHERE email = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\passwordController.js
+
+----------------------------------------
+SELECT id, full_name FROM users WHERE email = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM users WHERE email = ? AND reset_password_token = ? AND reset_password_expires > ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM users WHERE reset_password_token = ? AND reset_password_expires > ?
+----------------------------------------
+
+----------------------------------------
+UPDATE users SET password_hash = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\productReviewController.js
+
+----------------------------------------
+SELECT id FROM product_reviews WHERE user_id = ? AND product_id = ? LIMIT 1
+----------------------------------------
+
+----------------------------------------
+SELECT id, seller_id FROM product WHERE id = ? LIMIT 1
+----------------------------------------
+
+----------------------------------------
+SELECT user_id FROM seller WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO product_reviews (product_id, user_id, vendor_id, rating, title, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM product_reviews WHERE id = ? LIMIT 1
+----------------------------------------
+
+----------------------------------------
+UPDATE product_reviews SET rating = ?, comment = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM product_reviews WHERE id = ? LIMIT 1
+----------------------------------------
+
+----------------------------------------
+DELETE FROM product_reviews WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\profileController.js
+
+----------------------------------------
+Update Profile Error:
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\translationController.js
+
+----------------------------------------
+Selected shipping address will be shown here
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\vendorDashboardController.js
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT COUNT(*) as totalProducts FROM product WHERE seller_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT COUNT(*) as activeOffers FROM product WHERE seller_id = ? AND product_quantity > 0
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\vendorOrderController.js
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\vendorProductController.js
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM product WHERE id = ? AND seller_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM product WHERE id = ? AND seller_id = ?
+----------------------------------------
+
+----------------------------------------
+updateProduct error:
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM product WHERE id = ? AND seller_id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM product WHERE id = ? AND seller_id = ?
+----------------------------------------
+
+----------------------------------------
+deleteProduct error:
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\vendorProfileController.js
+
+----------------------------------------
+SELECT profile_pic FROM users WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+updateProfile error:
+----------------------------------------
+
+==================================================
+
+File: backend\controllers\wishlistController.js
+
+----------------------------------------
+SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM wishlist WHERE user_id = ? AND product_id = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)
+----------------------------------------
+
+==================================================
+
+File: backend\middleware\auth.js
+
+----------------------------------------
+SELECT id FROM users WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\DeliveryDriver.js
+
+----------------------------------------
+SELECT id FROM delivery_drivers WHERE driver_phone = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO delivery_drivers (driver_name, driver_phone, driver_email, license_number, vehicle_type, vehicle_color, vehicle_registration, license_image, vehicle_image, user_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'offline')
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM delivery_drivers WHERE driver_phone = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET status = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET current_latitude = ?, current_longitude = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET average_rating = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET 
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET status = 'offline' WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\DeliveryNotification.js
+
+----------------------------------------
+SELECT phone, email, push_token FROM users WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET sms_status = 'sent' WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET sms_status = 'failed' WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET push_status = 'sent' WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET push_status = 'failed' WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET opened_at = CURRENT_TIMESTAMP WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET opened_at = CURRENT_TIMESTAMP WHERE user_id = ? AND opened_at IS NULL
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_notifications SET acted_on = TRUE WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\OrderDelivery.js
+
+----------------------------------------
+SELECT id FROM order_deliveries WHERE order_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM order_deliveries WHERE order_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT current_latitude, current_longitude FROM delivery_drivers WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE order_deliveries SET 
+----------------------------------------
+
+----------------------------------------
+UPDATE delivery_drivers SET current_latitude = ?, current_longitude = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT current_latitude, current_longitude FROM delivery_drivers WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE order_deliveries SET estimated_delivery_time = ? WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\ProductReview.js
+
+----------------------------------------
+SELECT image_url FROM review_images WHERE review_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT image_url FROM review_images WHERE review_id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM product_reviews WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\userModel.js
+
+----------------------------------------
+SELECT * FROM users WHERE email = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM users WHERE phone_number = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM users WHERE email = ? OR phone_number = ?
+----------------------------------------
+
+==================================================
+
+File: backend\models\VendorReview.js
+
+----------------------------------------
+SELECT vendor_id FROM vendor_reviews WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT vendor_id FROM vendor_reviews WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM vendor_reviews WHERE id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\routes\adminRoutes.js
+
+----------------------------------------
+SELECT COUNT(*) as totalUsers FROM users
+----------------------------------------
+
+----------------------------------------
+SELECT COUNT(*) as totalProducts FROM product
+----------------------------------------
+
+----------------------------------------
+SELECT COUNT(*) as totalOrders FROM orders
+----------------------------------------
+
+----------------------------------------
+SELECT COALESCE(SUM(total_price), 0) as totalRevenue FROM orders
+----------------------------------------
+
+==================================================
+
+File: backend\routes\orderRoutes.js
+
+----------------------------------------
+INSERT INTO orders (user_id, total_price, order_status) VALUES (?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM cart WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO payment (order_id, payment_method, amount, status) VALUES (?, ?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+SELECT s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id, user_id FROM orders WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM orders WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+UPDATE orders SET order_status = ? WHERE id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT s.id, s.shop_name, u.email FROM seller s JOIN users u ON s.user_id = u.id WHERE s.id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\routes\seller.js
+
+----------------------------------------
+SELECT * FROM seller WHERE user_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\routes\vendorProducts.js
+
+----------------------------------------
+SELECT * FROM users WHERE email = ? AND role = 'vendor'
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT * FROM product WHERE seller_id = ?
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+INSERT INTO product (product_name, product_description, price, product_quantity, seller_id) VALUES (?, ?, ?, ?, ?)
+----------------------------------------
+
+----------------------------------------
+SELECT id FROM seller WHERE user_id = ?
+----------------------------------------
+
+----------------------------------------
+DELETE FROM product WHERE id = ? AND seller_id = ?
+----------------------------------------
+
+==================================================
+
+File: backend\server.js
+
+----------------------------------------
+DELETE
+----------------------------------------
+
+==================================================
+
